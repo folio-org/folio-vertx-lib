@@ -18,7 +18,6 @@ import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.ext.web.Router;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.pgclient.PgConnectOptions;
 import java.io.IOException;
@@ -40,8 +39,6 @@ import org.junit.Test;
 import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 import org.testcontainers.containers.PostgreSQLContainer;
-
-import javax.enterprise.inject.Stereotype;
 
 @RunWith(VertxUnitRunner.class)
 public class Tenant2ApiTest {
