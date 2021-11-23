@@ -33,9 +33,6 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <openapi-generator.version>5.1.0</openapi-generator.version>
-    <jackson-databind-nullable.version>0.1.0</jackson-databind-nullable.version>
-    <tenant.yaml.file>${project.basedir}/src/main/resources/openapi/tenant-2.0.yaml</tenant.yaml.file>
   </properties>
 
   <dependencyManagement>
@@ -138,28 +135,6 @@
       <artifactId>netty-tcnative-boringssl-static</artifactId>
       <scope>runtime</scope>
     </dependency>
-    <dependency>
-      <groupId>org.openapitools</groupId>
-      <artifactId>openapi-generator</artifactId>
-      <version>${openapi-generator.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-simple</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.openapitools</groupId>
-      <artifactId>openapi-generator-maven-plugin</artifactId>
-      <version>${openapi-generator.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.openapitools</groupId>
-      <artifactId>jackson-databind-nullable</artifactId>
-      <version>${jackson-databind-nullable.version}</version>
-    </dependency>
-
     <!-- Test dependencies -->
     <dependency>
       <groupId>junit</groupId>
