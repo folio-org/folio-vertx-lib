@@ -35,7 +35,7 @@ API descriptions:
 
 ### Code analysis
 
-[SonarQube analysis](https://sonarcloud.io/dashboard?id=org.folio%3Afolio-vertx-lib).
+[SonarQube analysis](https://sonarcloud.io/project/overview?id=org.folio%3Avertx-lib)
 
 ### Download and configuration
 
