@@ -14,6 +14,7 @@ library, not a framework, with utilities in no particular order:
  * OpenAPI support.
  * Tenant API 2.0 support with hooks for doing migrations.
  * PostgresQL utilities
+ * CQL support
 
 ## Additional information
 
