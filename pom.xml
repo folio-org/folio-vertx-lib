@@ -5,7 +5,7 @@
   <version>1.0.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>eUsage Reports</name>
+  <name>FOLIO Vert.x library</name>
   <url>https://github.com/folio-org/folio-vertx-lib</url>
   <description>
     A utility library for FOLIO modules based on Vert.x. Includes
