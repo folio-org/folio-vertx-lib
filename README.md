@@ -7,7 +7,7 @@ Version 2.0. See the file "[LICENSE](LICENSE)" for more information.
 
 ## Introduction
 
-[vertx-folio-lib](https://github.com/folio-org/vertx-folio-lib)
+[folio-vertx-lib](https://github.com/folio-org/folio-vertx-lib)
 is a library for developing FOLIO modules based on Vert.x. This is a
 library, not a framework, with utilities in no particular order:
 
@@ -34,7 +34,7 @@ API descriptions:
 
 ### Code analysis
 
-[SonarQube analysis](https://sonarcloud.io/dashboard?id=org.folio%3Avertx-folio-lib).
+[SonarQube analysis](https://sonarcloud.io/dashboard?id=org.folio%3Afolio-vertx-lib).
 
 ### Download and configuration
 
