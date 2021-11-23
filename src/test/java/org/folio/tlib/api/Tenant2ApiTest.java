@@ -60,7 +60,7 @@ public class Tenant2ApiTest {
   @ClassRule
   public static PostgreSQLContainer<?> postgresSQLContainer = TenantPgPoolContainer.create();
 
-  static class TenantInitHooks implements org.folio.tlib.TenantInitHooks {
+  static class TestInitHooks implements org.folio.tlib.TenantInitHooks {
 
     Promise<Void> preInitPromise;
     Promise<Void> postInitPromise;
@@ -82,7 +82,7 @@ public class Tenant2ApiTest {
     }
   }
 
-  static TenantInitHooks hooks = new TenantInitHooks();
+  static TestInitHooks hooks = new TestInitHooks();
   private static PgConnectOptions initialPgConnectOptions;
 
   @BeforeClass
