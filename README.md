@@ -25,10 +25,13 @@ happens at run-time. Only requests are validated, not responses.
 Place your OpenAPI specification and auxiliary files somewhere in `resources`,
 such as `resources/openapi`.
 
-The following code sections shown are snippets from
-[MainVerticle](csrc/test/java/org/folio/tlib/example/MainVerticle.java)
+In the following example, we will
+use OpenAPI spec
+[myapi-1.0.yaml](src/test/resources/openapi/myapi-1.0.yaml).
+The code snippets shown are from:
+[MainVerticle](src/test/java/org/folio/tlib/example/MainVerticle.java)
 and
-[MyApi](csrc/test/java/org/folio/tlib/example/MyApi.java).
+[MyApi](src/test/java/org/folio/tlib/example/MyApi.java).
 
 Unlike RMB, you define MainVerticle yourself - no fancy initializers - you decide.
 
@@ -115,14 +118,15 @@ The preInit job should be "fast" and is a way for the module to check if the
 operation can be started.. ("pre-check"). The postInit should perform the
 actual migration.
 
-The Tenant2Api implementaion deals with purge (removes schema with cascade). Your
-implementation should only consider upgrade/downgrade.
+The Tenant2Api implementaion deals with purge (removes schema with cascade).
+Your implementation should only consider upgrade/downgrade.
 
 ## PostgreSQL
 
-The PostgreSQL support is minimal There's just enough to perform tenant separation and most
-environment variables that are also recognized by RMB such as
-`DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_DATABASE`, `DB_MAXPOOLSIZE`, `DB_SERVER_PEM`.
+The PostgreSQL support is minimal There's just enough to perform tenant
+separation and most environment variables that are also recognized by RMB
+such as `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_DATABASE`,
+`DB_MAXPOOLSIZE`, `DB_SERVER_PEM`.
 
 The class [TenantPgPool](src/main/java/org/folio/tlib/postgres/TenantPgPool.java) is
 a small extension to the PgPool interface. The key method is `TenantPgPool.pool`
