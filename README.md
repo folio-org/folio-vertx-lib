@@ -109,7 +109,8 @@ public MyApi implements RouterCreator, TenantInitHooks {
 To support tenant init, your module should implementing `preInit` and `postInit`.
 
 These methods takes tenant ID and tenant
-[init attributes object](src/main/resources/schemas/tenantAttributes.json).
+[init attributes object]
+(src/main/resources/openapi/schemas/tenantAttributes.json).
 
 The preInit job should be "fast" and is a way for the module to check if the
 operation can be started.. ("pre-check"). The postInit should perform the
