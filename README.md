@@ -37,7 +37,7 @@ Example:
 public class MainVerticle extends AbstractVerticle {
   @Override
   public void start(Promise<Void> promise) {
-    TenantPgPool.setModule("mod-mymodule"); // PostgreSQL - schema separaration
+    TenantPgPool.setModule("mod-mymodule"); // PostgreSQL - schema separation
 
     final int port = Integer.parseInt( // listening port
         Config.getSysConf("http.port", "port", "8081", config()));

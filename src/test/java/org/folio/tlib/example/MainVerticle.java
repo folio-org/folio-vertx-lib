@@ -13,7 +13,7 @@ import org.folio.tlib.postgres.TenantPgPool;
 public class MainVerticle extends AbstractVerticle {
   @Override
   public void start(Promise<Void> promise) {
-    TenantPgPool.setModule("mod-mymodule"); // Postgres - schema separaration
+    TenantPgPool.setModule("mod-mymodule"); // Postgres - schema separation
 
     final int port = Integer.parseInt( // listening port
         Config.getSysConf("http.port", "port", "8081", config()));
@@ -25,7 +25,6 @@ public class MainVerticle extends AbstractVerticle {
         new Tenant2Api(myApi),
         new HealthApi(),
     };
-    System.out.println("port is " + port);
     // combine all routes and start server
     RouterCreator.mountAll(vertx, WebClient.create(vertx), routerCreators)
         .compose(router -> {
