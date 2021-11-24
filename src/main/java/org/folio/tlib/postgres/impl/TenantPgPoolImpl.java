@@ -83,7 +83,6 @@ public class TenantPgPoolImpl implements TenantPgPool {
 
   private TenantPgPoolImpl(Vertx vertx) {
     config = vertx.getOrCreateContext().config();
-    log.info("Create TenantPgPoolImpl {}", config.encodePrettily());
   }
 
   /**
