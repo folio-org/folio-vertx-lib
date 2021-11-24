@@ -100,7 +100,7 @@ public MyApi implements RouterCreator, TenantInitHooks {
         });
     routerBuilder
         .operation("getTitles")
-        .handler(ctx -> getTitle(vertx, ctx)
+        .handler(ctx -> getTitles(vertx, ctx)
             .onFailure(cause -> {
               ctx.response().setStatusCode(500);
               ctx.response().end(cause.getMessage());
@@ -159,7 +159,7 @@ For CQL support *all* fields recognized must be explicitly defined. Undefined CQ
 fields are rejected. Example to get titles:
 
 ```
- private Future<Void> getTitle(Vertx vertx, RoutingContext ctx) {
+ private Future<Void> getTitles(Vertx vertx, RoutingContext ctx) {
     RequestParameters params = ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY);
     String tenant = params.headerParameter(XOkapiHeaders.TENANT).getString();
     PgCqlQuery pgCqlQuery = PgCqlQuery.query();
