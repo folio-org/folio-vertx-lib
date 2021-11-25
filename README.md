@@ -19,7 +19,7 @@ library, not a framework, with utilities such as:
 ## Main Verticle
 
 The [Vert.x OpenAPI](https://vertx.io/docs/vertx-web-openapi/java/) unlike
-many OpenAPI implementations does not gernerate any code for you. Everything
+many OpenAPI implementations does not generate any code for you. Everything
 happens at run-time. Only requests are validated, not responses.
 
 Place your OpenAPI specification and auxiliary files somewhere in `resources`,
