@@ -33,6 +33,8 @@ API descriptions:
  * [OpenAPI](src/main/resources/openapi/)
  * [Schemas](src/main/resources/openapi/schemas/)
 
+Generated [API documentation](https://dev.folio.org/reference/api/#folio-vertx-lib).
+
 ### Code analysis
 
 [SonarQube analysis](https://sonarcloud.io/project/overview?id=org.folio%3Avertx-lib)
