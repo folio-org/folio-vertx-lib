@@ -218,9 +218,16 @@ public class TenantPgPoolTest {
   }
 
   @Test
-  public void size() {
-    TenantPgPool pool = TenantPgPool.pool(vertx, "diku");
+  public void size(TestContext context) {
+    final TenantPgPool pool = TenantPgPool.pool(vertx, "diku");
     assertThat(pool.size(), is(0));
+    pool.query("SELECT count(*) FROM pg_database")
+        .execute()
+        .onComplete(context.asyncAssertSuccess(x -> {
+          assertThat(pool.size(), is(1));
+          pool.close()
+              .onComplete(context.asyncAssertSuccess(y -> assertThat(pool.size(), is(0))));
+        }));
   }
 
   @Test
