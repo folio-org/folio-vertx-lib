@@ -167,9 +167,7 @@ public class TenantPgPoolImpl implements TenantPgPool {
 
   @Override
   public PreparedQuery<RowSet<Row>> preparedQuery(String s) {
-    String e = subst(s);
-    log.info("preparedQuery {}", e);
-    return pgPool.preparedQuery(e);
+    return preparedQuery(s, null);
   }
 
   @Override
