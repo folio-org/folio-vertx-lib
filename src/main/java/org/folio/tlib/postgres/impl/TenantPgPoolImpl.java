@@ -1,6 +1,7 @@
 package org.folio.tlib.postgres.impl;
 
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -12,6 +13,7 @@ import io.vertx.pgclient.PgConnectOptions;
 import io.vertx.pgclient.PgPool;
 import io.vertx.pgclient.SslMode;
 import io.vertx.sqlclient.PoolOptions;
+import io.vertx.sqlclient.PrepareOptions;
 import io.vertx.sqlclient.PreparedQuery;
 import io.vertx.sqlclient.Query;
 import io.vertx.sqlclient.Row;
@@ -22,6 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.tlib.postgres.TenantPgPool;
@@ -164,9 +167,14 @@ public class TenantPgPoolImpl implements TenantPgPool {
 
   @Override
   public PreparedQuery<RowSet<Row>> preparedQuery(String s) {
+    return preparedQuery(s, null);
+  }
+
+  @Override
+  public PreparedQuery<RowSet<Row>> preparedQuery(String s, PrepareOptions prepareOptions) {
     String e = subst(s);
     log.info("preparedQuery {}", e);
-    return pgPool.preparedQuery(e);
+    return pgPool.preparedQuery(e, prepareOptions);
   }
 
   @Override
@@ -225,4 +233,18 @@ public class TenantPgPoolImpl implements TenantPgPool {
         }).mapEmpty();
   }
 
+  @Override
+  public PgPool connectHandler(Handler<SqlConnection> handler) {
+    return pgPool.connectHandler(handler);
+  }
+
+  @Override
+  public PgPool connectionProvider(Function<Context, Future<SqlConnection>> function) {
+    return pgPool.connectionProvider(function);
+  }
+
+  @Override
+  public int size() {
+    return pgPool.size();
+  }
 }

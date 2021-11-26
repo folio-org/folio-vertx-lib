@@ -387,7 +387,7 @@ public class Tenant2ApiTest {
     hooks.postInitPromise.fail((String) null);
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
-        .get(location)
+        .get(location + "?wait=1")
         .then().statusCode(200)
         .body("complete", is(true))
         .body("error", is("io.vertx.core.impl.NoStackTraceThrowable"));

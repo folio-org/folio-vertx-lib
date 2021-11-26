@@ -8,6 +8,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.sqlclient.PrepareOptions;
 import io.vertx.sqlclient.SqlConnection;
 import io.vertx.sqlclient.Tuple;
 import java.io.IOException;
@@ -120,15 +121,15 @@ public class TenantPgPoolTest {
     withPool(pool -> pool
         .query("SELECT count(*) FROM pg_database")
         .execute())
-    .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.asyncAssertSuccess());
   }
 
   @Test
-  public void preparedQueryOk(TestContext context) {
+  public void preparedQueryOptionsOk(TestContext context) {
     withPool(pool -> pool
-        .preparedQuery("SELECT * FROM pg_database WHERE datname=$1")
+        .preparedQuery("SELECT * FROM pg_database WHERE datname=$1", new PrepareOptions())
         .execute(Tuple.of("postgres")))
-    .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.asyncAssertSuccess());
   }
 
   @Test
@@ -216,4 +217,34 @@ public class TenantPgPoolTest {
     }));
   }
 
+  @Test
+  public void size(TestContext context) {
+    final TenantPgPool pool = TenantPgPool.pool(vertx, "diku");
+    assertThat(pool.size(), is(0));
+    pool.query("SELECT count(*) FROM pg_database")
+        .execute()
+        .onComplete(context.asyncAssertSuccess(x -> {
+          assertThat(pool.size(), is(1));
+          pool.close()
+              .onComplete(context.asyncAssertSuccess(y -> assertThat(pool.size(), is(0))));
+        }));
+  }
+
+  @Test
+  public void close(TestContext context) {
+    TenantPgPool pool = TenantPgPool.pool(vertx, "diku");
+    pool.close(context.asyncAssertSuccess());
+  }
+
+  @Test
+  public void connectHandler(TestContext context) {
+    TenantPgPool pool = TenantPgPool.pool(vertx, "diku");
+    pool.connectHandler(conn ->
+        conn.query("CREATE TEMP TABLE connecthandler()")
+            .execute()
+            .eventually(x -> conn.close())
+    );
+    pool.withConnection(conn -> conn.preparedQuery("SELECT * FROM connecthandler").execute())
+        .onComplete(context.asyncAssertSuccess(rowSet -> assertThat(rowSet.size(), is(0))));
+  }
 }
