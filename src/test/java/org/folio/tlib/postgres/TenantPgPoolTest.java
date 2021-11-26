@@ -239,7 +239,12 @@ public class TenantPgPoolTest {
   @Test
   public void connectHandler(TestContext context) {
     TenantPgPool pool = TenantPgPool.pool(vertx, "diku");
-    pool.connectHandler(null);
+    pool.connectHandler(conn ->
+        conn.query("CREATE TEMP TABLE connecthandler()")
+            .execute()
+            .eventually(x -> conn.close())
+    );
+    pool.withConnection(conn -> conn.preparedQuery("SELECT * FROM connecthandler").execute())
+        .onComplete(context.asyncAssertSuccess(rowSet -> assertThat(rowSet.size(), is(0))));
   }
-
 }
