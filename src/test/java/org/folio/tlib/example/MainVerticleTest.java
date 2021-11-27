@@ -22,6 +22,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.io.IOException;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
@@ -53,7 +54,7 @@ public class MainVerticleTest {
     vertx.close().onComplete(context.asyncAssertSuccess());
   }
 
-  void tenantOp(TestContext context, String tenant, JsonObject tenantAttributes, String expectedError) {
+  void tenantOp(String tenant, JsonObject tenantAttributes, String expectedError) {
     ExtractableResponse<Response> response = RestAssured.given()
         .header(XOkapiHeaders.TENANT, tenant)
         .header("Content-Type", "application/json")
@@ -65,19 +66,17 @@ public class MainVerticleTest {
     if (response.statusCode() == 204) {
       return;
     }
-    context.assertEquals(201, response.statusCode());
+    assertThat(response.statusCode(), is(201));
     String location = response.header("Location");
     JsonObject tenantJob = new JsonObject(response.asString());
-    context.assertEquals("/_/tenant/" + tenantJob.getString("id"), location);
+    assertThat(location, is("/_/tenant/" + tenantJob.getString("id")));
 
-    response = RestAssured.given()
+    RestAssured.given()
         .header(XOkapiHeaders.TENANT, tenant)
         .get(location + "?wait=10000")
         .then().statusCode(200)
-        .extract();
-
-    context.assertTrue(response.path("complete"));
-    context.assertEquals(expectedError, response.path("error"));
+        .body("complete", is(true))
+            .body("error", is(expectedError));
 
     RestAssured.given()
         .header(XOkapiHeaders.TENANT, tenant)
@@ -88,7 +87,7 @@ public class MainVerticleTest {
   @Test
   public void tenantInit(TestContext context) {
     String tenant = "testlib";
-    tenantOp(context, tenant, new JsonObject()
+    tenantOp(tenant, new JsonObject()
         .put("module_to", "mod-mymodule-1.0.0")
             .put("parameters", new JsonArray()
                 .add(new JsonObject().put("key", "loadSample").put("value", "true")))
@@ -130,7 +129,7 @@ public class MainVerticleTest {
         .body("titles", hasSize(1))
         .body("titles[0].title", is("First title"));
 
-    tenantOp(context, tenant, new JsonObject()
+    tenantOp(tenant, new JsonObject()
             .put("module_from", "mod-mymodule-1.0.0")
             .put("purge", true), null);
 
