@@ -33,7 +33,9 @@ The code snippets shown are from:
 and
 [MyApi](src/test/java/org/folio/tlib/example/MyApi.java).
 
-Unlike RMB, you define MainVerticle yourself - no fancy initializers - you decide.
+Unlike
+[RMB](https://github.com/folio-org/raml-module-builder), you define
+MainVerticle yourself - no fancy initializers - you decide.
 
 Example:
 ```
