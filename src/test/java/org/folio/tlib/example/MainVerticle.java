@@ -25,16 +25,16 @@ public class MainVerticle extends AbstractVerticle {
         new Tenant2Api(myApi),
         new HealthApi(),
     };
+    HttpServerOptions so = new HttpServerOptions()
+        .setHandle100ContinueAutomatically(true);
     // combine all routes and start server
     RouterCreator.mountAll(vertx, WebClient.create(vertx), routerCreators)
-        .compose(router -> {
-          HttpServerOptions so = new HttpServerOptions()
-              .setHandle100ContinueAutomatically(true);
-          return vertx.createHttpServer(so)
-              .requestHandler(router)
-              .listen(port).mapEmpty();
-        })
-        .onComplete(x -> promise.handle(x.mapEmpty()));
+        .compose(router ->
+            vertx.createHttpServer(so)
+                .requestHandler(router)
+                .listen(port).mapEmpty())
+        .<Void>mapEmpty()
+        .onComplete(promise);
   }
 }
 

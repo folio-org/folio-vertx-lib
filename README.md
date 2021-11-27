@@ -52,17 +52,16 @@ public class MainVerticle extends AbstractVerticle {
         new Tenant2Api(myApi),
         new HealthApi(),
     };
-
+    HttpServerOptions so = new HttpServerOptions()
+        .setHandle100ContinueAutomatically(true);
     // combine all routes and start server
     RouterCreator.mountAll(vertx, WebClient.create(vertx), routerCreators)
-        .compose(router -> {
-          HttpServerOptions so = new HttpServerOptions()
-              .setHandle100ContinueAutomatically(true);
-          return vertx.createHttpServer(so)
-              .requestHandler(router)
-              .listen(port).mapEmpty();
-        })
-        .onComplete(x -> promise.handle(x.mapEmpty()));
+        .compose(router ->
+            vertx.createHttpServer(so)
+                .requestHandler(router)
+                .listen(port).mapEmpty())
+        .<Void>mapEmpty()
+        .onComplete(promise);
   }
 }
 ```
@@ -111,8 +110,8 @@ public MyApi implements RouterCreator, TenantInitHooks {
 
 To support tenant init, your module should implementing `preInit` and `postInit`.
 
-These methods takes tenant ID and tenant
-[init attributes object](src/main/resources/openapi/schemas/tenantAttributes.json).
+These methods takes tenant ID and
+[tene tinit attributes object](src/main/resources/openapi/schemas/tenantAttributes.json).
 
 The preInit job should be "fast" and is a way for the module to check if the
 operation can be started.. ("pre-check"). The postInit should perform the
@@ -123,7 +122,7 @@ Your implementation should only consider upgrade/downgrade.
 
 ## PostgreSQL
 
-The PostgreSQL support is minimal There's just enough to perform tenant
+The PostgreSQL support is minimal. There's just enough to perform tenant
 separation and most environment variables that are also recognized by RMB
 such as `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_DATABASE`,
 `DB_MAXPOOLSIZE`, `DB_SERVER_PEM`.
