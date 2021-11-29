@@ -15,8 +15,8 @@ public class MainVerticle extends AbstractVerticle {
   public void start(Promise<Void> promise) {
     TenantPgPool.setModule("mod-mymodule"); // Postgres - schema separation
 
-    final int port = Integer.parseInt( // listening port
-        Config.getSysConf("http.port", "port", "8081", config()));
+    // listening port
+    final int port = Integer.parseInt(Config.getSysConf("http.port", "port", "8081", config()));
 
     MyApi myApi = new MyApi(); // your API, construct the way you like
     // routes for your stuff, tenant API and health
