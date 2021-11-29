@@ -14,14 +14,13 @@ import io.vertx.ext.web.validation.ValidationHandler;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowIterator;
 import io.vertx.sqlclient.Tuple;
+import java.util.UUID;
 import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.tlib.RouterCreator;
 import org.folio.tlib.TenantInitHooks;
 import org.folio.tlib.postgres.PgCqlField;
 import org.folio.tlib.postgres.PgCqlQuery;
 import org.folio.tlib.postgres.TenantPgPool;
-
-import java.util.UUID;
 
 public class MyApi implements RouterCreator, TenantInitHooks {
   @Override
