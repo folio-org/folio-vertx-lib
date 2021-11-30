@@ -70,15 +70,24 @@ public class MainVerticle extends AbstractVerticle {
 
 ## Your API
 
+<<<<<<< HEAD
 Your API must implement [RouterCreator](core/src/main/java/org/folio/tlib/RouterCreator.java)
 and, optionally, [TenantInitHooks](core/src/main/java/org/folio/tlib/TenantInitHooks.java)
 if your implementation has storage and that storage must be prepard for a tenant.
+=======
+Your API must implement [RouterCreator](src/main/java/org/folio/tlib/RouterCreator.java)
+and, optionally, [TenantInitHooks](src/main/java/org/folio/tlib/TenantInitHooks.java)
+if your implementation has storage and that storage must be prepared for a
+tenant.
+
+With the API there is a corresponding OpenAPI specification.
+>>>>>>> origin/master
 
 The `RouterCreator` interface has just one method `createRouter` where you
-return a Router for your implemenation. Normally that's created for you by the
+return a Router for your implementation. Normally that's created for you by the
 OpenAPI library, but you can also define it yourself.
 
-For an OpenAPI based implemenation it could look as follows:
+For an OpenAPI based implementation it could look as follows:
 
 ```
 public MyApi implements RouterCreator, TenantInitHooks {
@@ -110,17 +119,18 @@ public MyApi implements RouterCreator, TenantInitHooks {
 }
 ```
 
-To support tenant init, your module should implementing `preInit` and `postInit`.
+To support tenant init, your module should implement `preInit` and `postInit`.
 
 These methods takes tenant ID and
-[tenant init attributes object](core/src/main/resources/openapi/schemas/tenantAttributes.json).
+[tenant attributes object](core/src/main/resources/openapi/schemas/tenantAttributes.json).
 
-The preInit job should be "fast" and is a way for the module to check if the
+The `preInit` job should be "fast" and is a way for the module to check if the
 operation can be started.. ("pre-check"). The postInit should perform the
 actual migration.
 
-The Tenant2Api implementaion deals with purge (removes schema with cascade).
-Your implementation should only consider upgrade/downgrade.
+The Tenant2Api implementation deals with purge (removes schema with cascade).
+Your implementation should only consider upgrade/downgrade. On purge,
+`preInit` is called, but `postInit` is not.
 
 ## PostgreSQL
 
@@ -138,7 +148,8 @@ Use the `getSchema` method for that.
 The `TenantPgPool.setModule` *must* be called before first use as is done in
 MainVerticle example earlier.
 
-To illustrate these things, consider a module that prepares a table in tenant init.
+To illustrate these things, consider a module that prepares a table in
+tenant init.
 
 ```
   @Override
