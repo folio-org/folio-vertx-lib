@@ -36,6 +36,8 @@
 
   <modules>
     <module>core</module>
+    <module>pg-testing</module>
+    <module>example</module>
   </modules>
 
   <dependencyManagement>
