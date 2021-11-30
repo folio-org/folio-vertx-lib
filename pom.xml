@@ -6,7 +6,6 @@
   <packaging>pom</packaging>
 
   <name>FOLIO Vert.x library</name>
-  <url>https://github.com/folio-org/folio-vertx-lib</url>
   <description>
     A utility library for FOLIO modules based on Vert.x. Includes
     OpenAPI specfications for Tenant API and Postgresql handling.
