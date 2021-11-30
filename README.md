@@ -27,11 +27,11 @@ such as `resources/openapi`.
 
 In the following example, we will
 use OpenAPI spec
-[myapi-1.0.yaml](src/test/resources/openapi/myapi-1.0.yaml).
+[myapi-1.0.yaml](example/src/main/resources/openapi/myapi-1.0.yaml).
 The code snippets shown are from:
-[MainVerticle](src/test/java/org/folio/tlib/example/MainVerticle.java)
+[MainVerticle](example/src/main/java/org/folio/tlib/example/MainVerticle.java)
 and
-[MyApi](src/test/java/org/folio/tlib/example/MyApi.java).
+[MyApi](example/src/main/java/org/folio/tlib/example/MyApi.java).
 
 Unlike
 [RMB](https://github.com/folio-org/raml-module-builder), you define
@@ -70,8 +70,8 @@ public class MainVerticle extends AbstractVerticle {
 
 ## Your API
 
-Your API must implement [RouterCreator](src/main/java/org/folio/tlib/RouterCreator.java)
-and, optionally, [TenantInitHooks](src/main/java/org/folio/tlib/TenantInitHooks.java)
+Your API must implement [RouterCreator](core/src/main/java/org/folio/tlib/RouterCreator.java)
+and, optionally, [TenantInitHooks](core/src/main/java/org/folio/tlib/TenantInitHooks.java)
 if your implementation has storage and that storage must be prepard for a tenant.
 
 The `RouterCreator` interface has just one method `createRouter` where you
@@ -113,7 +113,7 @@ public MyApi implements RouterCreator, TenantInitHooks {
 To support tenant init, your module should implementing `preInit` and `postInit`.
 
 These methods takes tenant ID and
-[tene tinit attributes object](src/main/resources/openapi/schemas/tenantAttributes.json).
+[tenant init attributes object](core/src/main/resources/openapi/schemas/tenantAttributes.json).
 
 The preInit job should be "fast" and is a way for the module to check if the
 operation can be started.. ("pre-check"). The postInit should perform the
@@ -129,7 +129,7 @@ separation and most environment variables that are also recognized by RMB
 such as `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_DATABASE`,
 `DB_MAXPOOLSIZE`, `DB_SERVER_PEM`.
 
-The class [TenantPgPool](src/main/java/org/folio/tlib/postgres/TenantPgPool.java) is
+The class [TenantPgPool](core/src/main/java/org/folio/tlib/postgres/TenantPgPool.java) is
 a small extension to the PgPool interface. The key method is `TenantPgPool.pool`
 for constructing a pool for the current tenant. From that point, rest is plain
 Vert.x pg client. However, the schema should be used when referring to tables, etc.
@@ -211,8 +211,8 @@ Refer to the Wiki [FOLIO Code of Conduct](https://wiki.folio.org/display/COMMUNI
 ### API documentation
 
 API descriptions:
- * [OpenAPI](src/main/resources/openapi/)
- * [Schemas](src/main/resources/openapi/schemas/)
+ * [OpenAPI](core/src/main/resources/openapi/)
+ * [Schemas](core/src/main/resources/openapi/schemas/)
 
 Generated [API documentation](https://dev.folio.org/reference/api/#folio-vertx-lib).
 
