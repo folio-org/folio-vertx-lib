@@ -2,6 +2,7 @@
 buildMvn {
   mvnDeploy = 'yes'
   buildNode =  'jenkins-agent-java11'
+  runSonarqube = false
 
   doApiLint = true
   doApiDoc = true
