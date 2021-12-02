@@ -12,7 +12,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.folio.okapi.common.XOkapiHeaders;
-import org.folio.tlib.postgres.TenantPgPoolContainer;
+import org.folio.tlib.postgres.testing.TenantPgPoolContainer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
