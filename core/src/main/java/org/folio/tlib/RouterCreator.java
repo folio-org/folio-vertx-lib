@@ -18,8 +18,8 @@ public interface RouterCreator {
    */
   static Future<Router> mountAll(Vertx vertx, WebClient webClient,
       RouterCreator [] routerCreators) {
-    Router router = Router.router(vertx);
     Future<Void> future = Future.succeededFuture();
+    Router router = Router.router(vertx);
     for (RouterCreator routerCreator : routerCreators) {
       future = future.compose(x -> routerCreator.createRouter(vertx, webClient))
           .map(subRouter -> {
