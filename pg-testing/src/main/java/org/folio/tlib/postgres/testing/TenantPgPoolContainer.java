@@ -1,6 +1,7 @@
-package org.folio.tlib.postgres;
+package org.folio.tlib.postgres.testing;
 
 import io.vertx.pgclient.PgConnectOptions;
+import org.folio.tlib.postgres.TenantPgPool;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 public final class TenantPgPoolContainer {
