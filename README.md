@@ -70,18 +70,12 @@ public class MainVerticle extends AbstractVerticle {
 
 ## Your API
 
-<<<<<<< HEAD
-Your API must implement [RouterCreator](core/src/main/java/org/folio/tlib/RouterCreator.java)
-and, optionally, [TenantInitHooks](core/src/main/java/org/folio/tlib/TenantInitHooks.java)
-if your implementation has storage and that storage must be prepard for a tenant.
-=======
 Your API must implement [RouterCreator](src/main/java/org/folio/tlib/RouterCreator.java)
 and, optionally, [TenantInitHooks](src/main/java/org/folio/tlib/TenantInitHooks.java)
 if your implementation has storage and that storage must be prepared for a
 tenant.
 
 With the API there is a corresponding OpenAPI specification.
->>>>>>> origin/master
 
 The `RouterCreator` interface has just one method `createRouter` where you
 return a Router for your implementation. Normally that's created for you by the
@@ -235,4 +229,3 @@ Generated [API documentation](https://dev.folio.org/reference/api/#folio-vertx-l
 
 The built artifacts for this module are available.
 See [configuration](https://dev.folio.org/download/artifacts) for repository access.
-
