@@ -6,7 +6,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.openapi.RouterBuilder;
 import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.RequestParameters;
@@ -251,7 +250,7 @@ public class Tenant2Api implements RouterCreator {
    * @return async result: router
    */
   @Override
-  public Future<Router> createRouter(Vertx vertx, WebClient webClient) {
+  public Future<Router> createRouter(Vertx vertx) {
     return RouterBuilder.create(vertx, "openapi/tenant-2.0.yaml")
         .map(routerBuilder -> {
           handlers(vertx, routerBuilder);

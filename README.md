@@ -57,7 +57,7 @@ public class MainVerticle extends AbstractVerticle {
     HttpServerOptions so = new HttpServerOptions()
         .setHandle100ContinueAutomatically(true);
     // combine all routes and start server
-    RouterCreator.mountAll(vertx, WebClient.create(vertx), routerCreators)
+    RouterCreator.mountAll(vertx, routerCreators)
         .compose(router ->
             vertx.createHttpServer(so)
                 .requestHandler(router)
@@ -86,7 +86,7 @@ For an OpenAPI based implementation it could look as follows:
 ```
 public MyApi implements RouterCreator, TenantInitHooks {
   @Override
-  public Future<Router> createRouter(Vertx vertx, WebClient webClient) {
+  public Future<Router> createRouter(Vertx vertx) {
     return RouterBuilder.create(vertx, "openapi/myapi-1.0.yaml")
         .map(routerBuilder -> {
           handlers(vertx, routerBuilder);
