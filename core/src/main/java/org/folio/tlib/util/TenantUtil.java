@@ -2,6 +2,7 @@ package org.folio.tlib.util;
 
 import io.vertx.ext.web.RoutingContext;
 import java.util.regex.Pattern;
+import org.folio.okapi.common.XOkapiHeaders;
 
 public final class TenantUtil {
   // PostgreSQL names are case insensitive and must not start with a digit.
@@ -19,13 +20,13 @@ public final class TenantUtil {
    * @throws IllegalArgumentException if header is missing or is invalid
    */
   public static String tenant(RoutingContext ctx) {
-    String tenant = ctx.request().getHeader("X-Okapi-Tenant");
+    String tenant = ctx.request().getHeader(XOkapiHeaders.TENANT);
     if (tenant == null) {
-      throw new IllegalArgumentException("X-Okapi-Tenant header is missing");
+      throw new IllegalArgumentException(XOkapiHeaders.TENANT + " header is missing");
     }
     if (! TENANT_PATTERN.matcher(tenant).find()) {
       throw new IllegalArgumentException(
-          "X-Okapi-Tenant header must match " + TENANT_PATTERN_STRING);
+         XOkapiHeaders.TENANT + " header must match " + TENANT_PATTERN_STRING);
     }
     return tenant;
   }
