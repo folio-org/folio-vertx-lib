@@ -143,7 +143,7 @@ public class Tenant2ApiTest {
         .post("/_/tenant")
         .then().statusCode(400)
         .header("Content-Type", is("text/plain"))
-        .body(is(tenant));
+        .body(is("X-Okapi-Tenant header must match ^[a-z][a-z0-9]{0,30}$"));
   }
 
   @Test
@@ -156,7 +156,7 @@ public class Tenant2ApiTest {
         .post("/_/tenant")
         .then().statusCode(400)
         .header("Content-Type", is("text/plain"))
-        .body(is(tenant));
+        .body(is("X-Okapi-Tenant header must match ^[a-z][a-z0-9]{0,30}$"));
   }
 
   @Test

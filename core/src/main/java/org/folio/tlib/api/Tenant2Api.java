@@ -22,6 +22,7 @@ import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.tlib.RouterCreator;
 import org.folio.tlib.TenantInitHooks;
 import org.folio.tlib.postgres.impl.TenantPgPoolImpl;
+import org.folio.tlib.util.TenantUtil;
 
 public class Tenant2Api implements RouterCreator {
   private static final Logger log = LogManager.getLogger(Tenant2Api.class);
@@ -173,7 +174,8 @@ public class Tenant2Api implements RouterCreator {
           RequestParameters params = ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY);
           log.info("postTenant handler {}", params.toJson().encode());
           JsonObject tenantAttributes = ctx.getBodyAsJson();
-          String tenant = params.headerParameter(XOkapiHeaders.TENANT).getString();
+          String tenant = TenantUtil.tenant(ctx);
+
           createJob(vertx, tenant, tenantAttributes)
               .onSuccess(tenantJob -> {
                 if (tenantJob == null) {
