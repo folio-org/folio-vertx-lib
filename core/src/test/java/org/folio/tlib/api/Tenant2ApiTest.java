@@ -18,7 +18,6 @@ import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.ext.web.client.WebClient;
 import io.vertx.pgclient.PgConnectOptions;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -99,7 +98,7 @@ public class Tenant2ApiTest {
         new Tenant2Api(hooks),
         new HealthApi(),
     };
-    RouterCreator.mountAll(vertx, WebClient.create(vertx), routerCreators)
+    RouterCreator.mountAll(vertx, routerCreators)
         .compose(router -> {
           HttpServerOptions so = new HttpServerOptions().setHandle100ContinueAutomatically(true);
           return vertx.createHttpServer(so)

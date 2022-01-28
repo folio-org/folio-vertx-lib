@@ -3,7 +3,6 @@ package org.folio.tlib.example;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.ext.web.client.WebClient;
 import org.folio.okapi.common.Config;
 import org.folio.tlib.RouterCreator;
 import org.folio.tlib.api.HealthApi;
@@ -28,7 +27,7 @@ public class MainVerticle extends AbstractVerticle {
     HttpServerOptions so = new HttpServerOptions()
         .setHandle100ContinueAutomatically(true);
     // combine all routes and start server
-    RouterCreator.mountAll(vertx, WebClient.create(vertx), routerCreators)
+    RouterCreator.mountAll(vertx, routerCreators)
         .compose(router ->
             vertx.createHttpServer(so)
                 .requestHandler(router)

@@ -6,7 +6,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.openapi.RouterBuilder;
 import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.RequestParameters;
@@ -24,7 +23,7 @@ import org.folio.tlib.postgres.TenantPgPool;
 
 public class MyApi implements RouterCreator, TenantInitHooks {
   @Override
-  public Future<Router> createRouter(Vertx vertx, WebClient webClient) {
+  public Future<Router> createRouter(Vertx vertx) {
     return RouterBuilder.create(vertx, "openapi/myapi-1.0.yaml")
         .map(routerBuilder -> {
           handlers(vertx, routerBuilder);
