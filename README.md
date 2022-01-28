@@ -70,8 +70,8 @@ public class MainVerticle extends AbstractVerticle {
 
 ## Your API
 
-Your API must implement [RouterCreator](src/main/java/org/folio/tlib/RouterCreator.java)
-and, optionally, [TenantInitHooks](src/main/java/org/folio/tlib/TenantInitHooks.java)
+Your API must implement [RouterCreator](core/src/main/java/org/folio/tlib/RouterCreator.java)
+and, optionally, [TenantInitHooks](core/src/main/java/org/folio/tlib/TenantInitHooks.java)
 if your implementation has storage and that storage must be prepared for a
 tenant.
 
