@@ -329,6 +329,7 @@ public class Tenant2ApiTest {
   @Test
   public void testPostTenantPostInitFail() {
     hooks.postInitPromise = Promise.promise();
+    hooks.postInitPromise.fail("post init failure");
     String tenant = "testlib";
     ExtractableResponse<Response> response = RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
@@ -344,7 +345,6 @@ public class Tenant2ApiTest {
     String id = response.path("id");
     assertThat(location,  is("/_/tenant/" + id));
 
-    hooks.postInitPromise.fail("post init failure");
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
         .get(location)
@@ -369,6 +369,7 @@ public class Tenant2ApiTest {
   public void testPostTenantPostInitFailNull() {
     String tenant = "testlib";
     hooks.postInitPromise = Promise.promise();
+    hooks.postInitPromise.fail((String) null);
     ExtractableResponse<Response> response = RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
         .header("Content-Type", "application/json")
@@ -383,7 +384,6 @@ public class Tenant2ApiTest {
     String id = response.path("id");
     assertThat(location,  is("/_/tenant/" + id));
 
-    hooks.postInitPromise.fail((String) null);
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
         .get(location + "?wait=1")
