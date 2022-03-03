@@ -1,6 +1,7 @@
 package org.folio.tlib.api;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.lessThan;
@@ -143,7 +144,7 @@ public class Tenant2ApiTest {
         .post("/_/tenant")
         .then().statusCode(400)
         .header("Content-Type", is("text/plain"))
-        .body(is("X-Okapi-Tenant header must match ^[a-z][a-z0-9_]{0,30}$"));
+        .body(containsString("X-Okapi-Tenant header must match"));
   }
 
   @Test
@@ -156,7 +157,7 @@ public class Tenant2ApiTest {
         .post("/_/tenant")
         .then().statusCode(400)
         .header("Content-Type", is("text/plain"))
-        .body(is("X-Okapi-Tenant header must match ^[a-z][a-z0-9_]{0,30}$"));
+        .body(containsString("X-Okapi-Tenant header must match"));
   }
 
   @Test
