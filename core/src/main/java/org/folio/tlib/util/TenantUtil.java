@@ -8,7 +8,7 @@ public final class TenantUtil {
   // PostgreSQL names are case insensitive and must not start with a digit.
   // The maximum length is 63 characters, schema = tenant + '_' + moduleName
   // where tenant and moduleName length have a maximum of 31 each.
-  private static final String TENANT_PATTERN_STRING = "^[a-z][a-z0-9]{0,30}$";
+  private static final String TENANT_PATTERN_STRING = "^[a-z][a-z0-9_]{0,30}$";
   private static final Pattern TENANT_PATTERN = Pattern.compile(TENANT_PATTERN_STRING);
 
   private TenantUtil() {
