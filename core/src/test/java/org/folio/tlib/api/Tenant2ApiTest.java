@@ -1,6 +1,7 @@
 package org.folio.tlib.api;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.lessThan;
@@ -143,7 +144,7 @@ public class Tenant2ApiTest {
         .post("/_/tenant")
         .then().statusCode(400)
         .header("Content-Type", is("text/plain"))
-        .body(is("X-Okapi-Tenant header must match ^[a-z][a-z0-9]{0,30}$"));
+        .body(containsString("X-Okapi-Tenant header must match"));
   }
 
   @Test
@@ -156,7 +157,7 @@ public class Tenant2ApiTest {
         .post("/_/tenant")
         .then().statusCode(400)
         .header("Content-Type", is("text/plain"))
-        .body(is("X-Okapi-Tenant header must match ^[a-z][a-z0-9]{0,30}$"));
+        .body(containsString("X-Okapi-Tenant header must match"));
   }
 
   @Test
@@ -329,6 +330,7 @@ public class Tenant2ApiTest {
   @Test
   public void testPostTenantPostInitFail() {
     hooks.postInitPromise = Promise.promise();
+    hooks.postInitPromise.fail("post init failure");
     String tenant = "testlib";
     ExtractableResponse<Response> response = RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
@@ -344,7 +346,6 @@ public class Tenant2ApiTest {
     String id = response.path("id");
     assertThat(location,  is("/_/tenant/" + id));
 
-    hooks.postInitPromise.fail("post init failure");
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
         .get(location)
@@ -369,6 +370,7 @@ public class Tenant2ApiTest {
   public void testPostTenantPostInitFailNull() {
     String tenant = "testlib";
     hooks.postInitPromise = Promise.promise();
+    hooks.postInitPromise.fail((String) null);
     ExtractableResponse<Response> response = RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
         .header("Content-Type", "application/json")
@@ -383,7 +385,6 @@ public class Tenant2ApiTest {
     String id = response.path("id");
     assertThat(location,  is("/_/tenant/" + id));
 
-    hooks.postInitPromise.fail((String) null);
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
         .get(location + "?wait=1")

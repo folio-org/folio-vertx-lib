@@ -1,3 +1,10 @@
+## 1.0.1 2022-03-04
+
+ * [VERTXLIB-14](https://issues.folio.org/browse/VERTXLIB-14) Allow _ (underscore) as part of tenant id
+ * [VERTXLIB-13](https://issues.folio.org/browse/VERTXLIB-13) Fix Sporadic unit test fail
+ * [VERTXLIB-12](https://issues.folio.org/browse/VERTXLIB-12) Update to Vert.x 4.2.5, Okapi 4.13.0
+ * [VERTXLIB-11](https://issues.folio.org/browse/VERTXLIB-11) Deploy *-source.jar and *-javadoc.jar to folio-nexus
+
 ## 1.0.0 2022-01-28
 
 Initial release
