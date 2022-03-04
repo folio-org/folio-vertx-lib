@@ -5,10 +5,7 @@ import java.util.regex.Pattern;
 import org.folio.okapi.common.XOkapiHeaders;
 
 public final class TenantUtil {
-  // PostgreSQL names are case insensitive and must not start with a digit.
-  // The maximum length is 63 characters, schema = tenant + '_' + moduleName
-  // where tenant and moduleName length have a maximum of 31 each.
-  private static final String TENANT_PATTERN_STRING = "^[a-z][a-z0-9]*(_[0-9]+)*$";
+  private static final String TENANT_PATTERN_STRING =  "^[_a-z][_a-z0-9]*$";
   private static final Pattern TENANT_PATTERN = Pattern.compile(TENANT_PATTERN_STRING);
 
   private TenantUtil() {
@@ -23,10 +20,6 @@ public final class TenantUtil {
     String tenant = ctx.request().getHeader(XOkapiHeaders.TENANT);
     if (tenant == null) {
       throw new IllegalArgumentException(XOkapiHeaders.TENANT + " header is missing");
-    }
-    if (tenant.length() > 31) {
-      throw new IllegalArgumentException(
-          XOkapiHeaders.TENANT + " header size must not be greater than 31");
     }
     if (! TENANT_PATTERN.matcher(tenant).find()) {
       throw new IllegalArgumentException(

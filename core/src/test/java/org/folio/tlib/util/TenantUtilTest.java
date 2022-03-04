@@ -28,7 +28,7 @@ public class TenantUtilTest {
 
   @Test
   public void valid() {
-    List.of("a", "z1234567890", "abcdefghijklmnopqrstuvwxyz78901", "du_15", "du_12_3")
+    List.of("a", "z1234567890", "du_15", "du_12_3", "_a", "a_b", "du_")
         .forEach(tenant -> assertThat(tenant(tenant), is(tenant)));
   }
 
@@ -40,15 +40,9 @@ public class TenantUtilTest {
 
   @Test
   public void invalid() {
-    List.of("", "1", "1abc", "_a", "a_b", "du_").forEach(tenant -> {
+    List.of("", "1", "1abc").forEach(tenant -> {
       Throwable t = assertThrows(IllegalArgumentException.class, () -> tenant(tenant));
       assertThat(t.getMessage(), containsString(" must match "));
     });
-  }
-
-  @Test
-  public void size() {
-    Throwable t = assertThrows(IllegalArgumentException.class, () -> tenant("abcdefghijklmnopqrstuvwxyz789012"));
-    assertThat(t.getMessage(), containsString(" header size must not be greater than 31"));
   }
 }
