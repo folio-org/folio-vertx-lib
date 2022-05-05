@@ -62,6 +62,10 @@
       <artifactId>netty-tcnative-boringssl-static</artifactId>
       <scope>runtime</scope>
     </dependency>
+    <dependency>
+      <groupId>com.ongres.scram</groupId>
+      <artifactId>client</artifactId>
+    </dependency>
     <!-- Test dependencies -->
     <dependency>
       <groupId>junit</groupId>
