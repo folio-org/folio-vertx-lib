@@ -216,6 +216,7 @@ Refer to the Wiki [FOLIO Code of Conduct](https://wiki.folio.org/display/COMMUNI
 ### API documentation
 
 API descriptions:
+ 
  * [OpenAPI](core/src/main/resources/openapi/)
  * [Schemas](core/src/main/resources/openapi/schemas/)
 
