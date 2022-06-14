@@ -92,8 +92,6 @@ public class TenantPgPoolImpl implements TenantPgPool {
    * Create pool for Tenant.
    *
    * <p>The returned pool implements PgPool interface so this cab be used like PgPool as usual.
-   * But queries being substituted before usage. The literal "{schema}" is substituted with the
-   * module+schema.
    * PgPool.setModule *must* be called before the queries are executed, since schema is based
    * on module name.
    * @param vertx Vert.x handle
@@ -153,15 +151,10 @@ public class TenantPgPoolImpl implements TenantPgPool {
     return pgPool.getConnection();
   }
 
-  private String subst(String s) {
-    return s.replace("{schema}", getSchema());
-  }
-
   @Override
   public Query<RowSet<Row>> query(String s) {
-    String e = subst(s);
-    log.info("query {}", e);
-    return pgPool.query(e);
+    log.info("query {}", s);
+    return pgPool.query(s);
   }
 
   @Override
@@ -171,9 +164,8 @@ public class TenantPgPoolImpl implements TenantPgPool {
 
   @Override
   public PreparedQuery<RowSet<Row>> preparedQuery(String s, PrepareOptions prepareOptions) {
-    String e = subst(s);
-    log.info("preparedQuery {}", e);
-    return pgPool.preparedQuery(e, prepareOptions);
+    log.info("preparedQuery {}", s);
+    return pgPool.preparedQuery(s, prepareOptions);
   }
 
   @Override
