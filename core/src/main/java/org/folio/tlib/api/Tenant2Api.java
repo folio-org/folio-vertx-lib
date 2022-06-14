@@ -83,16 +83,17 @@ public class Tenant2Api implements RouterCreator {
                                        JsonObject tenantAttributes) {
     log.info("postTenant got {}", tenantAttributes.encode());
     TenantPgPoolImpl tenantPgPool = TenantPgPoolImpl.tenantPgPool(vertx, tenant);
+    String schema = tenantPgPool.getSchema();
     return hooks.preInit(vertx, tenant, tenantAttributes)
         .compose(res -> {
           if (Boolean.TRUE.equals(tenantAttributes.getBoolean("purge"))) {
             return tenantPgPool.execute(List.of(
-                "DROP SCHEMA IF EXISTS {schema} CASCADE",
-                "DROP ROLE IF EXISTS {schema}"
+                "DROP SCHEMA IF EXISTS " + schema + " CASCADE",
+                "DROP ROLE IF EXISTS " + schema
             )).map((JsonObject) null);
           }
           return tenantPgPool.query("SELECT EXISTS(SELECT 1 FROM pg_namespace WHERE"
-              + " nspname = '{schema}')")
+              + " nspname = '" + schema + "')")
               .execute()
               .map(rowSet -> rowSet.iterator().next().getBoolean(0))
               .compose(exists -> {
@@ -100,14 +101,15 @@ public class Tenant2Api implements RouterCreator {
                   return Future.succeededFuture();
                 }
                 return tenantPgPool.execute(List.of(
-                    "CREATE ROLE {schema} PASSWORD 'tenant' NOSUPERUSER NOCREATEDB INHERIT LOGIN",
-                    "GRANT {schema} TO CURRENT_USER",
-                    "CREATE SCHEMA {schema} AUTHORIZATION {schema}"
+                    "CREATE ROLE " + schema + " PASSWORD 'tenant'"
+                        + " NOSUPERUSER NOCREATEDB INHERIT LOGIN",
+                    "GRANT " + schema + " TO CURRENT_USER",
+                    "CREATE SCHEMA " + schema + " AUTHORIZATION " + schema
                 ));
               })
               .compose(res1 ->
-                  tenantPgPool.query("CREATE TABLE IF NOT EXISTS {schema}.job "
-                      + "(id UUID PRIMARY KEY, jsonb JSONB NOT NULL)")
+                  tenantPgPool.query("CREATE TABLE IF NOT EXISTS " + schema + ".job "
+                          + "(id UUID PRIMARY KEY, jsonb JSONB NOT NULL)")
                       .execute()
               )
               .compose(res1 -> {
@@ -125,7 +127,8 @@ public class Tenant2Api implements RouterCreator {
 
   private Future<JsonObject> getJob(Vertx vertx, String tenant, UUID jobId, int secondsToWait) {
     TenantPgPoolImpl tenantPgPool = TenantPgPoolImpl.tenantPgPool(vertx, tenant);
-    return tenantPgPool.preparedQuery("SELECT jsonb FROM {schema}.job WHERE ID = $1")
+    return tenantPgPool.preparedQuery("SELECT jsonb FROM "
+            + tenantPgPool.getSchema() + ".job WHERE ID = $1")
         .execute(Tuple.of(jobId))
         .compose(res -> {
           if (!res.iterator().hasNext()) {
@@ -145,7 +148,8 @@ public class Tenant2Api implements RouterCreator {
 
   private static Future<Boolean> deleteJob(Vertx vertx, String tenant, UUID jobId) {
     TenantPgPoolImpl tenantPgPool = TenantPgPoolImpl.tenantPgPool(vertx, tenant);
-    return tenantPgPool.preparedQuery("DELETE FROM {schema}.job WHERE ID = $1")
+    String schema = tenantPgPool.getSchema();
+    return tenantPgPool.preparedQuery("DELETE FROM " + schema + ".job WHERE ID = $1")
         .execute(Tuple.of(jobId))
         .map(res -> (res.rowCount() > 0));
   }
@@ -154,7 +158,8 @@ public class Tenant2Api implements RouterCreator {
     String tenant = tenantJob.getString("tenant");
     UUID jobId = UUID.fromString(tenantJob.getString("id"));
     TenantPgPoolImpl tenantPgPool = TenantPgPoolImpl.tenantPgPool(vertx, tenant);
-    return tenantPgPool.preparedQuery("UPDATE {schema}.job SET jsonb = $2 WHERE id = $1")
+    String schema = tenantPgPool.getSchema();
+    return tenantPgPool.preparedQuery("UPDATE " + schema + ".job SET jsonb = $2 WHERE id = $1")
         .execute(Tuple.of(jobId, tenantJob)).mapEmpty();
   }
 
@@ -162,7 +167,8 @@ public class Tenant2Api implements RouterCreator {
     String tenant = tenantJob.getString("tenant");
     UUID jobId = UUID.fromString(tenantJob.getString("id"));
     TenantPgPoolImpl tenantPgPool = TenantPgPoolImpl.tenantPgPool(vertx, tenant);
-    return tenantPgPool.preparedQuery("INSERT INTO {schema}.job VALUES ($1, $2)")
+    String schema = tenantPgPool.getSchema();
+    return tenantPgPool.preparedQuery("INSERT INTO " + schema + ".job VALUES ($1, $2)")
         .execute(Tuple.of(jobId, tenantJob)).mapEmpty();
   }
 
