@@ -1,3 +1,9 @@
+## 2.0.0 2022-06-14
+
+ * [VERTXLIB-22](https://issues.folio.org/browse/VERTXLIB-22) Remove schema substitution in
+TenantPgPool.{query, preparedQuery,execute}. In version 1 '{schema}' in queries was substitued with schema (for Tenant).
+ * [VERTXLIB-21](https://issues.folio.org/browse/VERTXLIB-21) Upgrade to Vert.x 4.3.1, okapi 4.14.1
+
 ## 1.1.0 2022-05-06
 
 New features:
