@@ -121,6 +121,9 @@
         <configuration>
           <release>11</release>
           <encoding>UTF-8</encoding>
+          <annotationProcessors>
+            <annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>
+          </annotationProcessors>
         </configuration>
       </plugin>
 

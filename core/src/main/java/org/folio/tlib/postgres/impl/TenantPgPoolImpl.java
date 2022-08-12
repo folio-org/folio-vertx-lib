@@ -12,12 +12,14 @@ import io.vertx.core.net.PemTrustOptions;
 import io.vertx.pgclient.PgConnectOptions;
 import io.vertx.pgclient.PgPool;
 import io.vertx.pgclient.SslMode;
+import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.PrepareOptions;
 import io.vertx.sqlclient.PreparedQuery;
 import io.vertx.sqlclient.Query;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
+import io.vertx.sqlclient.SqlClient;
 import io.vertx.sqlclient.SqlConnection;
 import io.vertx.sqlclient.Tuple;
 import java.util.Collections;
@@ -131,14 +133,19 @@ public class TenantPgPoolImpl implements TenantPgPool {
     }
     TenantPgPoolImpl tenantPgPool = new TenantPgPoolImpl(vertx);
     tenantPgPool.tenant = sanitize(tenant);
-    tenantPgPool.pgPool = pgPoolMap.computeIfAbsent(connectOptions, key -> {
-      PoolOptions poolOptions = new PoolOptions();
-      if (maxPoolSize != null) {
-        poolOptions.setMaxSize(Integer.parseInt(maxPoolSize));
-      }
-      return PgPool.pool(vertx, connectOptions, poolOptions);
-    });
+    PoolOptions poolOptions = new PoolOptions();
+    if (maxPoolSize != null) {
+      poolOptions.setMaxSize(Integer.parseInt(maxPoolSize));
+    }
+    tenantPgPool.pgPool = pgPoolMap.computeIfAbsent(connectOptions, key ->
+        PgPool.pool(vertx, connectOptions, poolOptions));
     return tenantPgPool;
+  }
+
+
+  @Override
+  public Pool getPool() {
+    return pgPool;
   }
 
   @Override

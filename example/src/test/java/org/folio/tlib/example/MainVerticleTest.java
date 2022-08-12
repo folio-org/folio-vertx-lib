@@ -95,39 +95,39 @@ public class MainVerticleTest {
 
     RestAssured.given()
         .header(XOkapiHeaders.TENANT, tenant)
-        .get("/titles")
+        .get("/myapi/books")
         .then().statusCode(200)
         .contentType(ContentType.JSON)
-        .body("titles", hasSize(2));
+        .body("books", hasSize(2));
 
     RestAssured.given()
         .header(XOkapiHeaders.TENANT, tenant)
         .queryParam("query", "cql.allRecords=true sortby title")
-        .get("/titles")
+        .get("/myapi/books")
         .then().statusCode(200)
         .contentType(ContentType.JSON)
-        .body("titles", hasSize(2))
-        .body("titles[0].title", is("First title"))
-        .body("titles[1].title", is("Second title"));
+        .body("books", hasSize(2))
+        .body("books[0].title", is("First title"))
+        .body("books[1].title", is("Second title"));
 
     RestAssured.given()
         .header(XOkapiHeaders.TENANT, tenant)
         .queryParam("query", "cql.allRecords=true sortby title/sort.descending")
-        .get("/titles")
+        .get("/myapi/books")
         .then().statusCode(200)
         .contentType(ContentType.JSON)
-        .body("titles", hasSize(2))
-        .body("titles[0].title", is("Second title"))
-        .body("titles[1].title", is("First title"));
+        .body("books", hasSize(2))
+        .body("books[0].title", is("Second title"))
+        .body("books[1].title", is("First title"));
 
     RestAssured.given()
         .header(XOkapiHeaders.TENANT, tenant)
         .queryParam("query", "title=first")
-        .get("/titles")
+        .get("/myapi/books")
         .then().statusCode(200)
         .contentType(ContentType.JSON)
-        .body("titles", hasSize(1))
-        .body("titles[0].title", is("First title"));
+        .body("books", hasSize(1))
+        .body("books[0].title", is("First title"));
 
     tenantOp(tenant, new JsonObject()
             .put("module_from", "mod-mymodule-1.0.0")

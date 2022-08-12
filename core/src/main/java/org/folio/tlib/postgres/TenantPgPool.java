@@ -4,8 +4,10 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.pgclient.PgConnectOptions;
 import io.vertx.pgclient.PgPool;
+import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
+import io.vertx.sqlclient.SqlClient;
 import io.vertx.sqlclient.Tuple;
 import java.util.List;
 import javax.validation.constraints.NotNull;
@@ -29,6 +31,8 @@ public interface TenantPgPool extends PgPool {
   Future<Void> execute(List<String> queries);
 
   Future<RowSet<Row>> execute(String sql, Tuple tuple);
+
+  Pool getPool();
 
   String getSchema();
 

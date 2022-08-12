@@ -10,16 +10,17 @@ import io.vertx.ext.web.openapi.RouterBuilder;
 import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.RequestParameters;
 import io.vertx.ext.web.validation.ValidationHandler;
-import io.vertx.sqlclient.Row;
-import io.vertx.sqlclient.RowIterator;
+import io.vertx.sqlclient.SqlClient;
 import io.vertx.sqlclient.Tuple;
+import io.vertx.sqlclient.templates.SqlTemplate;
+import java.util.Collections;
 import java.util.UUID;
-import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.tlib.RouterCreator;
 import org.folio.tlib.TenantInitHooks;
 import org.folio.tlib.postgres.PgCqlField;
 import org.folio.tlib.postgres.PgCqlQuery;
 import org.folio.tlib.postgres.TenantPgPool;
+import org.folio.tlib.util.TenantUtil;
 
 public class MyApi implements RouterCreator, TenantInitHooks {
   @Override
@@ -33,14 +34,14 @@ public class MyApi implements RouterCreator, TenantInitHooks {
 
   private void handlers(Vertx vertx, RouterBuilder routerBuilder) {
     routerBuilder
-        .operation("postTitles") // operationId in spec
+        .operation("postBook") // operationId in spec
         .handler(ctx -> {
           ctx.response().setStatusCode(204);
           ctx.response().end();
         });
     routerBuilder
-        .operation("getTitles")
-        .handler(ctx -> getTitles(vertx, ctx)
+        .operation("getBooks")
+        .handler(ctx -> getBooks(vertx, ctx)
             .onFailure(cause -> {
               ctx.response().setStatusCode(500);
               ctx.response().end(cause.getMessage());
@@ -79,16 +80,14 @@ public class MyApi implements RouterCreator, TenantInitHooks {
     return future;
   }
 
-  private Future<Void> getTitles(Vertx vertx, RoutingContext ctx) {
+  private String createQueryMyTable(RoutingContext ctx, TenantPgPool pool) {
     RequestParameters params = ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY);
-    String tenant = params.headerParameter(XOkapiHeaders.TENANT).getString();
     PgCqlQuery pgCqlQuery = PgCqlQuery.query();
     RequestParameter query = params.queryParameter("query");
     pgCqlQuery.parse(query == null ? null : query.getString());
     pgCqlQuery.addField(new PgCqlField("cql.allRecords", PgCqlField.Type.ALWAYS_MATCHES));
     pgCqlQuery.addField(new PgCqlField("id", PgCqlField.Type.UUID));
     pgCqlQuery.addField(new PgCqlField("title", PgCqlField.Type.FULLTEXT));
-    TenantPgPool pool = TenantPgPool.pool(vertx, tenant);
     String sql = "SELECT * FROM " + pool.getSchema() + ".mytable";
     String where = pgCqlQuery.getWhereClause();
     if (where != null) {
@@ -98,21 +97,27 @@ public class MyApi implements RouterCreator, TenantInitHooks {
     if (orderBy != null) {
       sql = sql + " ORDER BY " + orderBy;
     }
-    return pool.query(sql).execute().onSuccess(rows -> {
-      RowIterator<Row> iterator = rows.iterator();
-      JsonArray titles = new JsonArray();
-      while (iterator.hasNext()) {
-        Row row = iterator.next();
-        titles.add(new JsonObject()
-            .put("id", row.getUUID("id").toString())
-            .put("title", row.getString("title"))
-        );
-      }
-      ctx.response().putHeader("Content-Type", "application/json");
-      ctx.response().setStatusCode(200);
-      JsonObject result = new JsonObject().put("titles", titles);
-      ctx.response().end(result.encode());
-    }).mapEmpty();
+    return sql;
+  }
+
+  private Future<Void> getBooks(Vertx vertx, RoutingContext ctx) {
+    String tenant = TenantUtil.tenant(ctx);
+    TenantPgPool pool = TenantPgPool.pool(vertx, tenant);
+    String sql = createQueryMyTable(ctx, pool);
+    return SqlTemplate.forQuery(pool.getPool(), sql)
+        .mapTo(Book.class)
+        .execute(Collections.emptyMap())
+        .map(books -> {
+          JsonArray ar = new JsonArray();
+          for (Book book: books) {
+            ar.add(JsonObject.mapFrom(book));
+          }
+          ctx.response().putHeader("Content-Type", "application/json");
+          ctx.response().setStatusCode(200);
+          JsonObject result = new JsonObject().put("books", books);
+          ctx.response().end(result.encode());
+          return null;
+        });
   }
 
 }

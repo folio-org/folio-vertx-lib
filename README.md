@@ -162,10 +162,10 @@ tenant init.
 ## CQL
 
 For CQL support *all* fields recognized must be explicitly defined. Undefined CQL
-fields are rejected. Example to get titles:
+fields are rejected. Example to get books:
 
 ```
- private Future<Void> getTitles(Vertx vertx, RoutingContext ctx) {
+ private Future<Void> getBooks(Vertx vertx, RoutingContext ctx) {
     RequestParameters params = ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY);
     String tenant = params.headerParameter(XOkapiHeaders.TENANT).getString();
     PgCqlQuery pgCqlQuery = PgCqlQuery.query();
@@ -186,17 +186,17 @@ fields are rejected. Example to get titles:
     }
     return pool.query(sql).execute().onSuccess(rows -> {
       RowIterator<Row> iterator = rows.iterator();
-      JsonArray titles = new JsonArray();
+      JsonArray books = new JsonArray();
       while (iterator.hasNext()) {
         Row row = iterator.next();
-        titles.add(new JsonObject()
+        books.add(new JsonObject()
             .put("id", row.getUUID("id").toString())
             .put("title", row.getString("title"))
         );
       }
       ctx.response().putHeader("Content-Type", "application/json");
       ctx.response().setStatusCode(200);
-      JsonObject result = new JsonObject().put("titles", titles);
+      JsonObject result = new JsonObject().put("books", books);
       ctx.response().end(result.encode());
     }).mapEmpty();
   }
