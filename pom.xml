@@ -45,7 +45,7 @@
       <dependency>
         <groupId>io.vertx</groupId>
         <artifactId>vertx-stack-depchain</artifactId>
-        <version>4.3.1</version>
+        <version>4.3.3</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -59,12 +59,12 @@
       <dependency>
         <groupId>org.folio.okapi</groupId>
         <artifactId>okapi-common</artifactId>
-        <version>4.14.1</version>
+        <version>4.14.3</version>
       </dependency>
       <dependency>
         <groupId>org.folio.okapi</groupId>
         <artifactId>okapi-testing</artifactId>
-        <version>4.14.1</version>
+        <version>4.14.3</version>
       </dependency>
       <dependency>
         <groupId>com.ongres.scram</groupId>
