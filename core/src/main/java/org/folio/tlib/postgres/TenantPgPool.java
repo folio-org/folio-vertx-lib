@@ -7,7 +7,6 @@ import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
-import io.vertx.sqlclient.SqlClient;
 import io.vertx.sqlclient.Tuple;
 import java.util.List;
 import javax.validation.constraints.NotNull;
