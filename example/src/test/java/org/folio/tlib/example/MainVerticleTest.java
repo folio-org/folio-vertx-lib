@@ -21,6 +21,7 @@ import org.junit.runner.RunWith;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -30,6 +31,8 @@ import static org.hamcrest.Matchers.is;
 public class MainVerticleTest {
   static Vertx vertx;
   static int port;
+
+  static final String TENANT = "testlib";
 
   @ClassRule
   public static PostgreSQLContainer<?> postgresSQLContainer = TenantPgPoolContainer.create();
@@ -85,23 +88,61 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void tenantInit(TestContext context) {
-    String tenant = "testlib";
-    tenantOp(tenant, new JsonObject()
+  public void noSample(TestContext context) {
+    tenantOp(TENANT, new JsonObject()
+            .put("module_to", "mod-mymodule-1.0.0")
+        , null);
+
+    RestAssured.given()
+        .header(XOkapiHeaders.TENANT, TENANT)
+        .get("/myapi/books")
+        .then().statusCode(200)
+        .contentType(ContentType.JSON)
+        .body("books", hasSize(0));
+
+    Book a = new Book();
+    a.setTitle("art of computer");
+    a.setId(UUID.randomUUID());
+
+    JsonObject.mapFrom(a).encode();
+
+    RestAssured.given()
+        .header(XOkapiHeaders.TENANT, TENANT)
+        .contentType(ContentType.JSON)
+        .body(JsonObject.mapFrom(a).encode())
+        .post("/myapi/books")
+        .then().statusCode(204);
+
+    RestAssured.given()
+        .header(XOkapiHeaders.TENANT, TENANT)
+        .get("/myapi/books")
+        .then().statusCode(200)
+        .contentType(ContentType.JSON)
+        .body("books[0].id", is(a.getId().toString()))
+        .body("books[0].title", is(a.getTitle()));
+
+    tenantOp(TENANT, new JsonObject()
+        .put("module_from", "mod-mymodule-1.0.0")
+        .put("purge", true), null);
+  }
+
+  @Test
+  public void sampleData(TestContext context) {
+    tenantOp(TENANT, new JsonObject()
         .put("module_to", "mod-mymodule-1.0.0")
             .put("parameters", new JsonArray()
                 .add(new JsonObject().put("key", "loadSample").put("value", "true")))
         , null);
 
     RestAssured.given()
-        .header(XOkapiHeaders.TENANT, tenant)
+        .header(XOkapiHeaders.TENANT, TENANT)
         .get("/myapi/books")
         .then().statusCode(200)
         .contentType(ContentType.JSON)
         .body("books", hasSize(2));
 
     RestAssured.given()
-        .header(XOkapiHeaders.TENANT, tenant)
+        .header(XOkapiHeaders.TENANT, TENANT)
         .queryParam("query", "cql.allRecords=true sortby title")
         .get("/myapi/books")
         .then().statusCode(200)
@@ -111,7 +152,7 @@ public class MainVerticleTest {
         .body("books[1].title", is("Second title"));
 
     RestAssured.given()
-        .header(XOkapiHeaders.TENANT, tenant)
+        .header(XOkapiHeaders.TENANT, TENANT)
         .queryParam("query", "cql.allRecords=true sortby title/sort.descending")
         .get("/myapi/books")
         .then().statusCode(200)
@@ -121,7 +162,7 @@ public class MainVerticleTest {
         .body("books[1].title", is("First title"));
 
     RestAssured.given()
-        .header(XOkapiHeaders.TENANT, tenant)
+        .header(XOkapiHeaders.TENANT, TENANT)
         .queryParam("query", "title=first")
         .get("/myapi/books")
         .then().statusCode(200)
@@ -129,7 +170,7 @@ public class MainVerticleTest {
         .body("books", hasSize(1))
         .body("books[0].title", is("First title"));
 
-    tenantOp(tenant, new JsonObject()
+    tenantOp(TENANT, new JsonObject()
             .put("module_from", "mod-mymodule-1.0.0")
             .put("purge", true), null);
 

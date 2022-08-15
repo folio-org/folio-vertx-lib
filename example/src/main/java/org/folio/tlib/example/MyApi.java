@@ -10,7 +10,6 @@ import io.vertx.ext.web.openapi.RouterBuilder;
 import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.RequestParameters;
 import io.vertx.ext.web.validation.ValidationHandler;
-import io.vertx.sqlclient.SqlClient;
 import io.vertx.sqlclient.Tuple;
 import io.vertx.sqlclient.templates.SqlTemplate;
 import java.util.Collections;
@@ -35,17 +34,16 @@ public class MyApi implements RouterCreator, TenantInitHooks {
   private void handlers(Vertx vertx, RouterBuilder routerBuilder) {
     routerBuilder
         .operation("postBook") // operationId in spec
-        .handler(ctx -> {
-          ctx.response().setStatusCode(204);
-          ctx.response().end();
-        });
+        .handler(ctx -> postBook(vertx, ctx)
+            .onFailure(cause ->
+                ctx.response().setStatusCode(500).end(cause.getMessage())
+            ));
     routerBuilder
         .operation("getBooks")
         .handler(ctx -> getBooks(vertx, ctx)
-            .onFailure(cause -> {
-              ctx.response().setStatusCode(500);
-              ctx.response().end(cause.getMessage());
-            }));
+            .onFailure(cause ->
+                ctx.response().setStatusCode(500).end(cause.getMessage())
+            ));
   }
 
   @Override
@@ -109,7 +107,7 @@ public class MyApi implements RouterCreator, TenantInitHooks {
         .execute(Collections.emptyMap())
         .map(books -> {
           JsonArray ar = new JsonArray();
-          for (Book book: books) {
+          for (Book book : books) {
             ar.add(JsonObject.mapFrom(book));
           }
           ctx.response().putHeader("Content-Type", "application/json");
@@ -120,4 +118,18 @@ public class MyApi implements RouterCreator, TenantInitHooks {
         });
   }
 
+  private Future<Void> postBook(Vertx vertx, RoutingContext ctx) {
+    String tenant = TenantUtil.tenant(ctx);
+    TenantPgPool pool = TenantPgPool.pool(vertx, tenant);
+    Book book = ctx.body().asPojo(Book.class);
+
+    return SqlTemplate.forUpdate(pool.getPool(), "INSERT INTO " + pool.getSchema() + ".mytable"
+            + " VALUES (#{id},#{title})")
+        .mapFrom(Book.class)
+        .execute(book)
+        .map(res -> {
+          ctx.response().setStatusCode(204).end();
+          return null;
+        });
+  }
 }
