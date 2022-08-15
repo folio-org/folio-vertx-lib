@@ -26,13 +26,17 @@ public class MyApi implements RouterCreator, TenantInitHooks {
         .operation("postBook") // operationId in spec
         .handler(ctx -> postBook(vertx, ctx)
             .onFailure(cause ->
-                ctx.response().setStatusCode(500).end(cause.getMessage())
+                ctx.response().setStatusCode(500)
+                    .putHeader("Content-Type", "text/plain")
+                    .end(cause.getMessage())
             ));
     routerBuilder
         .operation("getBooks")
         .handler(ctx -> getBooks(vertx, ctx)
             .onFailure(cause ->
-                ctx.response().setStatusCode(500).end(cause.getMessage())
+                ctx.response().setStatusCode(500)
+                    .putHeader("Content-Type", "text/plain")
+                    .end(cause.getMessage())
             ));
   }
 

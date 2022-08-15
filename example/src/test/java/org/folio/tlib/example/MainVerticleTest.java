@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
@@ -89,6 +90,13 @@ public class MainVerticleTest {
 
   @Test
   public void testGetBooks(TestContext context) {
+    RestAssured.given()
+        .header(XOkapiHeaders.TENANT, TENANT)
+        .get("/myapi/books")
+        .then().statusCode(500)
+        .contentType(ContentType.TEXT)
+        .body(containsString("42P01"));
+
     tenantOp(TENANT, new JsonObject()
             .put("module_to", "mod-mymodule-1.0.0")
             .put("parameters", new JsonArray()
@@ -141,6 +149,19 @@ public class MainVerticleTest {
 
   @Test
   public void testPostBook(TestContext context) {
+    Book a = new Book();
+    a.setTitle("art of computer");
+    a.setId(UUID.randomUUID());
+    a.setIndexTitle("art computer");
+
+    RestAssured.given()
+        .header(XOkapiHeaders.TENANT, TENANT)
+        .contentType(ContentType.JSON)
+        .body(JsonObject.mapFrom(a).encode())
+        .post("/myapi/books")
+        .then().statusCode(500)
+        .body(containsString("42P01"));
+
     tenantOp(TENANT, new JsonObject()
             .put("module_to", "mod-mymodule-1.0.0")
         , null);
@@ -151,13 +172,6 @@ public class MainVerticleTest {
         .then().statusCode(200)
         .contentType(ContentType.JSON)
         .body("books", hasSize(0));
-
-    Book a = new Book();
-    a.setTitle("art of computer");
-    a.setId(UUID.randomUUID());
-    a.setIndexTitle("art computer");
-
-    JsonObject.mapFrom(a).encode();
 
     RestAssured.given()
         .header(XOkapiHeaders.TENANT, TENANT)
