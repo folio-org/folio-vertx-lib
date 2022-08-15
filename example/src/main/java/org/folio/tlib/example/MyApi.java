@@ -54,7 +54,7 @@ public class MyApi implements RouterCreator, TenantInitHooks {
     TenantPgPool pool = TenantPgPool.pool(vertx, tenant);
     Future<Void> future = pool.query(
             "CREATE TABLE IF NOT EXISTS " + pool.getSchema() + ".mytable "
-                + "(id UUID PRIMARY key, title text)")
+                + "(id UUID PRIMARY KEY, title TEXT, index_title TEXT)")
         .execute().mapEmpty();
     JsonArray parameters = tenantAttributes.getJsonArray("parameters");
     if (parameters != null) {
@@ -64,13 +64,13 @@ public class MyApi implements RouterCreator, TenantInitHooks {
             && "true".equals(parameter.getString("value"))) {
           future = future.compose(x ->
               pool.preparedQuery("INSERT INTO " + pool.getSchema() + ".mytable"
-                      + "(id, title) VALUES ($1, $2)")
-                  .execute(Tuple.of(UUID.randomUUID(), "First title")).mapEmpty()
+                      + "(id, title, index_title) VALUES ($1, $2, $3)")
+                  .execute(Tuple.of(UUID.randomUUID(), "First title", "first title")).mapEmpty()
           );
           future = future.compose(x ->
               pool.preparedQuery("INSERT INTO " + pool.getSchema() + ".mytable"
-                      + "(id, title) VALUES ($1, $2)")
-                  .execute(Tuple.of(UUID.randomUUID(), "Second title")).mapEmpty()
+                      + "(id, title, index_title) VALUES ($1, $2, $3)")
+                  .execute(Tuple.of(UUID.randomUUID(), "Second title", "second title")).mapEmpty()
           );
         }
       }
@@ -103,7 +103,7 @@ public class MyApi implements RouterCreator, TenantInitHooks {
     TenantPgPool pool = TenantPgPool.pool(vertx, tenant);
     String sql = createQueryMyTable(ctx, pool);
     return SqlTemplate.forQuery(pool.getPool(), sql)
-        .mapTo(Book.class)
+        .mapTo(BookRowMapper.INSTANCE)
         .execute(Collections.emptyMap())
         .map(books -> {
           JsonArray ar = new JsonArray();
@@ -124,7 +124,7 @@ public class MyApi implements RouterCreator, TenantInitHooks {
     Book book = ctx.body().asPojo(Book.class);
 
     return SqlTemplate.forUpdate(pool.getPool(), "INSERT INTO " + pool.getSchema() + ".mytable"
-            + " VALUES (#{id},#{title})")
+            + " VALUES (#{id},#{title},#{indexTitle})")
         .mapFrom(Book.class)
         .execute(book)
         .map(res -> {

@@ -88,48 +88,9 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void noSample(TestContext context) {
+  public void testGetBooks(TestContext context) {
     tenantOp(TENANT, new JsonObject()
             .put("module_to", "mod-mymodule-1.0.0")
-        , null);
-
-    RestAssured.given()
-        .header(XOkapiHeaders.TENANT, TENANT)
-        .get("/myapi/books")
-        .then().statusCode(200)
-        .contentType(ContentType.JSON)
-        .body("books", hasSize(0));
-
-    Book a = new Book();
-    a.setTitle("art of computer");
-    a.setId(UUID.randomUUID());
-
-    JsonObject.mapFrom(a).encode();
-
-    RestAssured.given()
-        .header(XOkapiHeaders.TENANT, TENANT)
-        .contentType(ContentType.JSON)
-        .body(JsonObject.mapFrom(a).encode())
-        .post("/myapi/books")
-        .then().statusCode(204);
-
-    RestAssured.given()
-        .header(XOkapiHeaders.TENANT, TENANT)
-        .get("/myapi/books")
-        .then().statusCode(200)
-        .contentType(ContentType.JSON)
-        .body("books[0].id", is(a.getId().toString()))
-        .body("books[0].title", is(a.getTitle()));
-
-    tenantOp(TENANT, new JsonObject()
-        .put("module_from", "mod-mymodule-1.0.0")
-        .put("purge", true), null);
-  }
-
-  @Test
-  public void sampleData(TestContext context) {
-    tenantOp(TENANT, new JsonObject()
-        .put("module_to", "mod-mymodule-1.0.0")
             .put("parameters", new JsonArray()
                 .add(new JsonObject().put("key", "loadSample").put("value", "true")))
         , null);
@@ -149,7 +110,9 @@ public class MainVerticleTest {
         .contentType(ContentType.JSON)
         .body("books", hasSize(2))
         .body("books[0].title", is("First title"))
-        .body("books[1].title", is("Second title"));
+        .body("books[0].indexTitle", is("first title"))
+        .body("books[1].title", is("Second title"))
+        .body("books[1].indexTitle", is("second title"));
 
     RestAssured.given()
         .header(XOkapiHeaders.TENANT, TENANT)
@@ -171,9 +134,50 @@ public class MainVerticleTest {
         .body("books[0].title", is("First title"));
 
     tenantOp(TENANT, new JsonObject()
-            .put("module_from", "mod-mymodule-1.0.0")
-            .put("purge", true), null);
+        .put("module_from", "mod-mymodule-1.0.0")
+        .put("purge", true), null);
 
+  }
+
+  @Test
+  public void testPostBook(TestContext context) {
+    tenantOp(TENANT, new JsonObject()
+            .put("module_to", "mod-mymodule-1.0.0")
+        , null);
+
+    RestAssured.given()
+        .header(XOkapiHeaders.TENANT, TENANT)
+        .get("/myapi/books")
+        .then().statusCode(200)
+        .contentType(ContentType.JSON)
+        .body("books", hasSize(0));
+
+    Book a = new Book();
+    a.setTitle("art of computer");
+    a.setId(UUID.randomUUID());
+    a.setIndexTitle("art computer");
+
+    JsonObject.mapFrom(a).encode();
+
+    RestAssured.given()
+        .header(XOkapiHeaders.TENANT, TENANT)
+        .contentType(ContentType.JSON)
+        .body(JsonObject.mapFrom(a).encode())
+        .post("/myapi/books")
+        .then().statusCode(204);
+
+    RestAssured.given()
+        .header(XOkapiHeaders.TENANT, TENANT)
+        .get("/myapi/books")
+        .then().statusCode(200)
+        .contentType(ContentType.JSON)
+        .body("books[0].id", is(a.getId().toString()))
+        .body("books[0].title", is(a.getTitle()))
+        .body("books[0].indexTitle", is(a.getIndexTitle()));
+
+    tenantOp(TENANT, new JsonObject()
+        .put("module_from", "mod-mymodule-1.0.0")
+        .put("purge", true), null);
   }
 
 }

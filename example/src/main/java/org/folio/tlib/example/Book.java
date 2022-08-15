@@ -2,6 +2,7 @@ package org.folio.tlib.example;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.sqlclient.templates.annotations.Column;
 import io.vertx.sqlclient.templates.annotations.RowMapped;
 import java.util.UUID;
 
@@ -13,6 +14,9 @@ public class Book {
   private UUID id;
 
   private String title;
+
+  @Column(name = "index_title")
+  private String indexTitle;
 
   public UUID getId() {
     return id;
@@ -28,5 +32,13 @@ public class Book {
 
   public void setTitle(String title) {
     this.title = title;
+  }
+
+  public String getIndexTitle() {
+    return indexTitle;
+  }
+
+  public void setIndexTitle(String indexTitle) {
+    this.indexTitle = indexTitle;
   }
 }
