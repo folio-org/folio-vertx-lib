@@ -46,6 +46,10 @@ public class MyApi implements RouterCreator, TenantInitHooks {
             ));
   }
 
+  private String getMyTable(TenantPgPool pool) {
+    return pool.getSchema() + ".mytable";
+  }
+
   @Override
   public Future<Void> postInit(Vertx vertx, String tenant, JsonObject tenantAttributes) {
     if (!tenantAttributes.containsKey("module_to")) {
@@ -53,7 +57,7 @@ public class MyApi implements RouterCreator, TenantInitHooks {
     }
     TenantPgPool pool = TenantPgPool.pool(vertx, tenant);
     Future<Void> future = pool.query(
-            "CREATE TABLE IF NOT EXISTS " + pool.getSchema() + ".mytable "
+            "CREATE TABLE IF NOT EXISTS " + getMyTable(pool)
                 + "(id UUID PRIMARY KEY, title TEXT, index_title TEXT)")
         .execute().mapEmpty();
     JsonArray parameters = tenantAttributes.getJsonArray("parameters");
@@ -63,12 +67,12 @@ public class MyApi implements RouterCreator, TenantInitHooks {
         if ("loadSample".equals(parameter.getString("key"))
             && "true".equals(parameter.getString("value"))) {
           future = future.compose(x ->
-              pool.preparedQuery("INSERT INTO " + pool.getSchema() + ".mytable"
+              pool.preparedQuery("INSERT INTO " + getMyTable(pool)
                       + "(id, title, index_title) VALUES ($1, $2, $3)")
                   .execute(Tuple.of(UUID.randomUUID(), "First title", "first title")).mapEmpty()
           );
           future = future.compose(x ->
-              pool.preparedQuery("INSERT INTO " + pool.getSchema() + ".mytable"
+              pool.preparedQuery("INSERT INTO " + getMyTable(pool)
                       + "(id, title, index_title) VALUES ($1, $2, $3)")
                   .execute(Tuple.of(UUID.randomUUID(), "Second title", "second title")).mapEmpty()
           );
@@ -86,7 +90,7 @@ public class MyApi implements RouterCreator, TenantInitHooks {
     pgCqlQuery.addField(new PgCqlField("cql.allRecords", PgCqlField.Type.ALWAYS_MATCHES));
     pgCqlQuery.addField(new PgCqlField("id", PgCqlField.Type.UUID));
     pgCqlQuery.addField(new PgCqlField("title", PgCqlField.Type.FULLTEXT));
-    String sql = "SELECT * FROM " + pool.getSchema() + ".mytable";
+    String sql = "SELECT * FROM " + getMyTable(pool);
     String where = pgCqlQuery.getWhereClause();
     if (where != null) {
       sql = sql + " WHERE " + where;
@@ -123,7 +127,7 @@ public class MyApi implements RouterCreator, TenantInitHooks {
     TenantPgPool pool = TenantPgPool.pool(vertx, tenant);
     Book book = ctx.body().asPojo(Book.class);
 
-    return SqlTemplate.forUpdate(pool.getPool(), "INSERT INTO " + pool.getSchema() + ".mytable"
+    return SqlTemplate.forUpdate(pool.getPool(), "INSERT INTO " + getMyTable(pool)
             + " VALUES (#{id},#{title},#{indexTitle})")
         .mapFrom(Book.class)
         .execute(book)
