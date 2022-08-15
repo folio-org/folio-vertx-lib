@@ -7,6 +7,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.openapi.RouterBuilder;
+import io.vertx.ext.web.validation.RequestParameters;
+import io.vertx.ext.web.validation.ValidationHandler;
+import java.util.UUID;
 import org.folio.tlib.RouterCreator;
 import org.folio.tlib.TenantInitHooks;
 import org.folio.tlib.util.TenantUtil;
@@ -31,6 +34,14 @@ public class MyApi implements RouterCreator, TenantInitHooks {
                     .end(cause.getMessage())
             ));
     routerBuilder
+        .operation("getBook")
+        .handler(ctx -> getBook(vertx, ctx)
+            .onFailure(cause ->
+                ctx.response().setStatusCode(500)
+                    .putHeader("Content-Type", "text/plain")
+                    .end(cause.getMessage())
+            ));
+    routerBuilder
         .operation("getBooks")
         .handler(ctx -> getBooks(vertx, ctx)
             .onFailure(cause ->
@@ -42,9 +53,6 @@ public class MyApi implements RouterCreator, TenantInitHooks {
 
   @Override
   public Future<Void> postInit(Vertx vertx, String tenant, JsonObject tenantAttributes) {
-    if (!tenantAttributes.containsKey("module_to")) {
-      return Future.succeededFuture(); // doing nothing for disable
-    }
     Storage storage = new Storage(vertx, tenant);
     return storage.init(tenantAttributes);
   }
@@ -62,6 +70,27 @@ public class MyApi implements RouterCreator, TenantInitHooks {
           ctx.response().setStatusCode(200);
           JsonObject result = new JsonObject().put("books", books);
           ctx.response().end(result.encode());
+          return null;
+        });
+  }
+
+  private Future<Void> getBook(Vertx vertx, RoutingContext ctx) {
+    String tenant = TenantUtil.tenant(ctx);
+
+    RequestParameters params = ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY);
+    UUID id = UUID.fromString(params.pathParameter("id").getString());
+    Storage storage = new Storage(vertx, tenant);
+    return storage.getBook(id)
+        .map(book -> {
+          if (book == null) {
+            ctx.response().setStatusCode(404);
+            ctx.response().putHeader("Content-Type", "text/plain");
+            ctx.response().end("Not found " + id);
+          } else {
+            ctx.response().setStatusCode(200);
+            ctx.response().putHeader("Content-Type", "application/json");
+            ctx.response().end(JsonObject.mapFrom(book).encode());
+          }
           return null;
         });
   }

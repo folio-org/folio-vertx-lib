@@ -8,6 +8,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.RequestParameters;
 import io.vertx.ext.web.validation.ValidationHandler;
+import io.vertx.sqlclient.RowIterator;
 import io.vertx.sqlclient.Tuple;
 import io.vertx.sqlclient.templates.SqlTemplate;
 import java.util.Collections;
@@ -31,6 +32,9 @@ public class Storage {
   }
 
   Future<Void> init(JsonObject tenantAttributes) {
+    if (!tenantAttributes.containsKey("module_to")) {
+      return Future.succeededFuture(); // doing nothing for disable
+    }
     Future<Void> future = pool.query(
             "CREATE TABLE IF NOT EXISTS " + getMyTable(pool)
                 + "(id UUID PRIMARY KEY, title TEXT, index_title TEXT)")
@@ -55,6 +59,26 @@ public class Storage {
       }
     }
     return future;
+  }
+
+
+  Future<Book> getBook(UUID id) {
+    return SqlTemplate.forQuery(pool.getPool(), "SELECT * FROM " + getMyTable(pool)
+            + " WHERE id=#{id}")
+        .mapTo(BookRowMapper.INSTANCE)
+        .execute(Collections.singletonMap("id", id))
+        .map(rowSet -> {
+          RowIterator<Book> iterator = rowSet.iterator();
+          return iterator.hasNext() ? iterator.next() : null;
+        });
+  }
+
+  Future<Void> postBook(Book book) {
+    return SqlTemplate.forUpdate(pool.getPool(), "INSERT INTO " + getMyTable(pool)
+            + " VALUES (#{id},#{title},#{indexTitle})")
+        .mapFrom(Book.class)
+        .execute(book)
+        .mapEmpty();
   }
 
   private String createQueryMyTable(RoutingContext ctx, TenantPgPool pool) {
@@ -87,14 +111,6 @@ public class Storage {
           rowSet.forEach(books::add);
           return books;
         });
-  }
-
-  Future<Void> postBook(Book book) {
-    return SqlTemplate.forUpdate(pool.getPool(), "INSERT INTO " + getMyTable(pool)
-            + " VALUES (#{id},#{title},#{indexTitle})")
-        .mapFrom(Book.class)
-        .execute(book)
-        .mapEmpty();
   }
 
 }
