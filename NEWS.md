@@ -1,3 +1,7 @@
+## 2.0.1 2022-08-16
+
+ * [VERTXLIB-26](https://issues.folio.org/browse/VERTXLIB-26) Vert.x 4.3.3, Okapi 4.14.3
+
 ## 2.0.0 2022-06-14
 
  * [VERTXLIB-22](https://issues.folio.org/browse/VERTXLIB-22) Remove schema substitution in
