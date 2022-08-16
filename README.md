@@ -130,7 +130,7 @@ Your implementation should only consider upgrade/downgrade. On purge,
 
 The PostgreSQL support is minimal. There's just enough to perform tenant
 separation and most environment variables that are also recognized by RMB
-such as `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_DATABASE`,
+such as `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`,
 `DB_MAXPOOLSIZE`, `DB_SERVER_PEM`.
 
 The class [TenantPgPool](core/src/main/java/org/folio/tlib/postgres/TenantPgPool.java) is
