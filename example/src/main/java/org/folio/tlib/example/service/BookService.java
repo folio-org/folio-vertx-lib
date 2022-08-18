@@ -10,6 +10,7 @@ import io.vertx.ext.web.openapi.RouterBuilder;
 import io.vertx.ext.web.validation.RequestParameters;
 import io.vertx.ext.web.validation.ValidationHandler;
 import java.util.UUID;
+import org.folio.okapi.common.HttpResponse;
 import org.folio.tlib.RouterCreator;
 import org.folio.tlib.TenantInitHooks;
 import org.folio.tlib.example.data.Book;
@@ -30,27 +31,15 @@ public class BookService implements RouterCreator, TenantInitHooks {
     routerBuilder
         .operation("postBook") // operationId in spec
         .handler(ctx -> postBook(vertx, ctx)
-            .onFailure(cause ->
-                ctx.response().setStatusCode(500)
-                    .putHeader("Content-Type", "text/plain")
-                    .end(cause.getMessage())
-            ));
+            .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage())));
     routerBuilder
         .operation("getBook")
         .handler(ctx -> getBook(vertx, ctx)
-            .onFailure(cause ->
-                ctx.response().setStatusCode(500)
-                    .putHeader("Content-Type", "text/plain")
-                    .end(cause.getMessage())
-            ));
+            .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage())));
     routerBuilder
         .operation("getBooks")
         .handler(ctx -> getBooks(vertx, ctx)
-            .onFailure(cause ->
-                ctx.response().setStatusCode(500)
-                    .putHeader("Content-Type", "text/plain")
-                    .end(cause.getMessage())
-            ));
+            .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage())));
   }
 
   @Override
@@ -68,10 +57,8 @@ public class BookService implements RouterCreator, TenantInitHooks {
           for (Book book : books) {
             ar.add(JsonObject.mapFrom(book));
           }
-          ctx.response().putHeader("Content-Type", "application/json");
-          ctx.response().setStatusCode(200);
           JsonObject result = new JsonObject().put("books", books);
-          ctx.response().end(result.encode());
+          HttpResponse.responseJson(ctx, 200).end(result.encode());
           return null;
         });
   }
@@ -85,13 +72,9 @@ public class BookService implements RouterCreator, TenantInitHooks {
     return storage.getBook(id)
         .map(book -> {
           if (book == null) {
-            ctx.response().setStatusCode(404);
-            ctx.response().putHeader("Content-Type", "text/plain");
-            ctx.response().end("Not found " + id);
+            HttpResponse.responseError(ctx, 404, "Not found " + id);
           } else {
-            ctx.response().setStatusCode(200);
-            ctx.response().putHeader("Content-Type", "application/json");
-            ctx.response().end(JsonObject.mapFrom(book).encode());
+            HttpResponse.responseJson(ctx, 200).end(JsonObject.mapFrom(book).encode());
           }
           return null;
         });
