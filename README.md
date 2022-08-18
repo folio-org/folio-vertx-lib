@@ -27,13 +27,13 @@ such as `resources/openapi`.
 
 In the following example, we will
 use OpenAPI spec
-[books-1.0.yaml](example/src/main/resources/openapi/books-1.0.yaml).
+[books-1.0.yaml](mod-example/src/main/resources/openapi/books-1.0.yaml).
 The code snippets shown are from:
-[MainVerticle](example/src/main/java/org/folio/tlib/example/MainVerticle.java)
+[MainVerticle](mod-example/src/main/java/org/folio/tlib/example/MainVerticle.java)
 ,
-[BookService](example/src/main/java/org/folio/tlib/example/service/BookService.java)
+[BookService](mod-example/src/main/java/org/folio/tlib/example/service/BookService.java)
 and
-[BookStorage](example/src/main/java/org/folio/tlib/example/storage/BookStorage.java).
+[BookStorage](mod-example/src/main/java/org/folio/tlib/example/storage/BookStorage.java).
 
 Unlike
 [RMB](https://github.com/folio-org/raml-module-builder), you define

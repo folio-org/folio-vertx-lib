@@ -1,7 +1,0 @@
-{
-  "srvcId": "${artifactId}-${version}",
-  "nodeId": "localhost",
-  "descriptor": {
-    "exec": "java -jar ../folio-vertx-lib/example/target/${artifactId}-fat.jar -Dhttp.port=%p"
-  }
-}

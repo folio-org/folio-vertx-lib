@@ -33,7 +33,7 @@
   <modules>
     <module>core</module>
     <module>pg-testing</module>
-    <module>example</module>
+    <module>mod-example</module>
   </modules>
   <dependencyManagement>
     <dependencies>
