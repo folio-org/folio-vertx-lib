@@ -1,4 +1,4 @@
-package org.folio.tlib.example;
+package org.folio.tlib.example.data;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.vertx.codegen.annotations.DataObject;

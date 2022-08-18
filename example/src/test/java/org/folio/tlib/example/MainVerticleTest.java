@@ -12,6 +12,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.folio.okapi.common.XOkapiHeaders;
+import org.folio.tlib.example.data.Book;
 import org.folio.tlib.postgres.testing.TenantPgPoolContainer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -99,14 +100,14 @@ public class MainVerticleTest {
         .header(XOkapiHeaders.TENANT, TENANT)
         .contentType(ContentType.JSON)
         .body(JsonObject.mapFrom(a).encode())
-        .post("/myapi/books")
+        .post("/books")
         .then().statusCode(500)
         .contentType(ContentType.TEXT)
         .body(containsString("42P01"));
 
     RestAssured.given()
         .header(XOkapiHeaders.TENANT, TENANT)
-        .get("/myapi/books/" + a.getId())
+        .get("/books/" + a.getId())
         .then().statusCode(500)
         .contentType(ContentType.TEXT)
         .body(containsString("42P01"));
@@ -117,7 +118,7 @@ public class MainVerticleTest {
 
     RestAssured.given()
         .header(XOkapiHeaders.TENANT, TENANT)
-        .get("/myapi/books/" + a.getId())
+        .get("/books/" + a.getId())
         .then().statusCode(404)
         .contentType(ContentType.TEXT);
 
@@ -125,12 +126,12 @@ public class MainVerticleTest {
         .header(XOkapiHeaders.TENANT, TENANT)
         .contentType(ContentType.JSON)
         .body(JsonObject.mapFrom(a).encode())
-        .post("/myapi/books")
+        .post("/books")
         .then().statusCode(204);
 
     RestAssured.given()
         .header(XOkapiHeaders.TENANT, TENANT)
-        .get("/myapi/books/" + a.getId())
+        .get("/books/" + a.getId())
         .then().statusCode(200)
         .contentType(ContentType.JSON)
         .body("id", is(a.getId().toString()))
@@ -141,7 +142,7 @@ public class MainVerticleTest {
         .header(XOkapiHeaders.TENANT, TENANT)
         .contentType(ContentType.JSON)
         .body(JsonObject.mapFrom(a).encode())
-        .post("/myapi/books")
+        .post("/books")
         .then().statusCode(500)
         .contentType(ContentType.TEXT)
         .body(containsString("23505"));
@@ -155,7 +156,7 @@ public class MainVerticleTest {
   public void testGetBooks(TestContext context) {
     RestAssured.given()
         .header(XOkapiHeaders.TENANT, TENANT)
-        .get("/myapi/books")
+        .get("/books")
         .then().statusCode(500)
         .contentType(ContentType.TEXT)
         .body(containsString("42P01"));
@@ -168,7 +169,7 @@ public class MainVerticleTest {
 
     RestAssured.given()
         .header(XOkapiHeaders.TENANT, TENANT)
-        .get("/myapi/books")
+        .get("/books")
         .then().statusCode(200)
         .contentType(ContentType.JSON)
         .body("books", hasSize(2));
@@ -176,7 +177,7 @@ public class MainVerticleTest {
     RestAssured.given()
         .header(XOkapiHeaders.TENANT, TENANT)
         .queryParam("query", "cql.allRecords=true sortby title")
-        .get("/myapi/books")
+        .get("/books")
         .then().statusCode(200)
         .contentType(ContentType.JSON)
         .body("books", hasSize(2))
@@ -188,7 +189,7 @@ public class MainVerticleTest {
     RestAssured.given()
         .header(XOkapiHeaders.TENANT, TENANT)
         .queryParam("query", "cql.allRecords=true sortby title/sort.descending")
-        .get("/myapi/books")
+        .get("/books")
         .then().statusCode(200)
         .contentType(ContentType.JSON)
         .body("books", hasSize(2))
@@ -198,7 +199,7 @@ public class MainVerticleTest {
     RestAssured.given()
         .header(XOkapiHeaders.TENANT, TENANT)
         .queryParam("query", "title=first")
-        .get("/myapi/books")
+        .get("/books")
         .then().statusCode(200)
         .contentType(ContentType.JSON)
         .body("books", hasSize(1))

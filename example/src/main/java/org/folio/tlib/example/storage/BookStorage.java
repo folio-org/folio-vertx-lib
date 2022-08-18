@@ -1,4 +1,4 @@
-package org.folio.tlib.example;
+package org.folio.tlib.example.storage;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -15,15 +15,17 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import org.folio.tlib.example.data.Book;
+import org.folio.tlib.example.data.BookRowMapper;
 import org.folio.tlib.postgres.PgCqlField;
 import org.folio.tlib.postgres.PgCqlQuery;
 import org.folio.tlib.postgres.TenantPgPool;
 
-public class Storage {
+public class BookStorage {
 
   TenantPgPool pool;
 
-  Storage(Vertx vertx, String tenant) {
+  public BookStorage(Vertx vertx, String tenant) {
     pool = TenantPgPool.pool(vertx, tenant);
   }
 
@@ -31,7 +33,12 @@ public class Storage {
     return pool.getSchema() + ".mytable";
   }
 
-  Future<Void> init(JsonObject tenantAttributes) {
+  /**
+   * tenant init handling (including disable).
+   * @param tenantAttributes as passed in tenant init
+   * @return async result.
+   */
+  public Future<Void> init(JsonObject tenantAttributes) {
     if (!tenantAttributes.containsKey("module_to")) {
       return Future.succeededFuture(); // doing nothing for disable
     }
@@ -62,7 +69,12 @@ public class Storage {
   }
 
 
-  Future<Book> getBook(UUID id) {
+  /**
+   * Get book from identifier.
+   * @param id identifier
+   * @return async with Book == null if not found
+   */
+  public Future<Book> getBook(UUID id) {
     return SqlTemplate.forQuery(pool.getPool(), "SELECT * FROM " + getMyTable(pool)
             + " WHERE id=#{id}")
         .mapTo(BookRowMapper.INSTANCE)
@@ -73,7 +85,12 @@ public class Storage {
         });
   }
 
-  Future<Void> postBook(Book book) {
+  /**
+   * Create book.
+   * @param book the book to add.
+   * @return async result.
+   */
+  public Future<Void> postBook(Book book) {
     return SqlTemplate.forUpdate(pool.getPool(), "INSERT INTO " + getMyTable(pool)
             + " VALUES (#{id},#{title},#{indexTitle})")
         .mapFrom(Book.class)
@@ -81,6 +98,12 @@ public class Storage {
         .mapEmpty();
   }
 
+  /**
+   * Create SQL query for books.
+   * @param ctx routing context from HTTP request
+   * @param pool PostgresQL Pool
+   * @return async result
+   */
   private String createQueryMyTable(RoutingContext ctx, TenantPgPool pool) {
     RequestParameters params = ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY);
     PgCqlQuery pgCqlQuery = PgCqlQuery.query();
@@ -101,7 +124,13 @@ public class Storage {
     return sql;
   }
 
-  Future<List<Book>> getBooks(RoutingContext ctx) {
+
+  /**
+   * Get books with optional CQL query.
+   * @param ctx routing context for HTTP request
+   * @return async result with books list
+   */
+  public Future<List<Book>> getBooks(RoutingContext ctx) {
     String sql = createQueryMyTable(ctx, pool);
     return SqlTemplate.forQuery(pool.getPool(), sql)
         .mapTo(BookRowMapper.INSTANCE)

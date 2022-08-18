@@ -1,4 +1,4 @@
-package org.folio.tlib.example;
+package org.folio.tlib.example.service;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -12,12 +12,14 @@ import io.vertx.ext.web.validation.ValidationHandler;
 import java.util.UUID;
 import org.folio.tlib.RouterCreator;
 import org.folio.tlib.TenantInitHooks;
+import org.folio.tlib.example.data.Book;
+import org.folio.tlib.example.storage.BookStorage;
 import org.folio.tlib.util.TenantUtil;
 
-public class MyApi implements RouterCreator, TenantInitHooks {
+public class BookService implements RouterCreator, TenantInitHooks {
   @Override
   public Future<Router> createRouter(Vertx vertx) {
-    return RouterBuilder.create(vertx, "openapi/myapi-1.0.yaml")
+    return RouterBuilder.create(vertx, "openapi/books-1.0.yaml")
         .map(routerBuilder -> {
           handlers(vertx, routerBuilder);
           return routerBuilder.createRouter();
@@ -53,13 +55,13 @@ public class MyApi implements RouterCreator, TenantInitHooks {
 
   @Override
   public Future<Void> postInit(Vertx vertx, String tenant, JsonObject tenantAttributes) {
-    Storage storage = new Storage(vertx, tenant);
+    BookStorage storage = new BookStorage(vertx, tenant);
     return storage.init(tenantAttributes);
   }
 
   private Future<Void> getBooks(Vertx vertx, RoutingContext ctx) {
     String tenant = TenantUtil.tenant(ctx);
-    Storage storage = new Storage(vertx, tenant);
+    BookStorage storage = new BookStorage(vertx, tenant);
     return storage.getBooks(ctx)
         .map(books -> {
           JsonArray ar = new JsonArray();
@@ -79,7 +81,7 @@ public class MyApi implements RouterCreator, TenantInitHooks {
 
     RequestParameters params = ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY);
     UUID id = UUID.fromString(params.pathParameter("id").getString());
-    Storage storage = new Storage(vertx, tenant);
+    BookStorage storage = new BookStorage(vertx, tenant);
     return storage.getBook(id)
         .map(book -> {
           if (book == null) {
@@ -97,7 +99,7 @@ public class MyApi implements RouterCreator, TenantInitHooks {
 
   private Future<Void> postBook(Vertx vertx, RoutingContext ctx) {
     String tenant = TenantUtil.tenant(ctx);
-    Storage storage = new Storage(vertx, tenant);
+    BookStorage storage = new BookStorage(vertx, tenant);
     Book book = ctx.body().asPojo(Book.class);
     return storage.postBook(book)
         .map(res -> {
