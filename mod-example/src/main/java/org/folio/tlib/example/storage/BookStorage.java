@@ -52,16 +52,13 @@ public class BookStorage {
         JsonObject parameter = parameters.getJsonObject(i);
         if ("loadSample".equals(parameter.getString("key"))
             && "true".equals(parameter.getString("value"))) {
-          future = future.compose(x ->
-              pool.preparedQuery("INSERT INTO " + getMyTable(pool)
-                      + "(id, title, index_title) VALUES ($1, $2, $3)")
-                  .execute(Tuple.of(UUID.randomUUID(), "First title", "first title")).mapEmpty()
-          );
-          future = future.compose(x ->
-              pool.preparedQuery("INSERT INTO " + getMyTable(pool)
-                      + "(id, title, index_title) VALUES ($1, $2, $3)")
-                  .execute(Tuple.of(UUID.randomUUID(), "Second title", "second title")).mapEmpty()
-          );
+          for (String title : List.of("First title", "Second title")) {
+            Book book = new Book();
+            book.setTitle(title);
+            book.setIndexTitle(title.toLowerCase());
+            book.setId(UUID.randomUUID());
+            future = future.compose(x -> postBook(book));
+          }
         }
       }
     }
