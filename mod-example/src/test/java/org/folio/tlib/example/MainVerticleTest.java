@@ -111,7 +111,7 @@ public class MainVerticleTest {
         .body(containsString("42P01"));
 
     tenantOp(TENANT, new JsonObject()
-            .put("module_to", "mod-mymodule-1.0.0")
+            .put("module_to", "mod-example-1.0.0")
         , null);
 
     RestAssured.given()
@@ -146,7 +146,7 @@ public class MainVerticleTest {
         .body(containsString("23505"));
 
     tenantOp(TENANT, new JsonObject()
-        .put("module_from", "mod-mymodule-1.0.0")
+        .put("module_from", "mod-example-1.0.0")
         .put("purge", true), null);
   }
 
@@ -160,7 +160,7 @@ public class MainVerticleTest {
         .body(containsString("42P01"));
 
     tenantOp(TENANT, new JsonObject()
-            .put("module_to", "mod-mymodule-1.0.0")
+            .put("module_to", "mod-example-1.0.0")
             .put("parameters", new JsonArray()
                 .add(new JsonObject().put("key", "loadSample").put("value", "true")))
         , null);
@@ -204,7 +204,7 @@ public class MainVerticleTest {
         .body("books[0].title", is("First title"));
 
     tenantOp(TENANT, new JsonObject()
-        .put("module_from", "mod-mymodule-1.0.0")
+        .put("module_from", "mod-example-1.0.0")
         .put("purge", true), null);
 
   }
