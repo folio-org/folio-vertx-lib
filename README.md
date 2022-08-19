@@ -163,8 +163,9 @@ tenant init.
 
 ## CQL
 
-For CQL support *all* fields recognized must be explicitly defined. Undefined CQL
-fields are rejected. Example to get books:
+For CQL support *all* fields recognized must be explicitly defined.
+Undefined CQL fields are rejected.
+Example to get books:
 
 ```
  private Future<Void> getBooks(Vertx vertx, RoutingContext ctx) {

@@ -11,6 +11,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import java.util.UUID;
 import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.tlib.example.data.Book;
 import org.folio.tlib.postgres.testing.TenantPgPoolContainer;
@@ -20,9 +21,6 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.testcontainers.containers.PostgreSQLContainer;
-
-import java.io.IOException;
-import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -40,7 +38,7 @@ public class MainVerticleTest {
   public static PostgreSQLContainer<?> postgresSQLContainer = TenantPgPoolContainer.create();
 
   @BeforeClass
-  public static void beforeClass(TestContext context) throws IOException {
+  public static void beforeClass(TestContext context) {
     port = 9230;
     vertx = Vertx.vertx();
     RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
@@ -90,7 +88,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPostBook(TestContext context) {
+  public void testPostBook() {
     Book a = new Book();
     a.setTitle("art of computer");
     a.setId(UUID.randomUUID());
@@ -153,7 +151,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetBooks(TestContext context) {
+  public void testGetBooks() {
     RestAssured.given()
         .header(XOkapiHeaders.TENANT, TENANT)
         .get("/books")
