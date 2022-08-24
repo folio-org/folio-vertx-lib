@@ -9,6 +9,7 @@ import static org.hamcrest.Matchers.nullValue;
 
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.http.ContentType;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import io.vertx.core.Future;
@@ -138,7 +139,7 @@ public class Tenant2ApiTest {
     String tenant = "test'lib";
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
-        .header("Content-Type", "application/json")
+        .contentType(ContentType.JSON)
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\"}")
         .post("/_/tenant")
         .then().statusCode(400)
@@ -151,7 +152,7 @@ public class Tenant2ApiTest {
     String tenant = "test\"lib";
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
-        .header("Content-Type", "application/json")
+        .contentType(ContentType.JSON)
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\"}")
         .post("/_/tenant")
         .then().statusCode(400)
@@ -170,11 +171,11 @@ public class Tenant2ApiTest {
     TenantPgPool.setDefaultConnectOptions(bad);
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
-        .header("Content-Type", "application/json")
+        .contentType(ContentType.JSON)
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\"}")
         .post("/_/tenant")
         .then().statusCode(400)
-        .header("Content-Type", is("text/plain"))
+        .contentType(ContentType.TEXT)
         .body(containsString("DB_PORT="));
   }
 
@@ -188,25 +189,25 @@ public class Tenant2ApiTest {
     TenantPgPool.setDefaultConnectOptions(bad);
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
-        .header("Content-Type", "application/json")
+        .contentType(ContentType.JSON)
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\"}")
         .post("/_/tenant")
         .then().statusCode(500)
-        .header("Content-Type", is("text/plain"))
+        .contentType(ContentType.TEXT)
         .body(containsString("database"));
 
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
-        .get("/_/tenant/" + UUID.randomUUID().toString())
+        .get("/_/tenant/" + UUID.randomUUID())
         .then().statusCode(500)
-        .header("Content-Type", is("text/plain"))
+        .contentType(ContentType.TEXT)
         .body(containsString("database"));
 
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
-        .delete("/_/tenant/" + UUID.randomUUID().toString())
+        .delete("/_/tenant/" + UUID.randomUUID())
         .then().statusCode(500)
-        .header("Content-Type", is("text/plain"))
+        .contentType(ContentType.TEXT)
         .body(containsString("database"));
   }
 
@@ -233,7 +234,7 @@ public class Tenant2ApiTest {
     // purge
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
-        .header("Content-Type", "application/json")
+        .contentType(ContentType.JSON)
         .body(new JsonObject()
             .put("module_from", "mod-eusage-reports-1.0.1")
             .put("purge", true)
@@ -244,7 +245,7 @@ public class Tenant2ApiTest {
     // 2nd purge
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
-        .header("Content-Type", "application/json")
+        .contentType(ContentType.JSON)
         .body(new JsonObject()
             .put("module_from", "mod-eusage-reports-1.0.1")
             .put("purge", true)
@@ -260,11 +261,11 @@ public class Tenant2ApiTest {
     hooks.preInitPromise.fail("pre init failure");
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
-        .header("Content-Type", "application/json")
+        .contentType(ContentType.JSON)
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\"}")
         .post("/_/tenant")
         .then().statusCode(500)
-        .header("Content-Type", is("text/plain"))
+        .contentType(ContentType.TEXT)
         .body(is("pre init failure"));
   }
 
@@ -273,11 +274,11 @@ public class Tenant2ApiTest {
 
     ExtractableResponse<Response> response = RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
-        .header("Content-Type", "application/json")
+        .contentType(ContentType.JSON)
         .body(body.encode())
         .post("/_/tenant")
         .then().statusCode(201)
-        .header("Content-Type", is("application/json"))
+        .contentType(ContentType.JSON)
         .body("tenant", is(tenant))
         .body("error", is(nullValue()))
         .extract();
@@ -333,11 +334,11 @@ public class Tenant2ApiTest {
     String tenant = "testlib";
     ExtractableResponse<Response> response = RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
-        .header("Content-Type", "application/json")
+        .contentType(ContentType.JSON)
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\"}")
         .post("/_/tenant")
         .then().statusCode(201)
-        .header("Content-Type", is("application/json"))
+        .contentType(ContentType.JSON)
         .body("tenant", is(tenant))
         .extract();
 
@@ -359,7 +360,7 @@ public class Tenant2ApiTest {
 
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
-        .header("Content-Type", "application/json")
+        .contentType(ContentType.JSON)
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\", \"purge\":true}")
         .post("/_/tenant")
         .then().statusCode(204);
@@ -372,11 +373,11 @@ public class Tenant2ApiTest {
     hooks.postInitPromise.fail((String) null);
     ExtractableResponse<Response> response = RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
-        .header("Content-Type", "application/json")
+        .contentType(ContentType.JSON)
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\"}")
         .post("/_/tenant")
         .then().statusCode(201)
-        .header("Content-Type", is("application/json"))
+        .contentType(ContentType.JSON)
         .body("tenant", is(tenant))
         .extract();
 
@@ -398,7 +399,7 @@ public class Tenant2ApiTest {
 
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
-        .header("Content-Type", "application/json")
+        .contentType(ContentType.JSON)
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\", \"purge\":true}")
         .post("/_/tenant")
         .then().statusCode(204);
@@ -407,11 +408,11 @@ public class Tenant2ApiTest {
   @Test
   public void testPostMissingTenant() {
     RestAssured.given()
-        .header("Content-Type", "application/json")
+        .contentType(ContentType.JSON)
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\"}")
         .post("/_/tenant")
         .then().statusCode(400)
-        .header("Content-Type", is("text/plain"));
+        .contentType(ContentType.TEXT);
   }
 
   @Test
@@ -420,7 +421,7 @@ public class Tenant2ApiTest {
     RestAssured.given()
         .get("/_/tenant/" + id)
         .then().statusCode(400)
-        .header("Content-Type", is("text/plain"));
+        .contentType(ContentType.TEXT);
   }
 
   @Test
@@ -430,7 +431,7 @@ public class Tenant2ApiTest {
         .header("X-Okapi-Tenant", "testlib")
         .get("/_/tenant/" + id)
         .then().statusCode(400)
-        .header("Content-Type", is("text/plain"))
+        .contentType(ContentType.TEXT)
         .body(containsString("Validation error for parameter id in location"));
   }
 
@@ -440,7 +441,7 @@ public class Tenant2ApiTest {
     RestAssured.given()
         .delete("/_/tenant/" + id)
         .then().statusCode(400)
-        .header("Content-Type", is("text/plain"));
+        .contentType(ContentType.TEXT);
   }
 
   @Test
@@ -450,14 +451,14 @@ public class Tenant2ApiTest {
         .header("X-Okapi-Tenant", "testlib")
         .delete("/_/tenant/" + id)
         .then().statusCode(400)
-        .header("Content-Type", is("text/plain"))
+        .contentType(ContentType.TEXT)
         .body(containsString("Validation error for parameter id in location"));
   }
 
   @Test
   public void testPostTenantBadJson() {
     RestAssured.given()
-        .header("Content-Type", "application/json")
+        .contentType(ContentType.JSON)
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\"")
         .post("/_/tenant")
         .then().statusCode(400);
@@ -466,7 +467,7 @@ public class Tenant2ApiTest {
   @Test
   public void testPostTenantBadType() {
     RestAssured.given()
-        .header("Content-Type", "application/json")
+        .contentType(ContentType.JSON)
         .body("{\"module_to\" : true}")
         .post("/_/tenant")
         .then().statusCode(400);
@@ -475,7 +476,7 @@ public class Tenant2ApiTest {
   @Test
   public void testPostTenantAdditional() {
     RestAssured.given()
-        .header("Content-Type", "application/json")
+        .contentType(ContentType.JSON)
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\", \"extra\":true}")
         .post("/_/tenant")
         .then().statusCode(400);

@@ -1,0 +1,55 @@
+{
+  "id": "${artifactId}-${version}",
+  "name": "Example module handling books",
+  "provides": [
+    {
+      "id": "_tenant",
+      "version": "2.0",
+      "interfaceType": "system",
+      "handlers": [
+        {
+          "methods": [
+            "POST"
+          ],
+          "pathPattern": "/_/tenant",
+          "permissionsRequired": []
+        },
+        {
+          "methods": [
+            "DELETE"
+          ],
+          "pathPattern": "/_/tenant",
+          "permissionsRequired": []
+        }
+      ]
+    },
+    {
+      "id": "books",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": [
+            "POST"
+          ],
+          "pathPattern": "/books",
+          "permissionsRequired": []
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pathPattern": "/books/{id}",
+          "permissionsRequired": []
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pathPattern": "/books",
+          "permissionsRequired": []
+        }
+      ]
+    }
+  ],
+  "requires": []
+}

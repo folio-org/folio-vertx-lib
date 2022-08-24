@@ -1,5 +1,5 @@
 {
-  "description": "A title",
+  "description": "A book",
   "type": "object",
   "properties": {
     "id": {
@@ -10,6 +10,10 @@
     "title": {
       "type": "string",
       "description": "Title text"
+    },
+    "indexTitle": {
+      "type": "string",
+      "description": "Indexed title"
     }
   },
   "required": [

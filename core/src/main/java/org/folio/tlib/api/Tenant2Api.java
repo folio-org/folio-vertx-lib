@@ -179,7 +179,7 @@ public class Tenant2Api implements RouterCreator {
         .handler(ctx -> {
           RequestParameters params = ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY);
           log.info("postTenant handler {}", params.toJson().encode());
-          JsonObject tenantAttributes = ctx.getBodyAsJson();
+          JsonObject tenantAttributes = ctx.body().asJsonObject();
           String tenant = TenantUtil.tenant(ctx);
 
           createJob(vertx, tenant, tenantAttributes)

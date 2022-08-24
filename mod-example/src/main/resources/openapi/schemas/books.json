@@ -1,13 +1,13 @@
 {
-  "description": "Titles response",
+  "description": "Books response",
   "type": "object",
   "properties": {
     "titles": {
-      "description": "List of titles",
+      "description": "List of books",
       "type": "array",
       "items": {
         "type": "object",
-        "$ref": "title.json"
+        "$ref": "book.json"
       }
     }
   },

@@ -9,12 +9,16 @@ import io.vertx.core.Vertx;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.sqlclient.PrepareOptions;
+import io.vertx.sqlclient.SqlClient;
 import io.vertx.sqlclient.SqlConnection;
 import io.vertx.sqlclient.Tuple;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
+
+import io.vertx.sqlclient.templates.SqlTemplate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.tlib.postgres.impl.TenantPgPoolImpl;
@@ -121,6 +125,14 @@ public class TenantPgPoolTest {
     withPool(pool -> pool
         .query("SELECT count(*) FROM pg_database")
         .execute())
+        .onComplete(context.asyncAssertSuccess());
+  }
+
+  @Test
+  public void useSqlTemplate(TestContext context) {
+    withPool(pool ->
+        SqlTemplate.forQuery(pool.getPool(), "SELECT count(*) FROM pg_database")
+            .execute(Collections.emptyMap()))
         .onComplete(context.asyncAssertSuccess());
   }
 

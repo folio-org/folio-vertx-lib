@@ -78,6 +78,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-sql-client-templates</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
       <scope>test</scope>
