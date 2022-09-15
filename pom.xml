@@ -29,6 +29,8 @@
   </licenses>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <okapi.version>4.14.3</okapi.version>
+    <vertx.version>4.3.3</vertx.version>
   </properties>
   <modules>
     <module>core</module>
@@ -40,7 +42,7 @@
       <dependency>
         <groupId>io.vertx</groupId>
         <artifactId>vertx-stack-depchain</artifactId>
-        <version>4.3.3</version>
+        <version>${vertx.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -54,12 +56,12 @@
       <dependency>
         <groupId>org.folio.okapi</groupId>
         <artifactId>okapi-common</artifactId>
-        <version>4.14.3</version>
+        <version>${okapi.version}</version>
       </dependency>
       <dependency>
         <groupId>org.folio.okapi</groupId>
         <artifactId>okapi-testing</artifactId>
-        <version>4.14.3</version>
+        <version>${okapi.version}</version>
       </dependency>
       <dependency>
         <groupId>com.ongres.scram</groupId>
