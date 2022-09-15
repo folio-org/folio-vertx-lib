@@ -20,7 +20,7 @@ public interface RouterCreator {
     for (RouterCreator routerCreator : routerCreators) {
       future = future.compose(x -> routerCreator.createRouter(vertx))
           .map(subRouter -> {
-            router.mountSubRouter("/", subRouter);
+            router.route("/*").subRouter(subRouter);
             return null;
           });
     }
