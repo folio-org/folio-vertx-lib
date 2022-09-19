@@ -16,9 +16,9 @@
         },
         {
           "methods": [
-            "DELETE"
+            "GET", "DELETE"
           ],
-          "pathPattern": "/_/tenant",
+          "pathPattern": "/_/tenant/{id}",
           "permissionsRequired": []
         }
       ]
