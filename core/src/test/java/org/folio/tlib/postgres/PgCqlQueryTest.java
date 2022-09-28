@@ -7,34 +7,33 @@ public class PgCqlQueryTest {
 
   @Test
   public void testSimple() {
-    PgCqlQuery pgCqlQuery = PgCqlQuery.query();
+    PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
+    PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(null);
     Assert.assertNull(pgCqlQuery.getWhereClause());
-    pgCqlQuery.parse(null);
-    Assert.assertNull(pgCqlQuery.getWhereClause());
+    Assert.assertNull(pgCqlQuery.getOrderByClause());
 
-    pgCqlQuery.addField(new PgCqlField("title", "dc.title", PgCqlField.Type.TEXT));
+    pgCqlDefinition.addField(new PgCqlField("title", "dc.title", PgCqlField.Type.TEXT));
 
-    pgCqlQuery.parse("dc.Title==value");
+    pgCqlQuery = pgCqlDefinition.parse("dc.Title==value");
     Assert.assertEquals("title = 'value'", pgCqlQuery.getWhereClause());
 
-    pgCqlQuery.parse(null, "dc.Title==value2 OR dc.title==value3");
+    pgCqlQuery = pgCqlDefinition.parse(null, "dc.Title==value2 OR dc.title==value3");
     Assert.assertEquals("(title = 'value2' OR title = 'value3')",
         pgCqlQuery.getWhereClause());
 
-    pgCqlQuery.parse("dc.Title==value1", "dc.Title==value2 OR dc.title==value3");
+    pgCqlQuery = pgCqlDefinition.parse("dc.Title==value1", "dc.Title==value2 OR dc.title==value3");
     Assert.assertEquals("(title = 'value1' AND (title = 'value2' OR title = 'value3'))",
         pgCqlQuery.getWhereClause());
 
-    pgCqlQuery.parse("dc.Title==value1 sortby title", "dc.Title==value2 OR dc.title==value3");
+    pgCqlQuery = pgCqlDefinition.parse("dc.Title==value1 sortby title", "dc.Title==value2 OR dc.title==value3");
     Assert.assertEquals("(title = 'value1' AND (title = 'value2' OR title = 'value3'))",
         pgCqlQuery.getWhereClause());
 
-    pgCqlQuery.addField(new PgCqlField("cql.allRecords", PgCqlField.Type.ALWAYS_MATCHES));
-    pgCqlQuery.parse("cql.allRecords = 1", "dc.title==value1");
-    Assert.assertEquals("title = 'value1'",
-        pgCqlQuery.getWhereClause());
+    pgCqlDefinition.addField(new PgCqlField("cql.allRecords", PgCqlField.Type.ALWAYS_MATCHES));
+    pgCqlQuery = pgCqlDefinition.parse("cql.allRecords = 1", "dc.title==value1");
+    Assert.assertEquals("title = 'value1'", pgCqlQuery.getWhereClause());
 
-    pgCqlQuery.parse("cql.allRecords = 1 sortby title", "dc.title==value1");
+    pgCqlQuery = pgCqlDefinition.parse("cql.allRecords = 1 sortby title", "dc.title==value1");
     Assert.assertEquals("title = 'value1'",
         pgCqlQuery.getWhereClause());
   }
@@ -130,18 +129,18 @@ public class PgCqlQueryTest {
         { "title==v1 sortby cost", "title = 'v1'"},
         { ">x = \"http://foo.org/p\" title==v1", "title = 'v1'"},
     };
-    PgCqlQuery pgCqlQuery = PgCqlQuery.query();
-    pgCqlQuery.addField(new PgCqlField("cql.allRecords", PgCqlField.Type.ALWAYS_MATCHES));
-    pgCqlQuery.addField(new PgCqlField("title", PgCqlField.Type.FULLTEXT));
-    pgCqlQuery.addField(new PgCqlField("isbn", PgCqlField.Type.TEXT));
-    pgCqlQuery.addField(new PgCqlField("cost", PgCqlField.Type.NUMBER));
-    pgCqlQuery.addField(new PgCqlField("paid", PgCqlField.Type.BOOLEAN));
-    pgCqlQuery.addField(new PgCqlField("id", PgCqlField.Type.UUID));
+    PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
+    pgCqlDefinition.addField(new PgCqlField("cql.allRecords", PgCqlField.Type.ALWAYS_MATCHES));
+    pgCqlDefinition.addField(new PgCqlField("title", PgCqlField.Type.FULLTEXT));
+    pgCqlDefinition.addField(new PgCqlField("isbn", PgCqlField.Type.TEXT));
+    pgCqlDefinition.addField(new PgCqlField("cost", PgCqlField.Type.NUMBER));
+    pgCqlDefinition.addField(new PgCqlField("paid", PgCqlField.Type.BOOLEAN));
+    pgCqlDefinition.addField(new PgCqlField("id", PgCqlField.Type.UUID));
     for (String [] entry : list) {
       String query = entry[0];
       String expect = entry[1];
       try {
-        pgCqlQuery.parse(query);
+        PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(query);
         Assert.assertEquals("CQL: " + query, expect, pgCqlQuery.getWhereClause());
       } catch (IllegalArgumentException e) {
         Assert.assertEquals(expect, "error: " + e.getMessage());
@@ -160,19 +159,19 @@ public class PgCqlQueryTest {
         {"paid=1234 sortby cost/sort.descending title/sort.ascending", "cost DESC, title ASC", "cost, title"},
     };
 
-    PgCqlQuery pgCqlQuery = PgCqlQuery.query();
-    pgCqlQuery.addField(new PgCqlField("cql.allRecords", PgCqlField.Type.ALWAYS_MATCHES));
-    pgCqlQuery.addField(new PgCqlField("title", PgCqlField.Type.FULLTEXT));
-    pgCqlQuery.addField(new PgCqlField("isbn", PgCqlField.Type.TEXT));
-    pgCqlQuery.addField(new PgCqlField("cost", PgCqlField.Type.NUMBER));
-    pgCqlQuery.addField(new PgCqlField("paid", PgCqlField.Type.BOOLEAN));
-    pgCqlQuery.addField(new PgCqlField("id", PgCqlField.Type.UUID));
+    PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
+    pgCqlDefinition.addField(new PgCqlField("cql.allRecords", PgCqlField.Type.ALWAYS_MATCHES));
+    pgCqlDefinition.addField(new PgCqlField("title", PgCqlField.Type.FULLTEXT));
+    pgCqlDefinition.addField(new PgCqlField("isbn", PgCqlField.Type.TEXT));
+    pgCqlDefinition.addField(new PgCqlField("cost", PgCqlField.Type.NUMBER));
+    pgCqlDefinition.addField(new PgCqlField("paid", PgCqlField.Type.BOOLEAN));
+    pgCqlDefinition.addField(new PgCqlField("id", PgCqlField.Type.UUID));
     for (String [] entry : list) {
       String query = entry[0];
       String expect = entry[1];
       String fields = entry[2];
       try {
-        pgCqlQuery.parse(query);
+        PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(query);
         Assert.assertEquals("CQL: " + query, expect, pgCqlQuery.getOrderByClause());
         Assert.assertEquals("CQL: " + query, fields, pgCqlQuery.getOrderByFields());
       } catch (IllegalArgumentException e) {

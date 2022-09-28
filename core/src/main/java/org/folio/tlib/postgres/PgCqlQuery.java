@@ -1,27 +1,13 @@
 package org.folio.tlib.postgres;
 
-import org.folio.tlib.postgres.impl.PgCqlQueryImpl;
-
 public interface PgCqlQuery {
-
-  static PgCqlQuery query() {
-    return new PgCqlQueryImpl();
-  }
-
-  /**
-   * Parse CQL query string.
-   * <p>Throws IllegalArgumentException on syntax error</p>
-   * @param query CQL query string.
-   */
-  void parse(String query);
-
   /**
    * Parse CQL queries (combine with AND).
    * <p>Throws IllegalArgumentException on syntax error</p>
    * @param query CQL query string.
    * @param q2 2nd CQL query string.
    */
-  void parse(String query, String q2);
+  void parse(PgCqlDefinition definition, String query, String q2);
 
   /**
    * Get PostgresQL where clause (without WHERE).
@@ -43,10 +29,4 @@ public interface PgCqlQuery {
    * @return order by clause argument or null if no sorting (ORDER BY can be omitted)
    */
   String getOrderByFields();
-
-  /**
-   * Add supported field.
-   * @param field field.
-   */
-  void addField(PgCqlField field);
 }
