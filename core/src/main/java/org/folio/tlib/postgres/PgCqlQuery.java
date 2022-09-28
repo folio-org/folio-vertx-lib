@@ -1,5 +1,7 @@
 package org.folio.tlib.postgres;
 
+import io.vertx.sqlclient.Tuple;
+
 public interface PgCqlQuery {
   /**
    * Parse CQL queries (combine with AND).
@@ -14,7 +16,7 @@ public interface PgCqlQuery {
    * <p>Throws IllegalArgumentException on syntax error</p>
    * @return where clause argument or null if "always true" (WHERE can be omitted).
    */
-  String getWhereClause();
+  String getWhereClause(Tuple tuple);
 
   /**
    * Get PostgresQL where ORDER BY - (without ORDER BY).

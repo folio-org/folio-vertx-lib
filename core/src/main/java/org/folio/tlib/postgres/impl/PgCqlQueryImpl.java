@@ -1,5 +1,6 @@
 package org.folio.tlib.postgres.impl;
 
+import io.vertx.sqlclient.Tuple;
 import java.io.IOException;
 import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
@@ -21,6 +22,8 @@ public class PgCqlQueryImpl implements PgCqlQuery {
   private static final Logger log = LogManager.getLogger(PgCqlQueryImpl.class);
 
   final CQLParser parser = new CQLParser(CQLParser.V1POINT2);
+
+  Tuple tuple;
 
   String language = "english";
   CQLNode cqlNodeRoot;
@@ -59,7 +62,8 @@ public class PgCqlQueryImpl implements PgCqlQuery {
   }
 
   @Override
-  public String getWhereClause() {
+  public String getWhereClause(Tuple tuple) {
+    this.tuple = tuple;
     return handleWhere(cqlNodeRoot);
   }
 
@@ -154,7 +158,7 @@ public class PgCqlQueryImpl implements PgCqlQuery {
    * @param termNode termNode which includes term and relation.
    * @return Postgres term without C style escapes.
    */
-  static String cqlTermToPgTermExact(CQLTermNode termNode) {
+  static String cqlTermToPgTermExact(CQLTermNode termNode, Tuple tuple) {
     String cqlTerm = termNode.getTerm();
     StringBuilder pgTerm = new StringBuilder();
     boolean backslash = false;
@@ -164,13 +168,11 @@ public class PgCqlQueryImpl implements PgCqlQuery {
         backslash = false;
       } else {
         pgTerm.append(c);
-        if (c == '\'') {
-          pgTerm.append('\''); // important to avoid SQL injection
-        }
         backslash = c == '\\';
       }
     }
-    return pgTerm.toString();
+    tuple.addString(pgTerm.toString());
+    return "$" + tuple.size();
   }
 
   /**
@@ -182,7 +184,7 @@ public class PgCqlQueryImpl implements PgCqlQuery {
    * @param termNode which includes term and relation.
    * @return Postgres term.
    */
-  static String cqlTermToPgTermFullText(CQLTermNode termNode) {
+  static String cqlTermToPgTermFullText(CQLTermNode termNode, Tuple tuple) {
     String cqlTerm = termNode.getTerm();
     StringBuilder pgTerm = new StringBuilder();
     boolean backslash = false;
@@ -208,13 +210,11 @@ public class PgCqlQueryImpl implements PgCqlQuery {
         backslash = true;
       } else {
         pgTerm.append(c);
-        if (c == '\'') {
-          pgTerm.append(c);
-        }
         backslash = false;
       }
     }
-    return pgTerm.toString();
+    tuple.addString(pgTerm.toString());
+    return "$" + tuple.size();
   }
 
   String handleTypeText(PgCqlField field, CQLTermNode termNode, boolean fullText) {
@@ -227,12 +227,12 @@ public class PgCqlQueryImpl implements PgCqlQuery {
       fullText = "=".equals(base) || "all".equals(base);
     }
     if (fullText) {
-      String pgTerm = cqlTermToPgTermFullText(termNode);
+      String pgTerm = cqlTermToPgTermFullText(termNode, tuple);
       return "to_tsvector('" + language + "', " + field.getColumn() + ") @@ plainto_tsquery('"
-          + language + "', '" + pgTerm + "')";
+          + language + "', " + pgTerm + ")";
     }
     return field.getColumn() + " " + basicOp(termNode)
-        + " '" +  cqlTermToPgTermExact(termNode) + "'";
+        + " " +  cqlTermToPgTermExact(termNode, tuple);
   }
 
   static String handleTypeNumber(PgCqlField field, CQLTermNode termNode) {
