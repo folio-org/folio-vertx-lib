@@ -1,11 +1,10 @@
 package org.folio.tlib.postgres.impl;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.tlib.postgres.PgCqlDefinition;
 import org.folio.tlib.postgres.PgCqlField;
 import org.folio.tlib.postgres.PgCqlQuery;
 import org.z3950.zing.cql.CQLBooleanNode;
@@ -22,15 +21,17 @@ public class PgCqlQueryImpl implements PgCqlQuery {
   private static final Logger log = LogManager.getLogger(PgCqlQueryImpl.class);
 
   final CQLParser parser = new CQLParser(CQLParser.V1POINT2);
-  final Map<String, PgCqlField> fields = new HashMap<>();
 
   String language = "english";
   CQLNode cqlNodeRoot;
 
+  PgCqlDefinition pgCqlDefinition;
+
   @Override
-  public void parse(String query, String q2) {
+  public void parse(PgCqlDefinition definition, String query, String q2) {
     String resultingQuery;
 
+    pgCqlDefinition = definition;
     try {
       if (query == null && q2 == null) {
         cqlNodeRoot = null;
@@ -55,11 +56,6 @@ public class PgCqlQueryImpl implements PgCqlQuery {
     } catch (CQLParseException | IOException e) {
       throw new IllegalArgumentException(e.getMessage());
     }
-  }
-
-  @Override
-  public void parse(String query) {
-    parse(query, null);
   }
 
   @Override
@@ -318,7 +314,7 @@ public class PgCqlQueryImpl implements PgCqlQuery {
       }
     } else if (node instanceof CQLTermNode) {
       CQLTermNode termNode = (CQLTermNode) node;
-      PgCqlField field = fields.get(termNode.getIndex().toLowerCase());
+      PgCqlField field = pgCqlDefinition.getField(termNode.getIndex());
       if (field == null) {
         throw new IllegalArgumentException("Unsupported CQL index: " + termNode.getIndex());
       }
@@ -360,7 +356,7 @@ public class PgCqlQueryImpl implements PgCqlQuery {
         if (res.length() > 0) {
           res.append(", ");
         }
-        PgCqlField field = fields.get(modifierSet.getBase().toLowerCase());
+        PgCqlField field = pgCqlDefinition.getField(modifierSet.getBase());
         if (field == null) {
           throw new IllegalArgumentException("Unsupported CQL index: " + modifierSet.getBase());
         }
@@ -391,10 +387,5 @@ public class PgCqlQueryImpl implements PgCqlQuery {
       log.info("node is instance of {}", node.getClass());
       return null;
     }
-  }
-
-  @Override
-  public void addField(PgCqlField field) {
-    fields.put(field.getName().toLowerCase(), field);
   }
 }

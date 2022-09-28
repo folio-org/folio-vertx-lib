@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.UUID;
 import org.folio.tlib.example.data.Book;
 import org.folio.tlib.example.data.BookRowMapper;
+import org.folio.tlib.postgres.PgCqlDefinition;
 import org.folio.tlib.postgres.PgCqlField;
 import org.folio.tlib.postgres.PgCqlQuery;
 import org.folio.tlib.postgres.TenantPgPool;
@@ -101,13 +102,14 @@ public class BookStorage {
    * @return async result
    */
   private String createQueryMyTable(RoutingContext ctx, TenantPgPool pool) {
+    PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
+    pgCqlDefinition.addField(new PgCqlField("cql.allRecords", PgCqlField.Type.ALWAYS_MATCHES));
+    pgCqlDefinition.addField(new PgCqlField("id", PgCqlField.Type.UUID));
+    pgCqlDefinition.addField(new PgCqlField("title", PgCqlField.Type.FULLTEXT));
+
     RequestParameters params = ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY);
-    PgCqlQuery pgCqlQuery = PgCqlQuery.query();
     RequestParameter query = params.queryParameter("query");
-    pgCqlQuery.parse(query == null ? null : query.getString());
-    pgCqlQuery.addField(new PgCqlField("cql.allRecords", PgCqlField.Type.ALWAYS_MATCHES));
-    pgCqlQuery.addField(new PgCqlField("id", PgCqlField.Type.UUID));
-    pgCqlQuery.addField(new PgCqlField("title", PgCqlField.Type.FULLTEXT));
+    PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(query == null ? null : query.getString());
     String sql = "SELECT * FROM " + getMyTable(pool);
     String where = pgCqlQuery.getWhereClause();
     if (where != null) {
