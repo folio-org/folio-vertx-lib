@@ -249,6 +249,13 @@ public class TenantPgPoolTest {
   }
 
   @Test
+  public void closeAll(TestContext context) {
+    TenantPgPool pool = TenantPgPool.pool(vertx, "diku");
+    assertThat(pool.size(), is(0));
+    TenantPgPool.closeAll().onComplete(context.asyncAssertSuccess());
+  }
+
+  @Test
   public void connectHandler(TestContext context) {
     TenantPgPool pool = TenantPgPool.pool(vertx, "diku");
     pool.connectHandler(conn ->

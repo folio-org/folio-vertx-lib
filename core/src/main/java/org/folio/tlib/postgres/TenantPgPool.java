@@ -54,4 +54,8 @@ public interface TenantPgPool extends PgPool {
   static void setMaxPoolSize(String maxPoolSize) {
     TenantPgPoolImpl.setMaxPoolSize(maxPoolSize);
   }
+
+  static Future<Void> closeAll() {
+    return TenantPgPoolImpl.closeAll();
+  }
 }
