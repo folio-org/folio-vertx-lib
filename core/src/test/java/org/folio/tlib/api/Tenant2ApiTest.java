@@ -111,7 +111,9 @@ public class Tenant2ApiTest {
 
   @AfterClass
   public static void afterClass(TestContext context) {
-    vertx.close(context.asyncAssertSuccess());
+    TenantPgPool.closeAll()
+        .compose(x -> vertx.close())
+        .onComplete(context.asyncAssertSuccess());
   }
 
   @After
