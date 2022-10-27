@@ -22,7 +22,9 @@ public class TenantPgPoolImplTest {
 
   @AfterClass
   public static void afterClass(TestContext context) {
-    vertx.close(context.asyncAssertSuccess());
+    TenantPgPoolImpl.closeAll()
+        .compose(x -> vertx.close())
+        .onComplete(context.asyncAssertSuccess());
   }
 
   @Before

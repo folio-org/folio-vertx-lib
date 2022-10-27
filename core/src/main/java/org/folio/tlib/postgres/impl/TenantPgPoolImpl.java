@@ -21,6 +21,7 @@ import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.SqlConnection;
 import io.vertx.sqlclient.Tuple;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +29,7 @@ import java.util.Map;
 import java.util.function.Function;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.tlib.postgres.TenantPgPool;
 
 public class TenantPgPoolImpl implements TenantPgPool {
@@ -243,5 +245,17 @@ public class TenantPgPoolImpl implements TenantPgPool {
   @Override
   public int size() {
     return pgPool.size();
+  }
+
+  /**
+   * Close all pools.
+   * @return async result
+   */
+  public static Future<Void> closeAll() {
+    List<Future<Void>> futures = new ArrayList<>(pgPoolMap.size());
+    pgPoolMap.forEach((a,b) -> futures.add(b.close()));
+    return GenericCompositeFuture.all(futures)
+        .onComplete(x -> pgPoolMap.clear())
+        .mapEmpty();
   }
 }
