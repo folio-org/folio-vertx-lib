@@ -384,7 +384,6 @@ public class PgCqlQueryImpl implements PgCqlQuery {
       CQLPrefixNode prefixNode = (CQLPrefixNode) node;
       return handleOrderBy(prefixNode.getSubtree(), includeOps);
     } else {
-      log.info("node is instance of {}", node.getClass());
       return null;
     }
   }

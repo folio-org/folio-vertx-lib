@@ -161,7 +161,7 @@ public class TenantPgPoolImpl implements TenantPgPool {
 
   @Override
   public Query<RowSet<Row>> query(String s) {
-    log.info("query {}", s);
+    log.debug("query {}", s);
     return pgPool.query(s);
   }
 
@@ -172,7 +172,7 @@ public class TenantPgPoolImpl implements TenantPgPool {
 
   @Override
   public PreparedQuery<RowSet<Row>> preparedQuery(String s, PrepareOptions prepareOptions) {
-    log.info("preparedQuery {}", s);
+    log.debug("preparedQuery {}", s);
     return pgPool.preparedQuery(s, prepareOptions);
   }
 
