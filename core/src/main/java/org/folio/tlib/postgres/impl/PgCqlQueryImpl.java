@@ -1,11 +1,9 @@
 package org.folio.tlib.postgres.impl;
 
 import java.io.IOException;
-import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.tlib.postgres.PgCqlDefinition;
-import org.folio.tlib.postgres.PgCqlField;
 import org.folio.tlib.postgres.PgCqlFieldType;
 import org.folio.tlib.postgres.PgCqlQuery;
 import org.z3950.zing.cql.CQLBooleanNode;
@@ -23,7 +21,6 @@ public class PgCqlQueryImpl implements PgCqlQuery {
 
   final CQLParser parser = new CQLParser(CQLParser.V1POINT2);
 
-  String language = "english";
   CQLNode cqlNodeRoot;
 
   PgCqlDefinition pgCqlDefinition;
@@ -106,180 +103,6 @@ public class PgCqlQueryImpl implements PgCqlQuery {
     }
   }
 
-  /**
-   * See if this is a CQL query with a existence check (NULL or NOT NULL).
-   * <p>Empty term makes "IS NULL" for CQL relation =, "IS NOT NULL" for CQL relation <>.
-   * </p>
-   * @param field CQL field.
-   * @param termNode term.
-   * @return SQL op for NULL; null if not a NULL check.
-   */
-  static String handleNull(PgCqlField field, CQLTermNode termNode) {
-    if (!termNode.getTerm().isEmpty()) {
-      return null;
-    }
-    String base = termNode.getRelation().getBase();
-    switch (base) {
-      case "=":
-        return field.getColumn() + " IS NOT NULL";
-      case "<>":
-        return field.getColumn() + " IS NULL";
-      default:
-        return null;
-    }
-  }
-
-  static String handleTypeUuid(PgCqlField field, CQLTermNode termNode) {
-    String s = handleNull(field, termNode);
-    if (s != null) {
-      return s;
-    }
-    // convert to UUID so IllegalArgumentException is thrown if invalid
-    // this also down-cases uppercase hex digits.
-    try {
-      UUID id = UUID.fromString(termNode.getTerm());
-
-      String pgTerm = "'" + id + "'";
-      String op = basicOp(termNode);
-      return field.getColumn() + op + pgTerm;
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("Invalid UUID in " + termNode.toCQL());
-    }
-  }
-
-  /**
-   * Convert CQL term to Postgres term - exact - without C style escapes in result.
-   * <p> Double backslash is converted to backslash. Postgres quotes (') are escaped.
-   * Otherwise things are passed through verbatim.
-   * </p>
-   * @param termNode termNode which includes term and relation.
-   * @return Postgres term without C style escapes.
-   */
-  static String cqlTermToPgTermExact(CQLTermNode termNode) {
-    String cqlTerm = termNode.getTerm();
-    StringBuilder pgTerm = new StringBuilder();
-    boolean backslash = false;
-    for (int i = 0; i < cqlTerm.length(); i++) {
-      char c = cqlTerm.charAt(i);
-      if (c == '\\' && backslash) {
-        backslash = false;
-      } else {
-        pgTerm.append(c);
-        if (c == '\'') {
-          pgTerm.append('\''); // important to avoid SQL injection
-        }
-        backslash = c == '\\';
-      }
-    }
-    return pgTerm.toString();
-  }
-
-  /**
-   * CQL full text term to Postgres term.
-   * @see <a href="https://www.postgresql.org/docs/13/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS">
-   *   String Constants section</a>
-   *
-   * <p>At this stage masking is unsupported and rejected.</p>
-   * @param termNode which includes term and relation.
-   * @return Postgres term.
-   */
-  static String cqlTermToPgTermFullText(CQLTermNode termNode) {
-    String cqlTerm = termNode.getTerm();
-    StringBuilder pgTerm = new StringBuilder();
-    boolean backslash = false;
-    for (int i = 0; i < cqlTerm.length(); i++) {
-      char c = cqlTerm.charAt(i);
-      // handle the CQL specials *, ?, ^, \\, rest are passed through as is
-      if (c == '*') {
-        if (!backslash) {
-          throw new IllegalArgumentException("Masking op * unsupported for: " + termNode.toCQL());
-        }
-      } else if (c == '?') {
-        if (!backslash) {
-          throw new IllegalArgumentException("Masking op ? unsupported for: " + termNode.toCQL());
-        }
-      } else if (c == '^') {
-        if (!backslash) {
-          throw new IllegalArgumentException("Anchor op ^ unsupported for: " + termNode.toCQL());
-        }
-      } else if (c != '\\' && backslash) {
-        pgTerm.append('\\');
-      }
-      if (c == '\\' && !backslash) {
-        backslash = true;
-      } else {
-        pgTerm.append(c);
-        if (c == '\'') {
-          pgTerm.append(c);
-        }
-        backslash = false;
-      }
-    }
-    return pgTerm.toString();
-  }
-
-  String handleTypeText(PgCqlField field, CQLTermNode termNode, boolean fullText) {
-    String s = handleNull(field, termNode);
-    if (s != null) {
-      return s;
-    }
-    String base = termNode.getRelation().getBase();
-    if (fullText) {
-      fullText = "=".equals(base) || "all".equals(base);
-    }
-    if (fullText) {
-      String pgTerm = cqlTermToPgTermFullText(termNode);
-      return "to_tsvector('" + language + "', " + field.getColumn() + ") @@ plainto_tsquery('"
-          + language + "', '" + pgTerm + "')";
-    }
-    return field.getColumn() + " " + basicOp(termNode)
-        + " '" +  cqlTermToPgTermExact(termNode) + "'";
-  }
-
-  static String handleTypeNumber(PgCqlField field, CQLTermNode termNode) {
-    String s = handleNull(field, termNode);
-    if (s != null) {
-      return s;
-    }
-    String cqlTerm = termNode.getTerm();
-    if (cqlTerm.isEmpty()) {
-      throw new IllegalArgumentException("Bad numeric for: " + termNode.toCQL());
-    }
-    for (int i = 0; i < cqlTerm.length(); i++) {
-      char c = cqlTerm.charAt(i);
-      switch (c) {
-        case '.':
-        case 'e':
-        case 'E':
-        case '+':
-        case '-':
-          break;
-        default:
-          if (!Character.isDigit(c)) {
-            throw new IllegalArgumentException("Bad numeric for: " + termNode.toCQL());
-          }
-      }
-    }
-    return field.getColumn() + numberOp(termNode) + cqlTerm;
-  }
-
-  static String handleTypeBoolean(PgCqlField field, CQLTermNode termNode) {
-    String s = handleNull(field, termNode);
-    if (s != null) {
-      return s;
-    }
-    String cqlTerm = termNode.getTerm();
-    String pgTerm;
-    if ("false".equalsIgnoreCase(cqlTerm)) {
-      pgTerm = "FALSE";
-    } else if ("true".equalsIgnoreCase(cqlTerm)) {
-      pgTerm = "TRUE";
-    } else {
-      throw new IllegalArgumentException("Bad boolean for: " + termNode.toCQL());
-    }
-    return field.getColumn() + basicOp(termNode) + pgTerm;
-  }
-
   String handleWhere(CQLNode node) {
     if (node == null) {
       return null;
@@ -315,30 +138,11 @@ public class PgCqlQueryImpl implements PgCqlQuery {
       }
     } else if (node instanceof CQLTermNode) {
       CQLTermNode termNode = (CQLTermNode) node;
-      PgCqlFieldType type = pgCqlDefinition.getFieldTypes(termNode.getIndex());
-      if (type != null) {
-        return type.handleTermNode(termNode);
-      }
-      PgCqlField field = pgCqlDefinition.getField(termNode.getIndex());
-      if (field == null) {
+      PgCqlFieldType type = pgCqlDefinition.getFieldType(termNode.getIndex());
+      if (type == null) {
         throw new IllegalArgumentException("Unsupported CQL index: " + termNode.getIndex());
       }
-      switch (field.getType()) {
-        case ALWAYS_MATCHES:
-          return null;
-        case UUID:
-          return handleTypeUuid(field, termNode);
-        case TEXT:
-          return handleTypeText(field, termNode, false);
-        case FULLTEXT:
-          return handleTypeText(field, termNode, true);
-        case NUMBER:
-          return handleTypeNumber(field, termNode);
-        case BOOLEAN:
-          return handleTypeBoolean(field, termNode);
-        default:
-          throw new IllegalArgumentException("Unsupported field type: " + field.getType().name());
-      }
+      return type.handleTermNode(termNode);
     } else if (node instanceof CQLSortNode) {
       CQLSortNode sortNode = (CQLSortNode) node;
       return handleWhere(sortNode.getSubtree());
@@ -361,49 +165,27 @@ public class PgCqlQueryImpl implements PgCqlQuery {
         if (res.length() > 0) {
           res.append(", ");
         }
-        PgCqlFieldType type = pgCqlDefinition.getFieldTypes(modifierSet.getBase());
-        if (type != null) {
-          res.append(type.getColumn());
-          if (includeOps) {
-            res.append(" ");
-            String desc = "ASC";
-            for (Modifier modifier : modifierSet.getModifiers()) {
-              switch (modifier.getType()) {
-                case "sort.ascending":
-                  break;
-                case "sort.descending":
-                  desc = "DESC";
-                  break;
-                default:
-                  throw new IllegalArgumentException("Unsupported sort modifier: "
-                      + modifier.getType());
-              }
+        PgCqlFieldType type = pgCqlDefinition.getFieldType(modifierSet.getBase());
+        if (type == null) {
+          throw new IllegalArgumentException("Unsupported CQL index: " + modifierSet.getBase());
+        }
+        res.append(type.getColumn());
+        if (includeOps) {
+          res.append(" ");
+          String desc = "ASC";
+          for (Modifier modifier : modifierSet.getModifiers()) {
+            switch (modifier.getType()) {
+              case "sort.ascending":
+                break;
+              case "sort.descending":
+                desc = "DESC";
+                break;
+              default:
+                throw new IllegalArgumentException("Unsupported sort modifier: "
+                    + modifier.getType());
             }
-            res.append(desc);
           }
-        } else {
-          PgCqlField field = pgCqlDefinition.getField(modifierSet.getBase());
-          if (field == null) {
-            throw new IllegalArgumentException("Unsupported CQL index: " + modifierSet.getBase());
-          }
-          res.append(field.getColumn());
-          if (includeOps) {
-            res.append(" ");
-            String desc = "ASC";
-            for (Modifier modifier : modifierSet.getModifiers()) {
-              switch (modifier.getType()) {
-                case "sort.ascending":
-                  break;
-                case "sort.descending":
-                  desc = "DESC";
-                  break;
-                default:
-                  throw new IllegalArgumentException("Unsupported sort modifier: "
-                      + modifier.getType());
-              }
-            }
-            res.append(desc);
-          }
+          res.append(desc);
         }
       }
       return res.toString();

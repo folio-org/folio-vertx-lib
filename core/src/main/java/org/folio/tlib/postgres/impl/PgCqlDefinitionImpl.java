@@ -3,13 +3,10 @@ package org.folio.tlib.postgres.impl;
 import java.util.HashMap;
 import java.util.Map;
 import org.folio.tlib.postgres.PgCqlDefinition;
-import org.folio.tlib.postgres.PgCqlField;
 import org.folio.tlib.postgres.PgCqlFieldType;
 import org.folio.tlib.postgres.PgCqlQuery;
 
 public class PgCqlDefinitionImpl implements PgCqlDefinition {
-
-  final Map<String, PgCqlField> fields = new HashMap<>();
 
   final Map<String, PgCqlFieldType> types = new HashMap<>();
 
@@ -24,18 +21,7 @@ public class PgCqlDefinitionImpl implements PgCqlDefinition {
   }
 
   @Override
-  public PgCqlDefinition addField(PgCqlField field) {
-    fields.put(field.getName().toLowerCase(), field);
-    return this;
-  }
-
-  @Override
-  public PgCqlField getField(String name) {
-    return fields.get(name.toLowerCase());
-  }
-
-  @Override
-  public PgCqlFieldType getFieldTypes(String name) {
+  public PgCqlFieldType getFieldType(String name) {
     return types.get(name.toLowerCase());
   }
 

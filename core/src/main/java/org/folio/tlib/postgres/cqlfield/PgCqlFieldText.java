@@ -1,7 +1,7 @@
 package org.folio.tlib.postgres.cqlfield;
 
 import static org.folio.tlib.postgres.cqlfield.Util.basicOp;
-import static org.folio.tlib.postgres.cqlfield.Util.handleNull;
+import static org.folio.tlib.postgres.cqlfield.Util.handleEmptyTerm;
 
 import org.folio.tlib.postgres.PgCqlFieldType;
 import org.z3950.zing.cql.CQLTermNode;
@@ -9,17 +9,14 @@ import org.z3950.zing.cql.CQLTermNode;
 public class PgCqlFieldText implements PgCqlFieldType {
   String column;
 
-  String language = "english";
+  private String language;
 
-  boolean fullText;
-
-  public PgCqlFieldText(boolean fullText) {
-    this.fullText = fullText;
+  PgCqlFieldText(String language) {
+    this.language = language;
   }
 
-  public PgCqlFieldText(String language) {
-    this.fullText = true;
-    this.language = language;
+  public PgCqlFieldText() {
+    this(null);
   }
 
   @Override
@@ -106,22 +103,23 @@ public class PgCqlFieldText implements PgCqlFieldType {
 
   @Override
   public String handleTermNode(CQLTermNode termNode) {
-    String s = handleNull(column, termNode);
+    String s = handleEmptyTerm(column, termNode);
     if (s != null) {
       return s;
     }
     String base = termNode.getRelation().getBase();
-    boolean asFullText = fullText;
-    if (asFullText) {
-      asFullText = "=".equals(base) || "all".equals(base);
+    boolean fulltext = language != null;
+    if (fulltext) {
+      // only for relations "=", "all" is full-text search performed
+      fulltext = "=".equals(base) || "all".equals(base);
     }
-    if (asFullText) {
-      String pgTerm = cqlTermToPgTermFullText(termNode);
-      return "to_tsvector('" + language + "', " + column + ") @@ plainto_tsquery('"
-          + language + "', '" + pgTerm + "')";
+    if (!fulltext) {
+      return column + " " + basicOp(termNode)
+          + " '" +  cqlTermToPgTermExact(termNode) + "'";
     }
-    return column + " " + basicOp(termNode)
-        + " '" +  cqlTermToPgTermExact(termNode) + "'";
+    String pgTerm = cqlTermToPgTermFullText(termNode);
+    return "to_tsvector('" + language + "', " + column + ") @@ plainto_tsquery('"
+        + language + "', '" + pgTerm + "')";
   }
 
 }

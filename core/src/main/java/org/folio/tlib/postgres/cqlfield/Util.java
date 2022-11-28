@@ -6,7 +6,7 @@ public class Util {
 
   private Util() {}
 
-  static String handleNull(String column, CQLTermNode termNode) {
+  static String handleEmptyTerm(String column, CQLTermNode termNode) {
     if (!termNode.getTerm().isEmpty()) {
       return null;
     }

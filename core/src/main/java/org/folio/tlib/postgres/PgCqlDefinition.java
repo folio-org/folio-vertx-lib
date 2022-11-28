@@ -12,12 +12,6 @@ public interface PgCqlDefinition {
    * Add supported field.
    * @param field field.
    */
-  PgCqlDefinition addField(PgCqlField field);
-
-  /**
-   * Add supported field.
-   * @param field field.
-   */
   PgCqlDefinition addField(String name, PgCqlFieldType field);
 
   /**
@@ -25,15 +19,7 @@ public interface PgCqlDefinition {
    * @param name field, such as "title"
    * @return field or null if not found
    */
-  PgCqlField getField(String name);
-
-
-  /**
-   * Get CQL field.
-   * @param name field, such as "title"
-   * @return field or null if not found
-   */
-  PgCqlFieldType getFieldTypes(String name);
+  PgCqlFieldType getFieldType(String name);
 
   /**
    * Parse CQL query string.

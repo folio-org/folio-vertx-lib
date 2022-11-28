@@ -1,7 +1,7 @@
 package org.folio.tlib.postgres.cqlfield;
 
 import static org.folio.tlib.postgres.cqlfield.Util.basicOp;
-import static org.folio.tlib.postgres.cqlfield.Util.handleNull;
+import static org.folio.tlib.postgres.cqlfield.Util.handleEmptyTerm;
 
 import java.util.UUID;
 import org.folio.tlib.postgres.PgCqlFieldType;
@@ -24,7 +24,7 @@ public class PgCqlFieldUuid implements PgCqlFieldType {
 
   @Override
   public String handleTermNode(CQLTermNode termNode) {
-    String s = handleNull(column, termNode);
+    String s = handleEmptyTerm(column, termNode);
     if (s != null) {
       return s;
     }
