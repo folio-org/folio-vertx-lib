@@ -1,6 +1,11 @@
 package org.folio.tlib.postgres;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+
+import io.vertx.core.json.DecodeException;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldAlwaysMatches;
+import org.folio.tlib.postgres.cqlfield.PgCqlFieldBase;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldBoolean;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldFullText;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldNumber;
@@ -8,6 +13,7 @@ import org.folio.tlib.postgres.cqlfield.PgCqlFieldText;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldUuid;
 import org.junit.Assert;
 import org.junit.Test;
+import org.z3950.zing.cql.CQLTermNode;
 
 public class PgCqlQueryTest {
 
@@ -190,5 +196,31 @@ public class PgCqlQueryTest {
         Assert.assertEquals(expect, "error: " + e.getMessage());
       }
     }
+  }
+
+  class CqlFieldTimestamp extends PgCqlFieldBase implements PgCqlFieldType {
+    @Override
+    public String handleTermNode(CQLTermNode termNode) {
+      String s = handleEmptyTerm(termNode);
+      if (s != null) {
+        return s;
+      }
+      LocalDateTime localDateTime = LocalDateTime.parse(termNode.getTerm());
+      System.out.println("got here term=" + termNode.getTerm());
+      return getColumn() + handleOrderedRelation(termNode) + "'" + localDateTime + "'";
+    }
+  }
+
+  @Test
+  public void testCustomField() {
+    PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
+    pgCqlDefinition.addField("datestamp", new CqlFieldTimestamp());
+    String query = "datestamp = 2022-02-03T04:05:06";
+
+    PgCqlQuery pgCqlQuery1 = pgCqlDefinition.parse(query);
+    Assert.assertEquals("CQL: " + query, "datestamp='2022-02-03T04:05:06'", pgCqlQuery1.getWhereClause());
+
+    PgCqlQuery pgCqlQuery2 = pgCqlDefinition.parse("datestamp = 2022-02-03T04:05:06'");
+    Assert.assertThrows(DateTimeParseException.class, () -> pgCqlQuery2.getWhereClause());
   }
 }
