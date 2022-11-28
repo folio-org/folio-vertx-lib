@@ -6,6 +6,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.tlib.postgres.PgCqlDefinition;
 import org.folio.tlib.postgres.PgCqlField;
+import org.folio.tlib.postgres.PgCqlFieldType;
 import org.folio.tlib.postgres.PgCqlQuery;
 import org.z3950.zing.cql.CQLBooleanNode;
 import org.z3950.zing.cql.CQLNode;
@@ -314,6 +315,10 @@ public class PgCqlQueryImpl implements PgCqlQuery {
       }
     } else if (node instanceof CQLTermNode) {
       CQLTermNode termNode = (CQLTermNode) node;
+      PgCqlFieldType type = pgCqlDefinition.getFieldTypes(termNode.getIndex());
+      if (type != null) {
+        return type.handleTermNode(termNode);
+      }
       PgCqlField field = pgCqlDefinition.getField(termNode.getIndex());
       if (field == null) {
         throw new IllegalArgumentException("Unsupported CQL index: " + termNode.getIndex());
@@ -356,27 +361,49 @@ public class PgCqlQueryImpl implements PgCqlQuery {
         if (res.length() > 0) {
           res.append(", ");
         }
-        PgCqlField field = pgCqlDefinition.getField(modifierSet.getBase());
-        if (field == null) {
-          throw new IllegalArgumentException("Unsupported CQL index: " + modifierSet.getBase());
-        }
-        res.append(field.getColumn());
-        if (includeOps) {
-          res.append(" ");
-          String desc = "ASC";
-          for (Modifier modifier : modifierSet.getModifiers()) {
-            switch (modifier.getType()) {
-              case "sort.ascending":
-                break;
-              case "sort.descending":
-                desc = "DESC";
-                break;
-              default:
-                throw new IllegalArgumentException("Unsupported sort modifier: "
-                    + modifier.getType());
+        PgCqlFieldType type = pgCqlDefinition.getFieldTypes(modifierSet.getBase());
+        if (type != null) {
+          res.append(type.getColumn());
+          if (includeOps) {
+            res.append(" ");
+            String desc = "ASC";
+            for (Modifier modifier : modifierSet.getModifiers()) {
+              switch (modifier.getType()) {
+                case "sort.ascending":
+                  break;
+                case "sort.descending":
+                  desc = "DESC";
+                  break;
+                default:
+                  throw new IllegalArgumentException("Unsupported sort modifier: "
+                      + modifier.getType());
+              }
             }
+            res.append(desc);
           }
-          res.append(desc);
+        } else {
+          PgCqlField field = pgCqlDefinition.getField(modifierSet.getBase());
+          if (field == null) {
+            throw new IllegalArgumentException("Unsupported CQL index: " + modifierSet.getBase());
+          }
+          res.append(field.getColumn());
+          if (includeOps) {
+            res.append(" ");
+            String desc = "ASC";
+            for (Modifier modifier : modifierSet.getModifiers()) {
+              switch (modifier.getType()) {
+                case "sort.ascending":
+                  break;
+                case "sort.descending":
+                  desc = "DESC";
+                  break;
+                default:
+                  throw new IllegalArgumentException("Unsupported sort modifier: "
+                      + modifier.getType());
+              }
+            }
+            res.append(desc);
+          }
         }
       }
       return res.toString();
