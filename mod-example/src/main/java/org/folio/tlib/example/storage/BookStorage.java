@@ -21,7 +21,6 @@ import org.folio.tlib.postgres.PgCqlQuery;
 import org.folio.tlib.postgres.TenantPgPool;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldAlwaysMatches;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldFullText;
-import org.folio.tlib.postgres.cqlfield.PgCqlFieldText;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldUuid;
 
 public class BookStorage {
