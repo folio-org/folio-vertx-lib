@@ -1,10 +1,10 @@
 package org.folio.tlib.postgres.cqlfield;
 
-import org.folio.tlib.postgres.PgCqlFieldType;
-import org.z3950.zing.cql.CQLTermNode;
-
 import static org.folio.tlib.postgres.cqlfield.Util.handleNull;
 import static org.folio.tlib.postgres.cqlfield.Util.numberOp;
+
+import org.folio.tlib.postgres.PgCqlFieldType;
+import org.z3950.zing.cql.CQLTermNode;
 
 public class PgCqlFieldNumber implements PgCqlFieldType {
   String column;

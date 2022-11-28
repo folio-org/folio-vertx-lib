@@ -1,11 +1,11 @@
 package org.folio.tlib.postgres.cqlfield;
 
+import static org.folio.tlib.postgres.cqlfield.Util.basicOp;
+import static org.folio.tlib.postgres.cqlfield.Util.handleNull;
+
 import java.util.UUID;
 import org.folio.tlib.postgres.PgCqlFieldType;
 import org.z3950.zing.cql.CQLTermNode;
-
-import static org.folio.tlib.postgres.cqlfield.Util.basicOp;
-import static org.folio.tlib.postgres.cqlfield.Util.handleNull;
 
 public class PgCqlFieldUuid implements PgCqlFieldType {
 

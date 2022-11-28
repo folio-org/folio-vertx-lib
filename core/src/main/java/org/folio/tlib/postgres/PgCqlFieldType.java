@@ -4,9 +4,9 @@ import org.z3950.zing.cql.CQLTermNode;
 
 public interface PgCqlFieldType {
 
-   String getColumn();
+  String getColumn();
 
-   PgCqlFieldType withColumn(String column);
+  PgCqlFieldType withColumn(String column);
 
-   String handleTermNode(CQLTermNode termNode);
+  String handleTermNode(CQLTermNode termNode);
 }

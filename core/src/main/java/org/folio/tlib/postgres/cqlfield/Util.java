@@ -4,7 +4,7 @@ import org.z3950.zing.cql.CQLTermNode;
 
 public class Util {
 
-  private Util () {}
+  private Util() {}
 
   static String handleNull(String column, CQLTermNode termNode) {
     if (!termNode.getTerm().isEmpty()) {

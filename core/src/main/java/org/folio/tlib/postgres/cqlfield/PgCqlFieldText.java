@@ -1,10 +1,10 @@
 package org.folio.tlib.postgres.cqlfield;
 
-import org.folio.tlib.postgres.PgCqlFieldType;
-import org.z3950.zing.cql.CQLTermNode;
-
 import static org.folio.tlib.postgres.cqlfield.Util.basicOp;
 import static org.folio.tlib.postgres.cqlfield.Util.handleNull;
+
+import org.folio.tlib.postgres.PgCqlFieldType;
+import org.z3950.zing.cql.CQLTermNode;
 
 public class PgCqlFieldText implements PgCqlFieldType {
   String column;
@@ -15,6 +15,11 @@ public class PgCqlFieldText implements PgCqlFieldType {
 
   public PgCqlFieldText(boolean fullText) {
     this.fullText = fullText;
+  }
+
+  public PgCqlFieldText(String language) {
+    this.fullText = true;
+    this.language = language;
   }
 
   @Override
