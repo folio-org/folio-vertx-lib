@@ -1,14 +1,9 @@
 package org.folio.tlib.postgres.cqlfield;
 
-import static org.folio.tlib.postgres.cqlfield.Util.basicOp;
-import static org.folio.tlib.postgres.cqlfield.Util.handleEmptyTerm;
-
 import org.folio.tlib.postgres.PgCqlFieldType;
 import org.z3950.zing.cql.CQLTermNode;
 
-public class PgCqlFieldText implements PgCqlFieldType {
-  String column;
-
+public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
   private String language;
 
   PgCqlFieldText(String language) {
@@ -17,17 +12,6 @@ public class PgCqlFieldText implements PgCqlFieldType {
 
   public PgCqlFieldText() {
     this(null);
-  }
-
-  @Override
-  public String getColumn() {
-    return column;
-  }
-
-  @Override
-  public PgCqlFieldType withColumn(String column) {
-    this.column = column;
-    return this;
   }
 
   /**
@@ -103,7 +87,7 @@ public class PgCqlFieldText implements PgCqlFieldType {
 
   @Override
   public String handleTermNode(CQLTermNode termNode) {
-    String s = handleEmptyTerm(column, termNode);
+    String s = handleEmptyTerm(termNode);
     if (s != null) {
       return s;
     }
@@ -114,7 +98,7 @@ public class PgCqlFieldText implements PgCqlFieldType {
       fulltext = "=".equals(base) || "all".equals(base);
     }
     if (!fulltext) {
-      return column + " " + basicOp(termNode)
+      return column + " " + handleUnoredredRelation(termNode)
           + " '" +  cqlTermToPgTermExact(termNode) + "'";
     }
     String pgTerm = cqlTermToPgTermFullText(termNode);

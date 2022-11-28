@@ -1,28 +1,12 @@
 package org.folio.tlib.postgres.cqlfield;
 
-import static org.folio.tlib.postgres.cqlfield.Util.handleEmptyTerm;
-import static org.folio.tlib.postgres.cqlfield.Util.numberOp;
-
 import org.folio.tlib.postgres.PgCqlFieldType;
 import org.z3950.zing.cql.CQLTermNode;
 
-public class PgCqlFieldNumber implements PgCqlFieldType {
-  String column;
-
-  @Override
-  public String getColumn() {
-    return column;
-  }
-
-  @Override
-  public PgCqlFieldType withColumn(String column) {
-    this.column = column;
-    return this;
-  }
-
+public class PgCqlFieldNumber extends PgCqlFieldBase implements PgCqlFieldType {
   @Override
   public String handleTermNode(CQLTermNode termNode) {
-    String s = handleEmptyTerm(column, termNode);
+    String s = handleEmptyTerm(termNode);
     if (s != null) {
       return s;
     }
@@ -45,6 +29,6 @@ public class PgCqlFieldNumber implements PgCqlFieldType {
           }
       }
     }
-    return column + numberOp(termNode) + cqlTerm;
+    return column + handleOrderedRelation(termNode) + cqlTerm;
   }
 }
