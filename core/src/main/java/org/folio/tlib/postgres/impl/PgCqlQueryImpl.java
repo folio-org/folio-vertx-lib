@@ -71,38 +71,6 @@ public class PgCqlQueryImpl implements PgCqlQuery {
     return handleOrderBy(cqlNodeRoot, false);
   }
 
-  static String basicOp(CQLTermNode termNode) {
-    String base = termNode.getRelation().getBase();
-    switch (base) {
-      case "==":
-        return "=";
-      case "=":
-      case "<>":
-        return base;
-      default:
-        throw new IllegalArgumentException("Unsupported operator " + base + " for: "
-            + termNode.toCQL());
-    }
-  }
-
-  static String numberOp(CQLTermNode termNode) {
-    String base = termNode.getRelation().getBase();
-    switch (base) {
-      case "==":
-        return "=";
-      case "=":
-      case "<>":
-      case ">":
-      case "<":
-      case "<=":
-      case ">=":
-        return base;
-      default:
-        throw new IllegalArgumentException("Unsupported operator " + base + " for: "
-            + termNode.toCQL());
-    }
-  }
-
   String handleWhere(CQLNode node) {
     if (node == null) {
       return null;
