@@ -215,10 +215,9 @@ public class PgCqlQueryTest {
   public void testCustomField() {
     PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
     pgCqlDefinition.addField("datestamp", new CqlFieldTimestamp());
-    String query = "datestamp = 2022-02-03T04:05:06";
 
-    PgCqlQuery pgCqlQuery1 = pgCqlDefinition.parse(query);
-    Assert.assertEquals("CQL: " + query, "datestamp='2022-02-03T04:05:06'", pgCqlQuery1.getWhereClause());
+    PgCqlQuery pgCqlQuery1 = pgCqlDefinition.parse("datestamp = 2022-02-03T04:05:06");
+    Assert.assertEquals("datestamp='2022-02-03T04:05:06'", pgCqlQuery1.getWhereClause());
 
     PgCqlQuery pgCqlQuery2 = pgCqlDefinition.parse("datestamp = 2022-02-03T04:05:06'");
     Assert.assertThrows(DateTimeParseException.class, () -> pgCqlQuery2.getWhereClause());
