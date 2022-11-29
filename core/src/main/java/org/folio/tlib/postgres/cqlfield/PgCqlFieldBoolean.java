@@ -19,6 +19,6 @@ public class PgCqlFieldBoolean extends PgCqlFieldBase implements PgCqlFieldType 
     } else {
       throw new IllegalArgumentException("Bad boolean for: " + termNode.toCQL());
     }
-    return column + handleUnoredredRelation(termNode) + pgTerm;
+    return column + handleUnorderedRelation(termNode) + pgTerm;
   }
 }

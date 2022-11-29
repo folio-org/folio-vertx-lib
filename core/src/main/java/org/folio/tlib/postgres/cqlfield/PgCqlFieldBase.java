@@ -43,7 +43,7 @@ public abstract class PgCqlFieldBase implements PgCqlFieldType {
    * @return SQL rel if handled.
    * @throws IllegalArgumentException for unsupported operator.
    */
-  public String handleUnoredredRelation(CQLTermNode termNode) {
+  public String handleUnorderedRelation(CQLTermNode termNode) {
     String base = termNode.getRelation().getBase();
     switch (base) {
       case "==":

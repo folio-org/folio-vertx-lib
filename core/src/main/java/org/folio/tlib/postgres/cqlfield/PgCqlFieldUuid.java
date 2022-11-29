@@ -17,7 +17,7 @@ public class PgCqlFieldUuid extends PgCqlFieldBase implements PgCqlFieldType {
       UUID id = UUID.fromString(termNode.getTerm());
 
       String pgTerm = "'" + id + "'";
-      String op = handleUnoredredRelation(termNode);
+      String op = handleUnorderedRelation(termNode);
       return column + op + pgTerm;
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("Invalid UUID in " + termNode.toCQL());

@@ -98,7 +98,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
       fulltext = "=".equals(base) || "all".equals(base);
     }
     if (!fulltext) {
-      return column + " " + handleUnoredredRelation(termNode)
+      return column + " " + handleUnorderedRelation(termNode)
           + " '" +  cqlTermToPgTermExact(termNode) + "'";
     }
     String pgTerm = cqlTermToPgTermFullText(termNode);
