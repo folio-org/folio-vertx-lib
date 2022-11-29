@@ -1,7 +1,19 @@
 package org.folio.tlib.postgres;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+
+import io.vertx.core.json.DecodeException;
+import org.folio.tlib.postgres.cqlfield.PgCqlFieldAlwaysMatches;
+import org.folio.tlib.postgres.cqlfield.PgCqlFieldBase;
+import org.folio.tlib.postgres.cqlfield.PgCqlFieldBoolean;
+import org.folio.tlib.postgres.cqlfield.PgCqlFieldFullText;
+import org.folio.tlib.postgres.cqlfield.PgCqlFieldNumber;
+import org.folio.tlib.postgres.cqlfield.PgCqlFieldText;
+import org.folio.tlib.postgres.cqlfield.PgCqlFieldUuid;
 import org.junit.Assert;
 import org.junit.Test;
+import org.z3950.zing.cql.CQLTermNode;
 
 public class PgCqlQueryTest {
 
@@ -12,7 +24,7 @@ public class PgCqlQueryTest {
     Assert.assertNull(pgCqlQuery.getWhereClause());
     Assert.assertNull(pgCqlQuery.getOrderByClause());
 
-    pgCqlDefinition.addField(new PgCqlField("title", "dc.title", PgCqlField.Type.TEXT));
+    pgCqlDefinition.addField("dc.title", new PgCqlFieldText().withColumn("title"));
 
     pgCqlQuery = pgCqlDefinition.parse("dc.Title==value");
     Assert.assertEquals("title = 'value'", pgCqlQuery.getWhereClause());
@@ -29,7 +41,7 @@ public class PgCqlQueryTest {
     Assert.assertEquals("(title = 'value1' AND (title = 'value2' OR title = 'value3'))",
         pgCqlQuery.getWhereClause());
 
-    pgCqlDefinition.addField(new PgCqlField("cql.allRecords", PgCqlField.Type.ALWAYS_MATCHES));
+    pgCqlDefinition.addField("cql.allRecords", new PgCqlFieldAlwaysMatches());
     pgCqlQuery = pgCqlDefinition.parse("cql.allRecords = 1", "dc.title==value1");
     Assert.assertEquals("title = 'value1'", pgCqlQuery.getWhereClause());
 
@@ -39,7 +51,12 @@ public class PgCqlQueryTest {
   }
 
   static String ftResponse(String column, String term) {
-    return "to_tsvector('english', " + column + ") @@ plainto_tsquery('english', '" + term + "')";
+    return ftResponse(column, term, "english");
+  }
+
+  static String ftResponse(String column, String term, String language) {
+    return "to_tsvector('" + language + "', " + column
+        + ") @@ plainto_tsquery('" + language + "', '" + term + "')";
   }
 
   @Test
@@ -102,7 +119,7 @@ public class PgCqlQueryTest {
         { "cost=\"\" or cost<>\"\" not cost<>\"\"", "((cost IS NOT NULL OR cost IS NULL) AND NOT cost IS NULL)" },
         { "cost=1", "cost=1" },
         { "cost=+1.9", "cost=+1.9" },
-        { "cost=e", "cost=e" },
+        { "cost=e", "error: Bad numeric for: cost = e" },
         { "cost=1.5e3", "cost=1.5e3" },
         { "cost=-1,90", "error: Bad numeric for: cost = -1,90" },
         { "cost=0x100", "error: Bad numeric for: cost = 0x100" },
@@ -128,14 +145,16 @@ public class PgCqlQueryTest {
         { "id<>6736bd11-5073-4026-81b5-b70b24179e02", "id<>'6736bd11-5073-4026-81b5-b70b24179e02'" },
         { "title==v1 sortby cost", "title = 'v1'"},
         { ">x = \"http://foo.org/p\" title==v1", "title = 'v1'"},
+        { "Parrot=dead", ftResponse("parrot", "dead", "norwegian") },
     };
     PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
-    pgCqlDefinition.addField(new PgCqlField("cql.allRecords", PgCqlField.Type.ALWAYS_MATCHES));
-    pgCqlDefinition.addField(new PgCqlField("title", PgCqlField.Type.FULLTEXT));
-    pgCqlDefinition.addField(new PgCqlField("isbn", PgCqlField.Type.TEXT));
-    pgCqlDefinition.addField(new PgCqlField("cost", PgCqlField.Type.NUMBER));
-    pgCqlDefinition.addField(new PgCqlField("paid", PgCqlField.Type.BOOLEAN));
-    pgCqlDefinition.addField(new PgCqlField("id", PgCqlField.Type.UUID));
+    pgCqlDefinition.addField("cql.allRecords", new PgCqlFieldAlwaysMatches());
+    pgCqlDefinition.addField("title", new PgCqlFieldFullText());
+    pgCqlDefinition.addField("parrot", new PgCqlFieldFullText("norwegian"));
+    pgCqlDefinition.addField("isbn", new PgCqlFieldText());
+    pgCqlDefinition.addField("cost", new PgCqlFieldNumber());
+    pgCqlDefinition.addField("paid", new PgCqlFieldBoolean());
+    pgCqlDefinition.addField("id", new PgCqlFieldUuid());
     for (String [] entry : list) {
       String query = entry[0];
       String expect = entry[1];
@@ -158,14 +177,13 @@ public class PgCqlQueryTest {
         {">dc=\"http://foo.org/p\" paid=1234 sortby isbn", "isbn ASC", "isbn"},
         {"paid=1234 sortby cost/sort.descending title/sort.ascending", "cost DESC, title ASC", "cost, title"},
     };
-
     PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
-    pgCqlDefinition.addField(new PgCqlField("cql.allRecords", PgCqlField.Type.ALWAYS_MATCHES));
-    pgCqlDefinition.addField(new PgCqlField("title", PgCqlField.Type.FULLTEXT));
-    pgCqlDefinition.addField(new PgCqlField("isbn", PgCqlField.Type.TEXT));
-    pgCqlDefinition.addField(new PgCqlField("cost", PgCqlField.Type.NUMBER));
-    pgCqlDefinition.addField(new PgCqlField("paid", PgCqlField.Type.BOOLEAN));
-    pgCqlDefinition.addField(new PgCqlField("id", PgCqlField.Type.UUID));
+    pgCqlDefinition.addField("cql.allRecords", new PgCqlFieldAlwaysMatches());
+    pgCqlDefinition.addField("title", new PgCqlFieldFullText());
+    pgCqlDefinition.addField("isbn", new PgCqlFieldText());
+    pgCqlDefinition.addField("cost", new PgCqlFieldNumber());
+    pgCqlDefinition.addField("paid", new PgCqlFieldBoolean());
+    pgCqlDefinition.addField("id", new PgCqlFieldUuid());
     for (String [] entry : list) {
       String query = entry[0];
       String expect = entry[1];
@@ -178,7 +196,30 @@ public class PgCqlQueryTest {
         Assert.assertEquals(expect, "error: " + e.getMessage());
       }
     }
-
   }
 
+  class CqlFieldTimestamp extends PgCqlFieldBase implements PgCqlFieldType {
+    @Override
+    public String handleTermNode(CQLTermNode termNode) {
+      String s = handleEmptyTerm(termNode);
+      if (s != null) {
+        return s;
+      }
+      LocalDateTime localDateTime = LocalDateTime.parse(termNode.getTerm());
+      System.out.println("got here term=" + termNode.getTerm());
+      return getColumn() + handleOrderedRelation(termNode) + "'" + localDateTime + "'";
+    }
+  }
+
+  @Test
+  public void testCustomField() {
+    PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
+    pgCqlDefinition.addField("datestamp", new CqlFieldTimestamp());
+
+    PgCqlQuery pgCqlQuery1 = pgCqlDefinition.parse("datestamp = 2022-02-03T04:05:06");
+    Assert.assertEquals("datestamp='2022-02-03T04:05:06'", pgCqlQuery1.getWhereClause());
+
+    PgCqlQuery pgCqlQuery2 = pgCqlDefinition.parse("datestamp = 2022-02-03T04:05:06'");
+    Assert.assertThrows(DateTimeParseException.class, () -> pgCqlQuery2.getWhereClause());
+  }
 }

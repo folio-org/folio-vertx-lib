@@ -17,9 +17,11 @@ import java.util.UUID;
 import org.folio.tlib.example.data.Book;
 import org.folio.tlib.example.data.BookRowMapper;
 import org.folio.tlib.postgres.PgCqlDefinition;
-import org.folio.tlib.postgres.PgCqlField;
 import org.folio.tlib.postgres.PgCqlQuery;
 import org.folio.tlib.postgres.TenantPgPool;
+import org.folio.tlib.postgres.cqlfield.PgCqlFieldAlwaysMatches;
+import org.folio.tlib.postgres.cqlfield.PgCqlFieldFullText;
+import org.folio.tlib.postgres.cqlfield.PgCqlFieldUuid;
 
 public class BookStorage {
 
@@ -103,9 +105,9 @@ public class BookStorage {
    */
   private String createQueryMyTable(RoutingContext ctx, TenantPgPool pool) {
     PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
-    pgCqlDefinition.addField(new PgCqlField("cql.allRecords", PgCqlField.Type.ALWAYS_MATCHES));
-    pgCqlDefinition.addField(new PgCqlField("id", PgCqlField.Type.UUID));
-    pgCqlDefinition.addField(new PgCqlField("title", PgCqlField.Type.FULLTEXT));
+    pgCqlDefinition.addField("cql.allRecords", new PgCqlFieldAlwaysMatches());
+    pgCqlDefinition.addField("id", new PgCqlFieldUuid());
+    pgCqlDefinition.addField("title", new PgCqlFieldFullText());
 
     RequestParameters params = ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY);
     RequestParameter query = params.queryParameter("query");
