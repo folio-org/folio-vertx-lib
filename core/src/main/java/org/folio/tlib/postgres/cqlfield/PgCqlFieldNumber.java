@@ -3,7 +3,20 @@ package org.folio.tlib.postgres.cqlfield;
 import org.folio.tlib.postgres.PgCqlFieldType;
 import org.z3950.zing.cql.CQLTermNode;
 
+import java.util.regex.Pattern;
+
 public class PgCqlFieldNumber extends PgCqlFieldBase implements PgCqlFieldType {
+
+  private static final Pattern POSTGRES_NUMBER_REGEXP = Pattern.compile(
+      "[+-]?"
+          + "(?:"
+          + "\\d+"
+          + "|\\d+\\.\\d*"
+          + "|\\.\\d+"
+          + ")"
+          + "(?:[eE][+-]?\\d+)?"
+  );
+
   @Override
   public String handleTermNode(CQLTermNode termNode) {
     String s = handleEmptyTerm(termNode);
@@ -11,23 +24,8 @@ public class PgCqlFieldNumber extends PgCqlFieldBase implements PgCqlFieldType {
       return s;
     }
     String cqlTerm = termNode.getTerm();
-    if (cqlTerm.isEmpty()) {
+    if (!POSTGRES_NUMBER_REGEXP.matcher(cqlTerm).matches()) {
       throw new IllegalArgumentException("Bad numeric for: " + termNode.toCQL());
-    }
-    for (int i = 0; i < cqlTerm.length(); i++) {
-      char c = cqlTerm.charAt(i);
-      switch (c) {
-        case '.':
-        case 'e':
-        case 'E':
-        case '+':
-        case '-':
-          break;
-        default:
-          if (!Character.isDigit(c)) {
-            throw new IllegalArgumentException("Bad numeric for: " + termNode.toCQL());
-          }
-      }
     }
     return column + handleOrderedRelation(termNode) + cqlTerm;
   }

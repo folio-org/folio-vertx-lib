@@ -21,7 +21,8 @@ public interface PgCqlFieldType {
    *
    * <p>
    * The field is not known, but the equivalent column is
-   * set with {@link #withColumn}. Get relation by using {@link CQLTermNode#getRelation()}.
+   * set with {@link #withColumn}.
+   * Get relation by using {@link CQLTermNode#getRelation()}.
    * Get term by using {@link CQLTermNode#getTerm()}.
    * </p>
    * @param termNode for the "field relation".

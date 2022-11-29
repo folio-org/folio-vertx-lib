@@ -119,7 +119,7 @@ public class PgCqlQueryTest {
         { "cost=\"\" or cost<>\"\" not cost<>\"\"", "((cost IS NOT NULL OR cost IS NULL) AND NOT cost IS NULL)" },
         { "cost=1", "cost=1" },
         { "cost=+1.9", "cost=+1.9" },
-        { "cost=e", "cost=e" },
+        { "cost=e", "error: Bad numeric for: cost = e" },
         { "cost=1.5e3", "cost=1.5e3" },
         { "cost=-1,90", "error: Bad numeric for: cost = -1,90" },
         { "cost=0x100", "error: Bad numeric for: cost = 0x100" },
