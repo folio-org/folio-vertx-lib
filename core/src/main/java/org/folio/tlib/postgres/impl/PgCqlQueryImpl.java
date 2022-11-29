@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.tlib.postgres.PgCqlField;
@@ -239,29 +240,24 @@ public class PgCqlQueryImpl implements PgCqlQuery {
         + " '" +  cqlTermToPgTermExact(termNode) + "'";
   }
 
+  private static final Pattern POSTGRES_NUMBER_REGEXP = Pattern.compile(
+      "[+-]?"
+          + "(?:"
+          + "\\d+"
+          + "|\\d+\\.\\d*"
+          + "|\\.\\d+"
+          + ")"
+          + "(?:[eE][+-]?\\d+)?"
+  );
+
   static String handleTypeNumber(PgCqlField field, CQLTermNode termNode) {
     String s = handleNull(field, termNode);
     if (s != null) {
       return s;
     }
     String cqlTerm = termNode.getTerm();
-    if (cqlTerm.isEmpty()) {
+    if (!POSTGRES_NUMBER_REGEXP.matcher(cqlTerm).matches()) {
       throw new IllegalArgumentException("Bad numeric for: " + termNode.toCQL());
-    }
-    for (int i = 0; i < cqlTerm.length(); i++) {
-      char c = cqlTerm.charAt(i);
-      switch (c) {
-        case '.':
-        case 'e':
-        case 'E':
-        case '+':
-        case '-':
-          break;
-        default:
-          if (!Character.isDigit(c)) {
-            throw new IllegalArgumentException("Bad numeric for: " + termNode.toCQL());
-          }
-      }
     }
     return field.getColumn() + numberOp(termNode) + cqlTerm;
   }
