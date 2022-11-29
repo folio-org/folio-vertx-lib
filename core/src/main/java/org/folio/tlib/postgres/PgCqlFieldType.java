@@ -17,7 +17,8 @@ public interface PgCqlFieldType {
    */
   PgCqlFieldType withColumn(String column);
 
-  /** Return SQL for equivalent of CQL "field relation term".
+  /**
+   * Return SQL for equivalent of CQL "field relation term".
    *
    * <p>
    * The field is not known, but the equivalent column is
