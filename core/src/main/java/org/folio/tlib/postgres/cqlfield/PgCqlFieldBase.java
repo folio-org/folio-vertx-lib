@@ -3,6 +3,10 @@ package org.folio.tlib.postgres.cqlfield;
 import org.folio.tlib.postgres.PgCqlFieldType;
 import org.z3950.zing.cql.CQLTermNode;
 
+/**
+ * Base class for {@link PgCqlFieldType} implementations that handles column
+ * and adds a number of utilities.
+ */
 public abstract class PgCqlFieldBase implements PgCqlFieldType {
   String column;
 
