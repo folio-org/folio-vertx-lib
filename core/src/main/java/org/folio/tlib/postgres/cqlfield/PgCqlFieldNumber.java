@@ -1,9 +1,8 @@
 package org.folio.tlib.postgres.cqlfield;
 
+import java.util.regex.Pattern;
 import org.folio.tlib.postgres.PgCqlFieldType;
 import org.z3950.zing.cql.CQLTermNode;
-
-import java.util.regex.Pattern;
 
 public class PgCqlFieldNumber extends PgCqlFieldBase implements PgCqlFieldType {
 
