@@ -213,6 +213,14 @@ public class TenantPgPoolTest {
   }
 
   @Test
+  public void testGetPoolOptions() {
+    TenantPgPool.setMaxPoolSize("4");
+    TenantPgPool pool = TenantPgPool.pool(vertx, "diku");
+    int sz = pool.getPoolOptions().getMaxSize();
+    assertThat(sz, is(4));
+  }
+
+  @Test
   public void testSSL(TestContext context) throws IOException {
     Assume.assumeThat(System.getenv("DB_HOST"), is(nullValue()));
     Assume.assumeThat(System.getenv("DB_PORT"), is(nullValue()));
@@ -224,9 +232,9 @@ public class TenantPgPoolTest {
     withPool(pool -> pool
         .query("SELECT version FROM pg_stat_ssl WHERE pid = pg_backend_pid()")
         .execute())
-    .onComplete(context.asyncAssertSuccess(rowSet -> {
-      assertThat(rowSet.iterator().next().getString(0), is("TLSv1.3"));
-    }));
+        .onComplete(context.asyncAssertSuccess(rowSet -> {
+          assertThat(rowSet.iterator().next().getString(0), is("TLSv1.3"));
+        }));
   }
 
   @Test
