@@ -47,9 +47,11 @@ public class TenantPgPoolImpl implements TenantPgPool {
   static String module;
   static PgConnectOptions pgConnectOptions = new PgConnectOptions();
 
-  String tenant;
+  final String tenant;
   PgPool pgPool;
   JsonObject config;
+
+  final PoolOptions poolOptions;
 
   static String substTenant(String v, String tenant) {
     return v.replace("{tenant}", tenant);
@@ -83,12 +85,10 @@ public class TenantPgPoolImpl implements TenantPgPool {
     TenantPgPoolImpl.maxPoolSize = maxPoolSize;
   }
 
-  public String getSchema() {
-    return tenant + "_" + module;
-  }
-
-  private TenantPgPoolImpl(Vertx vertx) {
+  private TenantPgPoolImpl(Vertx vertx, String tenant, PoolOptions poolOptions) {
     config = vertx.getOrCreateContext().config();
+    this.tenant = tenant;
+    this.poolOptions = poolOptions;
   }
 
   /**
@@ -132,17 +132,25 @@ public class TenantPgPoolImpl implements TenantPgPool {
       connectOptions.setEnabledSecureTransportProtocols(Collections.singleton("TLSv1.3"));
       connectOptions.setOpenSslEngineOptions(new OpenSSLEngineOptions());
     }
-    TenantPgPoolImpl tenantPgPool = new TenantPgPoolImpl(vertx);
-    tenantPgPool.tenant = sanitize(tenant);
     PoolOptions poolOptions = new PoolOptions();
     if (maxPoolSize != null) {
       poolOptions.setMaxSize(Integer.parseInt(maxPoolSize));
     }
+    TenantPgPoolImpl tenantPgPool = new TenantPgPoolImpl(vertx, sanitize(tenant), poolOptions);
     tenantPgPool.pgPool = pgPoolMap.computeIfAbsent(connectOptions, key ->
         PgPool.pool(vertx, connectOptions, poolOptions));
     return tenantPgPool;
   }
 
+  @Override
+  public String getSchema() {
+    return tenant + "_" + module;
+  }
+
+  @Override
+  public PoolOptions getPoolOptions() {
+    return poolOptions;
+  }
 
   @Override
   public Pool getPool() {
