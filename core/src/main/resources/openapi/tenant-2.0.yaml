@@ -30,6 +30,8 @@ paths:
                 $ref: "#/components/schemas/tenantJob"
         "400":
           $ref: "#/components/responses/trait_400"
+        "413":
+          $ref: "#/components/responses/trait_413"
         "422":
           $ref: "#/components/responses/trait_validate_422"
         "500":
@@ -109,6 +111,13 @@ components:
           schema:
             type: object
             example: {"error":"Invalid JSON in request"}
+    trait_413:
+      description: Payload Too large
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: Payload Too Large
     trait_500:
       description: Internal error
       content:
