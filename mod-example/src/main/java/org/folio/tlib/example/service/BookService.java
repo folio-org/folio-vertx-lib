@@ -6,6 +6,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.openapi.RouterBuilder;
 import io.vertx.ext.web.validation.RequestParameters;
 import io.vertx.ext.web.validation.ValidationHandler;
@@ -22,24 +23,39 @@ public class BookService implements RouterCreator, TenantInitHooks {
   public Future<Router> createRouter(Vertx vertx) {
     return RouterBuilder.create(vertx, "openapi/books-1.0.yaml")
         .map(routerBuilder -> {
+          // https://vertx.io/docs/vertx-web/java/#_limiting_body_size
+          routerBuilder.rootHandler(BodyHandler.create().setBodyLimit(65536)); // 64 kb
           handlers(vertx, routerBuilder);
           return routerBuilder.createRouter();
         });
+  }
+
+  private void failureHandler(RoutingContext ctx) {
+    ctx.response().putHeader("Content-Type", "text/plain");
+    ctx.response().setStatusCode(ctx.statusCode());
+    ctx.response().end();
   }
 
   private void handlers(Vertx vertx, RouterBuilder routerBuilder) {
     routerBuilder
         .operation("postBook") // operationId in spec
         .handler(ctx -> postBook(vertx, ctx)
-            .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage())));
+            .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage()))
+        )
+        .failureHandler(this::failureHandler);
     routerBuilder
         .operation("getBook")
         .handler(ctx -> getBook(vertx, ctx)
-            .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage())));
+            .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage()))
+        )
+        .failureHandler(this::failureHandler);
+
     routerBuilder
         .operation("getBooks")
         .handler(ctx -> getBooks(vertx, ctx)
-            .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage())));
+            .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage()))
+        )
+        .failureHandler(this::failureHandler);
   }
 
   @Override

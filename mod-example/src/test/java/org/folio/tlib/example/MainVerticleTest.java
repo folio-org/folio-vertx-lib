@@ -79,7 +79,7 @@ public class MainVerticleTest {
         .get(location + "?wait=10000")
         .then().statusCode(200)
         .body("complete", is(true))
-            .body("error", is(expectedError));
+        .body("error", is(expectedError));
 
     RestAssured.given()
         .header(XOkapiHeaders.TENANT, tenant)
@@ -206,6 +206,43 @@ public class MainVerticleTest {
     tenantOp(TENANT, new JsonObject()
         .put("module_from", "mod-example-1.0.0")
         .put("purge", true), null);
+  }
 
+  @Test
+  public void testBodyLimitBooks() {
+    Book a = new Book();
+    a.setTitle("x".repeat(65530));
+    a.setId(UUID.randomUUID());
+    a.setIndexTitle("art computer");
+
+    RestAssured.given()
+        .header(XOkapiHeaders.TENANT, TENANT)
+        .contentType(ContentType.JSON)
+        .body(JsonObject.mapFrom(a).encode())
+        .post("/books")
+        .then().statusCode(413)
+        .contentType(ContentType.TEXT);
+  }
+
+  @Test
+  public void testBodyLimitTenantApi() {
+    JsonObject a = new JsonObject()
+        .put("module_to", "b".repeat(65530));
+    RestAssured.given()
+        .header(XOkapiHeaders.TENANT, TENANT)
+        .contentType(ContentType.JSON)
+        .body(a.encode())
+        .post("/_/tenant")
+        .then().statusCode(413)
+        .contentType(ContentType.TEXT);
+  }
+
+  @Test
+  public void testBodyLimitAdminHealth() {
+    RestAssured.given()
+        .contentType(ContentType.TEXT)
+        .body("x".repeat(65537))
+        .post("/admin/health")
+        .then().statusCode(413);
   }
 }
