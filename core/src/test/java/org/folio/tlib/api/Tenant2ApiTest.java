@@ -96,6 +96,7 @@ public class Tenant2ApiTest {
     initialPgConnectOptions = TenantPgPool.getDefaultConnectOptions();
 
     RouterCreator [] routerCreators = {
+        new EchoApi(),
         new Tenant2Api(hooks),
         new HealthApi(),
     };
@@ -482,6 +483,40 @@ public class Tenant2ApiTest {
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\", \"extra\":true}")
         .post("/_/tenant")
         .then().statusCode(400);
+  }
+
+  @Test
+  public void testEcho200() {
+    String request = "1234";
+    RestAssured.given()
+        .contentType(ContentType.TEXT)
+        .body(request)
+        .post("/echo")
+        .then().statusCode(200)
+        .contentType(ContentType.TEXT)
+        .body(is(request));
+
+  }
+
+  @Test
+  public void testEcho413() {
+    String request = "x".repeat(65537);
+    RestAssured.given()
+        .body(request)
+        .post("/echo")
+        .then().statusCode(413)
+        .contentType(ContentType.TEXT);
+  }
+
+  @Test
+  public void testTenantInit413() {
+    String request = "x".repeat(65537);
+    RestAssured.given()
+        .contentType(ContentType.JSON)
+        .body(request)
+        .post("/_/tenant")
+        .then().statusCode(413)
+        .contentType(ContentType.TEXT);
   }
 
 }
