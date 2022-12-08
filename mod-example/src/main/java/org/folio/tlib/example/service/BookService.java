@@ -22,7 +22,7 @@ import org.folio.tlib.util.TenantUtil;
 
 public class BookService implements RouterCreator, TenantInitHooks {
 
-  public static int BODY_LIMIT = 65536; // 64 kb
+  public static final int BODY_LIMIT = 65536; // 64 kb
 
   @Override
   public Future<Router> createRouter(Vertx vertx) {

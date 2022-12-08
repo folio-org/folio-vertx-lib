@@ -1,6 +1,5 @@
 package org.folio.tlib.api;
 
-import static org.folio.tlib.api.EchoApi.BODY_LIMIT;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
@@ -24,8 +23,6 @@ import io.vertx.pgclient.PgConnectOptions;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.UUID;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.folio.tlib.RouterCreator;
 import org.folio.tlib.postgres.TenantPgPool;
 import org.folio.tlib.postgres.TenantPgPoolContainer;
@@ -43,8 +40,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 @RunWith(VertxUnitRunner.class)
 public class Tenant2ApiTest {
-  private final static Logger log = LogManager.getLogger(Tenant2ApiTest.class);
-
   static Vertx vertx;
   static int port = 9230;
 
@@ -97,9 +92,7 @@ public class Tenant2ApiTest {
     initialPgConnectOptions = TenantPgPool.getDefaultConnectOptions();
 
     RouterCreator [] routerCreators = {
-        new EchoApi(),
-        new Tenant2Api(hooks),
-        new HealthApi(),
+        new Tenant2Api(hooks)
     };
     RouterCreator.mountAll(vertx, routerCreators)
         .compose(router -> {
@@ -127,15 +120,6 @@ public class Tenant2ApiTest {
   public void setup() {
     hooks.preInitPromise = null;
     hooks.postInitPromise = null;
-  }
-
-  @Test
-  public void testHealth() {
-    RestAssured.given()
-        .get("/admin/health")
-        .then().statusCode(200)
-        .contentType(ContentType.TEXT)
-        .body(is("OK"));
   }
 
   @Test
@@ -484,56 +468,6 @@ public class Tenant2ApiTest {
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\", \"extra\":true}")
         .post("/_/tenant")
         .then().statusCode(400);
-  }
-
-  @Test
-  public void testEcho200() {
-    String request = "1234";
-    RestAssured.given()
-        .contentType(ContentType.TEXT)
-        .body(request)
-        .post("/echo")
-        .then().statusCode(200)
-        .contentType(ContentType.TEXT)
-        .body(is(request));
-
-  }
-
-  @Test
-  public void testEcho413() {
-    String request = "x".repeat(BODY_LIMIT+1); // one too many!
-    RestAssured.given()
-        .body(request)
-        .post("/echo")
-        .then().statusCode(413)
-        // handled in EchoApi
-        .contentType(ContentType.TEXT)
-        .body(is("echo service status 413"));
-  }
-
-  @Test
-  public void testTenantInit413() {
-    String request = "x".repeat(BODY_LIMIT + 1);
-    RestAssured.given()
-        .contentType(ContentType.JSON)
-        .body(request)
-        .post("/_/tenant")
-        .then().statusCode(413)
-        // handled in Tenant2Api which sets Content-Type
-        .contentType(ContentType.TEXT)
-        .body(is("Request Entity Too Large"));
-  }
-
-  @Test
-  public void testTenantNoPath413() {
-    String request = "x".repeat(BODY_LIMIT + 1);
-    RestAssured.given()
-        .contentType(ContentType.JSON)
-        .body(request)
-        .post("/nopath")
-        .then().statusCode(413)
-        // Unhandled exception in router. Vert.x creates response without Content-Type
-        .body(is("Request Entity Too Large"));
   }
 
 }

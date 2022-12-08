@@ -11,7 +11,7 @@ import org.folio.tlib.RouterCreator;
 
 public class EchoApi implements RouterCreator {
 
-  static int BODY_LIMIT = 65536; // 64 kb as an example of reasonable limit for Json content
+  static final int BODY_LIMIT = 65536; // 64 kb as an example of reasonable limit for Json content
 
   static void handleError(RoutingContext ctx, int status, Throwable t) {
     if (t == null) {
