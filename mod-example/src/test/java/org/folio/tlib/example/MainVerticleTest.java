@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.testcontainers.containers.PostgreSQLContainer;
 
+import static org.folio.tlib.example.service.BookService.BODY_LIMIT;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
@@ -60,7 +61,7 @@ public class MainVerticleTest {
   void tenantOp(String tenant, JsonObject tenantAttributes, String expectedError) {
     ExtractableResponse<Response> response = RestAssured.given()
         .header(XOkapiHeaders.TENANT, tenant)
-        .header("Content-Type", "application/json")
+        .contentType(ContentType.JSON)
         .body(tenantAttributes.encode())
         .post("/_/tenant")
         .then()
@@ -211,7 +212,7 @@ public class MainVerticleTest {
   @Test
   public void testBodyLimitBooks() {
     Book a = new Book();
-    a.setTitle("x".repeat(65530));
+    a.setTitle("x".repeat(BODY_LIMIT));
     a.setId(UUID.randomUUID());
     a.setIndexTitle("art computer");
 
@@ -221,28 +222,7 @@ public class MainVerticleTest {
         .body(JsonObject.mapFrom(a).encode())
         .post("/books")
         .then().statusCode(413)
-        .contentType(ContentType.TEXT);
-  }
-
-  @Test
-  public void testBodyLimitTenantApi() {
-    JsonObject a = new JsonObject()
-        .put("module_to", "b".repeat(65530));
-    RestAssured.given()
-        .header(XOkapiHeaders.TENANT, TENANT)
-        .contentType(ContentType.JSON)
-        .body(a.encode())
-        .post("/_/tenant")
-        .then().statusCode(413)
-        .contentType(ContentType.TEXT);
-  }
-
-  @Test
-  public void testBodyLimitAdminHealth() {
-    RestAssured.given()
         .contentType(ContentType.TEXT)
-        .body("x".repeat(65537))
-        .post("/admin/health")
-        .then().statusCode(413);
+        .body(is("Request Entity Too Large"));
   }
 }

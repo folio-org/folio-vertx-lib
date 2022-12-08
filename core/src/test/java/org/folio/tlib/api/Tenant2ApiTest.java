@@ -1,5 +1,6 @@
 package org.folio.tlib.api;
 
+import static org.folio.tlib.api.EchoApi.BODY_LIMIT;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
@@ -133,7 +134,7 @@ public class Tenant2ApiTest {
     RestAssured.given()
         .get("/admin/health")
         .then().statusCode(200)
-        .header("Content-Type", is("text/plain"))
+        .contentType(ContentType.TEXT)
         .body(is("OK"));
   }
 
@@ -146,7 +147,7 @@ public class Tenant2ApiTest {
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\"}")
         .post("/_/tenant")
         .then().statusCode(400)
-        .header("Content-Type", is("text/plain"))
+        .contentType(ContentType.TEXT)
         .body(containsString("X-Okapi-Tenant header must match"));
   }
 
@@ -159,7 +160,7 @@ public class Tenant2ApiTest {
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\"}")
         .post("/_/tenant")
         .then().statusCode(400)
-        .header("Content-Type", is("text/plain"))
+        .contentType(ContentType.TEXT)
         .body(containsString("X-Okapi-Tenant header must match"));
   }
 
@@ -500,23 +501,39 @@ public class Tenant2ApiTest {
 
   @Test
   public void testEcho413() {
-    String request = "x".repeat(65537);
+    String request = "x".repeat(BODY_LIMIT+1); // one too many!
     RestAssured.given()
         .body(request)
         .post("/echo")
         .then().statusCode(413)
-        .contentType(ContentType.TEXT);
+        // handled in EchoApi
+        .contentType(ContentType.TEXT)
+        .body(is("echo service status 413"));
   }
 
   @Test
   public void testTenantInit413() {
-    String request = "x".repeat(65537);
+    String request = "x".repeat(BODY_LIMIT + 1);
     RestAssured.given()
         .contentType(ContentType.JSON)
         .body(request)
         .post("/_/tenant")
         .then().statusCode(413)
-        .contentType(ContentType.TEXT);
+        // handled in Tenant2Api which sets Content-Type
+        .contentType(ContentType.TEXT)
+        .body(is("Request Entity Too Large"));
+  }
+
+  @Test
+  public void testTenantNoPath413() {
+    String request = "x".repeat(BODY_LIMIT + 1);
+    RestAssured.given()
+        .contentType(ContentType.JSON)
+        .body(request)
+        .post("/nopath")
+        .then().statusCode(413)
+        // Unhandled exception in router. Vert.x creates response without Content-Type
+        .body(is("Request Entity Too Large"));
   }
 
 }

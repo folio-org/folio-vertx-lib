@@ -1,8 +1,10 @@
 package org.folio.tlib.api;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -37,13 +39,15 @@ public class Tenant2Api implements RouterCreator {
 
   static void failHandler(RoutingContext ctx, int code, String msg) {
     ctx.response().setStatusCode(code);
-    ctx.response().putHeader("Content-Type", "text/plain");
+    ctx.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain");
     ctx.response().end(msg != null ? msg : "Failure");
   }
 
   static void failHandler(RoutingContext ctx, int code, Throwable e) {
     if (e == null) {
-      failHandler(ctx, ctx.statusCode(), "");
+      // assume the status code error is stored in routing context
+      failHandler(ctx, ctx.statusCode(),
+          HttpResponseStatus.valueOf(ctx.statusCode()).reasonPhrase());
     } else {
       log.error(e.getMessage(), e);
       failHandler(ctx, code, e.getMessage());
@@ -186,8 +190,9 @@ public class Tenant2Api implements RouterCreator {
                   return;
                 }
                 ctx.response().setStatusCode(201);
-                ctx.response().putHeader("Location", "/_/tenant/" + tenantJob.getString("id"));
-                ctx.response().putHeader("Content-Type", "application/json");
+                ctx.response().putHeader(HttpHeaders.LOCATION,
+                    "/_/tenant/" + tenantJob.getString("id"));
+                ctx.response().putHeader(HttpHeaders.CONTENT_TYPE, "application/json");
                 ctx.response().end(tenantJob.encode());
               })
               .onFailure(e -> {
@@ -218,7 +223,7 @@ public class Tenant2Api implements RouterCreator {
                   return;
                 }
                 ctx.response().setStatusCode(200);
-                ctx.response().putHeader("Content-Type", "application/json");
+                ctx.response().putHeader(HttpHeaders.CONTENT_TYPE, "application/json");
                 ctx.response().end(res.encode());
               })
               .onFailure(e -> failHandler(ctx, 500, e));
