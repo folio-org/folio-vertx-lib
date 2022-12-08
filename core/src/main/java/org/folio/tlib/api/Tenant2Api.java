@@ -1,8 +1,10 @@
 package org.folio.tlib.api;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -35,23 +37,21 @@ public class Tenant2Api implements RouterCreator {
     this.hooks = hooks;
   }
 
-  static void failHandlerText(RoutingContext ctx, int code, String msg) {
+  static void failHandler(RoutingContext ctx, int code, String msg) {
     ctx.response().setStatusCode(code);
-    ctx.response().putHeader("Content-Type", "text/plain");
+    ctx.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain");
     ctx.response().end(msg != null ? msg : "Failure");
   }
 
-  static void failHandler400(RoutingContext ctx, String msg) {
-    failHandlerText(ctx, 400, msg);
-  }
-
-  static void failHandler404(RoutingContext ctx, String msg) {
-    failHandlerText(ctx, 404, msg);
-  }
-
-  static void failHandler500(RoutingContext ctx, Throwable e) {
-    log.error("{}", e.getMessage(), e);
-    failHandlerText(ctx, 500, e.getMessage());
+  static void failHandler(RoutingContext ctx, int code, Throwable e) {
+    if (e == null) {
+      // assume the status code error is stored in routing context
+      failHandler(ctx, ctx.statusCode(),
+          HttpResponseStatus.valueOf(ctx.statusCode()).reasonPhrase());
+    } else {
+      log.error(e.getMessage(), e);
+      failHandler(ctx, code, e.getMessage());
+    }
   }
 
   private void runAsync(Vertx vertx, JsonObject tenantJob) {
@@ -190,21 +190,22 @@ public class Tenant2Api implements RouterCreator {
                   return;
                 }
                 ctx.response().setStatusCode(201);
-                ctx.response().putHeader("Location", "/_/tenant/" + tenantJob.getString("id"));
-                ctx.response().putHeader("Content-Type", "application/json");
+                ctx.response().putHeader(HttpHeaders.LOCATION,
+                    "/_/tenant/" + tenantJob.getString("id"));
+                ctx.response().putHeader(HttpHeaders.CONTENT_TYPE, "application/json");
                 ctx.response().end(tenantJob.encode());
               })
               .onFailure(e -> {
                 if (e.getClass().getName().contains("ConnectException")) {
-                  failHandler400(ctx, e.getMessage()
+                  failHandler(ctx, 400, e.getMessage()
                       + " DB_HOST=" + System.getenv("DB_HOST")
                       + " DB_PORT=" + System.getenv("DB_PORT"));
                   return;
                 }
-                failHandler500(ctx, e);
+                failHandler(ctx, 500, e);
               });
         })
-        .failureHandler(ctx -> Tenant2Api.failHandlerText(ctx, 400, ctx.failure().getMessage()));
+        .failureHandler(ctx -> Tenant2Api.failHandler(ctx, 400, ctx.failure()));
     routerBuilder
         .operation("getTenantJob")
         .handler(ctx -> {
@@ -218,16 +219,16 @@ public class Tenant2Api implements RouterCreator {
           getJob(vertx, tenant, UUID.fromString(id), wait)
               .onSuccess(res -> {
                 if (res == null) {
-                  failHandler404(ctx, "Not found: " + id);
+                  failHandler(ctx, 404, "Not found: " + id);
                   return;
                 }
                 ctx.response().setStatusCode(200);
-                ctx.response().putHeader("Content-Type", "application/json");
+                ctx.response().putHeader(HttpHeaders.CONTENT_TYPE, "application/json");
                 ctx.response().end(res.encode());
               })
-              .onFailure(e -> failHandler500(ctx, e));
+              .onFailure(e -> failHandler(ctx, 500, e));
         })
-        .failureHandler(ctx -> Tenant2Api.failHandlerText(ctx, 400, ctx.failure().getMessage()));
+        .failureHandler(ctx -> Tenant2Api.failHandler(ctx, 400, ctx.failure()));
     routerBuilder
         .operation("deleteTenantJob")
         .handler(ctx -> {
@@ -238,15 +239,15 @@ public class Tenant2Api implements RouterCreator {
           deleteJob(vertx, tenant, UUID.fromString(id))
               .onSuccess(res -> {
                 if (Boolean.FALSE.equals(res)) {
-                  failHandler404(ctx, "Not found: " + id);
+                  failHandler(ctx, 404, "Not found: " + id);
                   return;
                 }
                 ctx.response().setStatusCode(204);
                 ctx.response().end();
               })
-              .onFailure(e -> failHandler500(ctx, e));
+              .onFailure(e -> failHandler(ctx, 500, e));
         })
-        .failureHandler(ctx -> Tenant2Api.failHandlerText(ctx, 400, ctx.failure().getMessage()));
+        .failureHandler(ctx -> Tenant2Api.failHandler(ctx, 400, ctx.failure()));
     log.info("setting up tenant handlers ... done");
   }
 

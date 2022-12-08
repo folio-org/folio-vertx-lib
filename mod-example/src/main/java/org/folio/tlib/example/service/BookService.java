@@ -1,11 +1,14 @@
 package org.folio.tlib.example.service;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.openapi.RouterBuilder;
 import io.vertx.ext.web.validation.RequestParameters;
 import io.vertx.ext.web.validation.ValidationHandler;
@@ -18,28 +21,46 @@ import org.folio.tlib.example.storage.BookStorage;
 import org.folio.tlib.util.TenantUtil;
 
 public class BookService implements RouterCreator, TenantInitHooks {
+
+  public static final int BODY_LIMIT = 65536; // 64 kb
+
   @Override
   public Future<Router> createRouter(Vertx vertx) {
     return RouterBuilder.create(vertx, "openapi/books-1.0.yaml")
         .map(routerBuilder -> {
+          // https://vertx.io/docs/vertx-web/java/#_limiting_body_size
+          routerBuilder.rootHandler(BodyHandler.create().setBodyLimit(BODY_LIMIT));
           handlers(vertx, routerBuilder);
           return routerBuilder.createRouter();
         });
+  }
+
+  private void failureHandler(RoutingContext ctx) {
+    ctx.response().setStatusCode(ctx.statusCode());
+    ctx.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain");
+    ctx.response().end(HttpResponseStatus.valueOf(ctx.statusCode()).reasonPhrase());
   }
 
   private void handlers(Vertx vertx, RouterBuilder routerBuilder) {
     routerBuilder
         .operation("postBook") // operationId in spec
         .handler(ctx -> postBook(vertx, ctx)
-            .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage())));
+            .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage()))
+        )
+        .failureHandler(this::failureHandler);
     routerBuilder
         .operation("getBook")
         .handler(ctx -> getBook(vertx, ctx)
-            .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage())));
+            .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage()))
+        )
+        .failureHandler(this::failureHandler);
+
     routerBuilder
         .operation("getBooks")
         .handler(ctx -> getBooks(vertx, ctx)
-            .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage())));
+            .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage()))
+        )
+        .failureHandler(this::failureHandler);
   }
 
   @Override

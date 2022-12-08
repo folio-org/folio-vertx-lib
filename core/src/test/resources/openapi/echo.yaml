@@ -1,48 +1,32 @@
 openapi: 3.0.0
 info:
-  title: Tenant API
-  version: v2
+  title: echo API
+  version: v1
 paths:
-  /titles:
+  /echo:
     parameters:
       - $ref: headers/okapi-tenant.yaml
       - $ref: headers/okapi-token.yaml
       - $ref: headers/okapi-url.yaml
     post:
-      description: create title
-      operationId: postTitles
+      description: echo request
+      operationId: echo
       requestBody:
         content:
-          application/json:
+          text/plain:
             schema:
-              $ref: "#/components/schemas/title"
-        required: true
-      responses:
-        "204":
-          description: Title created
-        "400":
-          $ref: "#/components/responses/trait_400"
-        "500":
-          $ref: "#/components/responses/trait_500"
-    get:
-      description: Get titles
-      operationId: getTitles
-      parameters:
-      - in: query
-        name: query
-        required: false
-        description: CQL
-        schema:
-          type: string
+              type: string
       responses:
         "200":
-          description: Titles returned
+          description: echo ok
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: "#/components/schemas/titles"
+                type: string
         "400":
           $ref: "#/components/responses/trait_400"
+        "413":
+          $ref: "#/components/responses/trait_413"
         "500":
           $ref: "#/components/responses/trait_500"
 components:
@@ -58,6 +42,13 @@ components:
           schema:
             type: object
             example: {"error":"Invalid JSON in request"}
+    trait_413:
+      description: Payload Too large
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: Payload Too Large
     trait_500:
       description: Internal error
       content:
@@ -65,8 +56,3 @@ components:
           schema:
             type: string
             example: Internal server error, contact administrator
-  schemas:
-    titles:
-      $ref: schemas/titles.json
-    title:
-      $ref: schemas/title.json

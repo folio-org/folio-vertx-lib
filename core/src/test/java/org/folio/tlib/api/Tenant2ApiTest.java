@@ -23,8 +23,6 @@ import io.vertx.pgclient.PgConnectOptions;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.UUID;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.folio.tlib.RouterCreator;
 import org.folio.tlib.postgres.TenantPgPool;
 import org.folio.tlib.postgres.TenantPgPoolContainer;
@@ -42,8 +40,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 @RunWith(VertxUnitRunner.class)
 public class Tenant2ApiTest {
-  private final static Logger log = LogManager.getLogger(Tenant2ApiTest.class);
-
   static Vertx vertx;
   static int port = 9230;
 
@@ -96,8 +92,7 @@ public class Tenant2ApiTest {
     initialPgConnectOptions = TenantPgPool.getDefaultConnectOptions();
 
     RouterCreator [] routerCreators = {
-        new Tenant2Api(hooks),
-        new HealthApi(),
+        new Tenant2Api(hooks)
     };
     RouterCreator.mountAll(vertx, routerCreators)
         .compose(router -> {
@@ -128,15 +123,6 @@ public class Tenant2ApiTest {
   }
 
   @Test
-  public void testHealth() {
-    RestAssured.given()
-        .get("/admin/health")
-        .then().statusCode(200)
-        .header("Content-Type", is("text/plain"))
-        .body(is("OK"));
-  }
-
-  @Test
   public void testPostTenantBadTenant1() {
     String tenant = "test'lib";
     RestAssured.given()
@@ -145,7 +131,7 @@ public class Tenant2ApiTest {
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\"}")
         .post("/_/tenant")
         .then().statusCode(400)
-        .header("Content-Type", is("text/plain"))
+        .contentType(ContentType.TEXT)
         .body(containsString("X-Okapi-Tenant header must match"));
   }
 
@@ -158,7 +144,7 @@ public class Tenant2ApiTest {
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\"}")
         .post("/_/tenant")
         .then().statusCode(400)
-        .header("Content-Type", is("text/plain"))
+        .contentType(ContentType.TEXT)
         .body(containsString("X-Okapi-Tenant header must match"));
   }
 
