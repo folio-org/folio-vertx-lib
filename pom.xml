@@ -30,7 +30,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <okapi.version>4.14.7</okapi.version>
-    <vertx.version>4.3.5</vertx.version>
+    <vertx.version>4.3.7</vertx.version>
   </properties>
   <modules>
     <module>core</module>
