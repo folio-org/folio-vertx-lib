@@ -214,7 +214,6 @@ public class MainVerticleTest {
     Book a = new Book();
     a.setTitle("x".repeat(BODY_LIMIT));
     a.setId(UUID.randomUUID());
-    a.setIndexTitle("art computer");
 
     RestAssured.given()
         .header(XOkapiHeaders.TENANT, TENANT)
@@ -224,5 +223,24 @@ public class MainVerticleTest {
         .then().statusCode(413)
         .contentType(ContentType.TEXT)
         .body(is("Request Entity Too Large"));
+  }
+
+  @Test
+  public void testValidationError() {
+    Book book = new Book();
+    book.setTitle("my title");
+    book.setId(UUID.randomUUID());
+
+    JsonObject bookObject = JsonObject.mapFrom(book);
+    bookObject.put("extra", "x");
+
+    RestAssured.given()
+        .header(XOkapiHeaders.TENANT, TENANT)
+        .contentType(ContentType.JSON)
+        .body(bookObject.encode())
+        .post("/books")
+        .then().statusCode(400)
+        .contentType(ContentType.TEXT)
+        .body(containsString("Provided object contains unexpected additional property: extra"));
   }
 }
