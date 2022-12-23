@@ -13,6 +13,8 @@ import io.vertx.ext.web.openapi.RouterBuilder;
 import io.vertx.ext.web.validation.RequestParameters;
 import io.vertx.ext.web.validation.ValidationHandler;
 import java.util.UUID;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.okapi.common.HttpResponse;
 import org.folio.tlib.RouterCreator;
 import org.folio.tlib.TenantInitHooks;
@@ -24,6 +26,8 @@ public class BookService implements RouterCreator, TenantInitHooks {
 
   public static final int BODY_LIMIT = 65536; // 64 kb
 
+  private final Logger log = LogManager.getLogger(BookService.class);
+
   @Override
   public Future<Router> createRouter(Vertx vertx) {
     return RouterBuilder.create(vertx, "openapi/books-1.0.yaml")
@@ -32,35 +36,50 @@ public class BookService implements RouterCreator, TenantInitHooks {
           routerBuilder.rootHandler(BodyHandler.create().setBodyLimit(BODY_LIMIT));
           handlers(vertx, routerBuilder);
           return routerBuilder.createRouter();
-        });
+        })
+        .onSuccess(res -> log.info("OpenAPI parsed OK"));
   }
 
-  private void failureHandler(RoutingContext ctx) {
+  private void handleContextFailure(RoutingContext ctx) {
     ctx.response().setStatusCode(ctx.statusCode());
+    String msg = ctx.failure() != null ? ctx.failure().getMessage()
+        : HttpResponseStatus.valueOf(ctx.statusCode()).reasonPhrase();
     ctx.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain");
-    ctx.response().end(HttpResponseStatus.valueOf(ctx.statusCode()).reasonPhrase());
+    ctx.response().end(msg);
   }
 
+  /**
+   * Set up our handlers.
+   * @param vertx Vert.x
+   * @param routerBuilder OpenAPI router builder
+   * <p>
+   *   Each handler returns Future. If that is successful, it it assumed that
+   *   the handler has returned a HTTP response (including HTTP errors).
+   *   If the handler returns Future failure, we leave it to responseError to make
+   *   a response.
+   *   If the handler throws an exception OR if the the OpenAPI validations fails, then
+   *   onFailure kicks in and handleContextFailure kicks in.
+   * </p>
+   */
   private void handlers(Vertx vertx, RouterBuilder routerBuilder) {
     routerBuilder
         .operation("postBook") // operationId in spec
         .handler(ctx -> postBook(vertx, ctx)
             .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage()))
         )
-        .failureHandler(this::failureHandler);
+        .failureHandler(this::handleContextFailure);
     routerBuilder
         .operation("getBook")
         .handler(ctx -> getBook(vertx, ctx)
             .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage()))
         )
-        .failureHandler(this::failureHandler);
-
+        .failureHandler(this::handleContextFailure);
     routerBuilder
         .operation("getBooks")
         .handler(ctx -> getBooks(vertx, ctx)
             .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage()))
         )
-        .failureHandler(this::failureHandler);
+        .failureHandler(this::handleContextFailure);
   }
 
   @Override
