@@ -2,8 +2,6 @@ package org.folio.tlib.postgres;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
-
-import io.vertx.core.json.DecodeException;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldAlwaysMatches;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldBase;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldBoolean;
