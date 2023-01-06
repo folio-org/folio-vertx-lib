@@ -8,9 +8,6 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
 
   private boolean enableLike;
 
-  public PgCqlFieldText() {
-  }
-
   public PgCqlFieldText withFullText(String language) {
     this.language = language;
     return this;
@@ -39,14 +36,14 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
     boolean backslash = false;
     for (int i = 0; i < cqlTerm.length(); i++) {
       char c = cqlTerm.charAt(i);
-      if (c == '\\' && backslash) {
-        backslash = false;
+      if (c == '\\' && !backslash) {
+        backslash = true;
       } else {
         pgTerm.append(c);
         if (c == '\'') {
           pgTerm.append('\''); // important to avoid SQL injection
         }
-        backslash = c == '\\';
+        backslash = false;
       }
     }
     return pgTerm.toString();
@@ -60,25 +57,20 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
       char c = cqlTerm.charAt(i);
       if (c == '*') {
         if (!backslash) {
-          pgTerm.append('%');
+          c = '%';
           ops = true;
-          continue;
         }
       } else if (c == '?') {
         if (!backslash) {
-          pgTerm.append('_');
+          c = '_';
           ops = true;
-          continue;
         }
-      } else if (c != '\\' && backslash) {
+      } else if (c == '_' || c == '%') {
         pgTerm.append('\\');
       }
       if (c == '\\' && !backslash) {
         backslash = true;
       } else {
-        if (c == '_' || c == '%') {
-          pgTerm.append('\\');
-        }
         pgTerm.append(c);
         if (c == '\'') {
           pgTerm.append(c);
@@ -117,8 +109,6 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
         if (!backslash) {
           throw new IllegalArgumentException("Anchor op ^ unsupported for: " + termNode.toCQL());
         }
-      } else if (c != '\\' && backslash) {
-        pgTerm.append('\\');
       }
       if (c == '\\' && !backslash) {
         backslash = true;
