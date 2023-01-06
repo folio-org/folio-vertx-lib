@@ -188,7 +188,7 @@ public class PgCqlStorageTest {
 
   @Test
   public void testTitleHit2(TestContext context) {
-    test("title=\"road the bob\"", List.of(0)) // "the" and "with" are both stop words.
+    test("title=\"Road the bob\"", List.of(0)) // "the" and "with" are both stop words.
         .onComplete(context.asyncAssertSuccess());
   }
 
@@ -224,7 +224,7 @@ public class PgCqlStorageTest {
 
   @Test
   public void testAuthorMask(TestContext context) {
-    test("author = Garn*", List.of(1))
+    test("author = Garnet Mi?ms", List.of(1))
         .onComplete(context.asyncAssertSuccess());
   }
 }

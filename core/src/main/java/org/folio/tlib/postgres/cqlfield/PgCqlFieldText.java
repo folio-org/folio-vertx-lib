@@ -22,29 +22,26 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
     return this;
   }
 
-  /**
-   * Convert CQL term to Postgres term - exact - without C style escapes in result.
-   * <p> Double backslash is converted to backslash. Postgres quotes (') are escaped.
-   * Otherwise things are passed through verbatim.
-   * </p>
-   * @param termNode termNode which includes term and relation.
-   * @return Postgres term without C style escapes.
-   */
+  static boolean append(StringBuilder t, char c, boolean backslash) {
+    if (c == '\\' && !backslash) {
+      return true;
+    }
+    if (backslash && c == '\\') {
+      t.append('\\');
+    }
+    if (c == '\'') {
+      t.append(c);
+    }
+    t.append(c);
+    return false;
+  }
+
   static String cqlTermToPgTermExact(CQLTermNode termNode) {
     String cqlTerm = termNode.getTerm();
     StringBuilder pgTerm = new StringBuilder();
     boolean backslash = false;
     for (int i = 0; i < cqlTerm.length(); i++) {
-      char c = cqlTerm.charAt(i);
-      if (c == '\\' && !backslash) {
-        backslash = true;
-      } else {
-        pgTerm.append(c);
-        if (c == '\'') {
-          pgTerm.append('\''); // important to avoid SQL injection
-        }
-        backslash = false;
-      }
+      backslash = append(pgTerm, cqlTerm.charAt(i), backslash);
     }
     return pgTerm.toString();
   }
@@ -68,15 +65,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
       } else if (c == '_' || c == '%') {
         pgTerm.append('\\');
       }
-      if (c == '\\' && !backslash) {
-        backslash = true;
-      } else {
-        pgTerm.append(c);
-        if (c == '\'') {
-          pgTerm.append(c);
-        }
-        backslash = false;
-      }
+      backslash = append(pgTerm, c, backslash);
     }
     return ops;
   }
@@ -96,7 +85,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
     boolean backslash = false;
     for (int i = 0; i < cqlTerm.length(); i++) {
       char c = cqlTerm.charAt(i);
-      // handle the CQL specials *, ?, ^, \\, rest are passed through as is
+      // handle the CQL specials *, ?, ^, \\, rest are passed through
       if (c == '*') {
         if (!backslash) {
           throw new IllegalArgumentException("Masking op * unsupported for: " + termNode.toCQL());
@@ -105,20 +94,10 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
         if (!backslash) {
           throw new IllegalArgumentException("Masking op ? unsupported for: " + termNode.toCQL());
         }
-      } else if (c == '^') {
-        if (!backslash) {
-          throw new IllegalArgumentException("Anchor op ^ unsupported for: " + termNode.toCQL());
-        }
+      } else if (c == '^' && !backslash) {
+        throw new IllegalArgumentException("Anchor op ^ unsupported for: " + termNode.toCQL());
       }
-      if (c == '\\' && !backslash) {
-        backslash = true;
-      } else {
-        pgTerm.append(c);
-        if (c == '\'') {
-          pgTerm.append(c);
-        }
-        backslash = false;
-      }
+      backslash = append(pgTerm, c, backslash);
     }
     return pgTerm.toString();
   }
