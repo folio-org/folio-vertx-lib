@@ -5,7 +5,6 @@ import java.time.format.DateTimeParseException;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldAlwaysMatches;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldBase;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldBoolean;
-import org.folio.tlib.postgres.cqlfield.PgCqlFieldFullText;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldNumber;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldText;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldUuid;
@@ -48,13 +47,17 @@ public class PgCqlQueryTest {
         pgCqlQuery.getWhereClause());
   }
 
-  static String ftResponse(String column, String term) {
-    return ftResponse(column, term, "english");
+  static String ftResponseAdj(String column, String term) {
+    return ftResponse(column, term, "phraseto_tsquery", "english");
   }
 
-  static String ftResponse(String column, String term, String language) {
+  static String ftResponseAll(String column, String term) {
+    return ftResponse(column, term, "plainto_tsquery", "english");
+  }
+
+  static String ftResponse(String column, String term, String func, String language) {
     return "to_tsvector('" + language + "', " + column
-        + ") @@ plainto_tsquery('" + language + "', '" + term + "')";
+        + ") @@ " + func + "('" + language + "', '" + term + "')";
   }
 
   @Test
@@ -62,34 +65,36 @@ public class PgCqlQueryTest {
     String[][] list = new String[][] {
         { "(", "error: expected index or term, got EOF" },
         { "foo=bar", "error: Unsupported CQL index: foo" },
-        { "Title=v1", ftResponse("title", "v1") },
-        { "Title all v1", ftResponse("title", "v1") },
+        { "Title=v1", ftResponseAdj("title", "v1") },
+        { "Title=v1", ftResponseAdj("title", "v1") },
+        { "Title all v1", ftResponseAll("title", "v1") },
+        { "Title adj v1", ftResponseAdj("title", "v1") },
         { "Title>v1", "error: Unsupported operator > for: Title > v1" },
-        { "Title=\"men's room\"", ftResponse("title", "men''s room") },
-        { "Title=men's room", ftResponse("title", "men''s room") },
+        { "Title=\"men's room\"", ftResponseAdj("title", "men''s room") },
+        { "Title=men's room", ftResponseAdj("title", "men''s room") },
         { "Title=v1*", "error: Masking op * unsupported for: Title = v1*" },
         { "Title=v1?", "error: Masking op ? unsupported for: Title = v1?" },
         { "Title=v1^", "error: Anchor op ^ unsupported for: Title = v1^" },
-        { "Title=a\\*b", ftResponse("title", "a*b") },
-        { "Title=a\\^b", ftResponse("title", "a^b") },
-        { "Title=a\\?b", ftResponse("title", "a?b") },
-        { "Title=a\\?b", ftResponse("title", "a?b") },
-        { "Title=a\\n", ftResponse("title", "a\\n") },
-        { "Title=\"a\\\"\"", ftResponse("title", "a\"") },
-        { "Title=\"a\\\"b\"", ftResponse("title", "a\"b") },
-        { "Title=a\\12", ftResponse("title", "a\\12") },
-        { "Title=a\\\\", ftResponse("title", "a\\") },
-        { "Title=a\\'", ftResponse("title", "a\\''") },
-        { "Title=a\\'b", ftResponse("title", "a\\''b") },
-        { "Title=a\\\\\\n", ftResponse("title", "a\\\\n") },
-        { "Title=a\\\\", ftResponse("title", "a\\") },
-        { "Title=aa\\\\1", ftResponse("title", "aa\\1") },
-        { "Title=ab\\\\\\?", ftResponse("title", "ab\\?") },
-        { "Title=\"b\\\\\"", ftResponse("title", "b\\") },
-        { "Title=\"c\\\\'\"", ftResponse("title", "c\\''") },
-        { "Title=\"c\\\\d\"", ftResponse("title", "c\\d") },
-        { "Title=\"d\\\\\\\\\"", ftResponse("title", "d\\\\") },
-        { "Title=\"x\\\\\\\"\\\\\"", ftResponse("title", "x\\\"\\") },
+        { "Title=a\\*b", ftResponseAdj("title", "a*b") },
+        { "Title=a\\^b", ftResponseAdj("title", "a^b") },
+        { "Title=a\\?b", ftResponseAdj("title", "a?b") },
+        { "Title=a\\?b", ftResponseAdj("title", "a?b") },
+        { "Title=a\\n", ftResponseAdj("title", "a\\n") },
+        { "Title=\"a\\\"\"", ftResponseAdj("title", "a\"") },
+        { "Title=\"a\\\"b\"", ftResponseAdj("title", "a\"b") },
+        { "Title=a\\12", ftResponseAdj("title", "a\\12") },
+        { "Title=a\\\\", ftResponseAdj("title", "a\\") },
+        { "Title=a\\'", ftResponseAdj("title", "a\\''") },
+        { "Title=a\\'b", ftResponseAdj("title", "a\\''b") },
+        { "Title=a\\\\\\n", ftResponseAdj("title", "a\\\\n") },
+        { "Title=a\\\\", ftResponseAdj("title", "a\\") },
+        { "Title=aa\\\\1", ftResponseAdj("title", "aa\\1") },
+        { "Title=ab\\\\\\?", ftResponseAdj("title", "ab\\?") },
+        { "Title=\"b\\\\\"", ftResponseAdj("title", "b\\") },
+        { "Title=\"c\\\\'\"", ftResponseAdj("title", "c\\''") },
+        { "Title=\"c\\\\d\"", ftResponseAdj("title", "c\\d") },
+        { "Title=\"d\\\\\\\\\"", ftResponseAdj("title", "d\\\\") },
+        { "Title=\"x\\\\\\\"\\\\\"", ftResponseAdj("title", "x\\\"\\") },
         { "Title=\"\"", "title IS NOT NULL" },
         { "Title<>\"\"", "title IS NULL" },
         { "Title==\"\"", "title = ''" },
@@ -143,13 +148,21 @@ public class PgCqlQueryTest {
         { "id<>6736bd11-5073-4026-81b5-b70b24179e02", "id<>'6736bd11-5073-4026-81b5-b70b24179e02'" },
         { "title==v1 sortby cost", "title = 'v1'"},
         { ">x = \"http://foo.org/p\" title==v1", "title = 'v1'"},
-        { "Parrot=dead", ftResponse("parrot", "dead", "norwegian") },
+        { "Parrot=dead", ftResponse("parrot", "dead", "phraseto_tsquery", "norwegian") },
+        { "issn = 3", "issn = '3'"},
+        { "issn = ^2?3", "issn LIKE '^2_3'"},
+        { "issn = 2*3", "issn LIKE '2%3'"},
+        { "issn = 2'3", "issn = '2''3'"},
+        { "issn = 2_3*", "issn LIKE '2\\_3%'"},
+        { "issn <> 2*3", "issn <> '2*3'"},
+        { "issn == 2_3*", "issn = '2_3*'"}
     };
     PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
     pgCqlDefinition.addField("cql.allRecords", new PgCqlFieldAlwaysMatches());
-    pgCqlDefinition.addField("title", new PgCqlFieldFullText());
-    pgCqlDefinition.addField("parrot", new PgCqlFieldFullText("norwegian"));
+    pgCqlDefinition.addField("title", new PgCqlFieldText().withFullText());
+    pgCqlDefinition.addField("parrot", new PgCqlFieldText().withFullText("norwegian"));
     pgCqlDefinition.addField("isbn", new PgCqlFieldText());
+    pgCqlDefinition.addField("issn", new PgCqlFieldText().withLikeOps());
     pgCqlDefinition.addField("cost", new PgCqlFieldNumber());
     pgCqlDefinition.addField("paid", new PgCqlFieldBoolean());
     pgCqlDefinition.addField("id", new PgCqlFieldUuid());
@@ -177,7 +190,7 @@ public class PgCqlQueryTest {
     };
     PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
     pgCqlDefinition.addField("cql.allRecords", new PgCqlFieldAlwaysMatches());
-    pgCqlDefinition.addField("title", new PgCqlFieldFullText());
+    pgCqlDefinition.addField("title", new PgCqlFieldText().withFullText());
     pgCqlDefinition.addField("isbn", new PgCqlFieldText());
     pgCqlDefinition.addField("cost", new PgCqlFieldNumber());
     pgCqlDefinition.addField("paid", new PgCqlFieldBoolean());

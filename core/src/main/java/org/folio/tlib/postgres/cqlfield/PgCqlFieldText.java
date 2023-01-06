@@ -6,12 +6,23 @@ import org.z3950.zing.cql.CQLTermNode;
 public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
   private String language;
 
-  PgCqlFieldText(String language) {
-    this.language = language;
-  }
+  private boolean enableLike;
 
   public PgCqlFieldText() {
-    this(null);
+  }
+
+  public PgCqlFieldText withFullText(String language) {
+    this.language = language;
+    return this;
+  }
+
+  public PgCqlFieldText withFullText() {
+    return withFullText("english");
+  }
+
+  public PgCqlFieldText withLikeOps() {
+    this.enableLike = true;
+    return this;
   }
 
   /**
@@ -39,6 +50,43 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
       }
     }
     return pgTerm.toString();
+  }
+
+  static boolean cqlTermToPgTermLike(CQLTermNode termNode, StringBuilder pgTerm) {
+    boolean ops = false;
+    String cqlTerm = termNode.getTerm();
+    boolean backslash = false;
+    for (int i = 0; i < cqlTerm.length(); i++) {
+      char c = cqlTerm.charAt(i);
+      if (c == '*') {
+        if (!backslash) {
+          pgTerm.append('%');
+          ops = true;
+          continue;
+        }
+      } else if (c == '?') {
+        if (!backslash) {
+          pgTerm.append('_');
+          ops = true;
+          continue;
+        }
+      } else if (c != '\\' && backslash) {
+        pgTerm.append('\\');
+      }
+      if (c == '\\' && !backslash) {
+        backslash = true;
+      } else {
+        if (c == '_' || c == '%') {
+          pgTerm.append('\\');
+        }
+        pgTerm.append(c);
+        if (c == '\'') {
+          pgTerm.append(c);
+        }
+        backslash = false;
+      }
+    }
+    return ops;
   }
 
   /**
@@ -92,18 +140,28 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
       return s;
     }
     String base = termNode.getRelation().getBase();
+    if (enableLike && "=".equals(base)) {
+      // not including "<>" as it is exact match, just like ==
+      StringBuilder cqlTerm = new StringBuilder();
+      if (cqlTermToPgTermLike(termNode, cqlTerm)) {
+        return column + " LIKE '" + cqlTerm + "'";
+      }
+    }
     boolean fulltext = language != null;
     if (fulltext) {
-      // only for relations "=", "all" is full-text search performed
-      fulltext = "=".equals(base) || "all".equals(base);
+      String func = null;
+      if ("adj".equals(base) || "=".equals(base)) {
+        func = "phraseto_tsquery";
+      } else if ("all".equals(base)) {
+        func = "plainto_tsquery";
+      }
+      if (func != null) {
+        String pgTerm = cqlTermToPgTermFullText(termNode);
+        return "to_tsvector('" + language + "', " + column + ") @@ " + func + "('"
+            + language + "', '" + pgTerm + "')";
+      }
     }
-    if (!fulltext) {
-      return column + " " + handleUnorderedRelation(termNode)
-          + " '" +  cqlTermToPgTermExact(termNode) + "'";
-    }
-    String pgTerm = cqlTermToPgTermFullText(termNode);
-    return "to_tsvector('" + language + "', " + column + ") @@ plainto_tsquery('"
-        + language + "', '" + pgTerm + "')";
+    return column + " " + handleUnorderedRelation(termNode)
+        + " '" +  cqlTermToPgTermExact(termNode) + "'";
   }
-
 }

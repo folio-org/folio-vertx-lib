@@ -49,7 +49,7 @@ public class Tenant2Api implements RouterCreator {
       failHandler(ctx, ctx.statusCode(),
           HttpResponseStatus.valueOf(ctx.statusCode()).reasonPhrase());
     } else {
-      log.error(e.getMessage(), e);
+      log.error("{}", e.getMessage());
       failHandler(ctx, code, e.getMessage());
     }
   }
