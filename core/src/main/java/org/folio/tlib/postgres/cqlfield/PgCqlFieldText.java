@@ -14,7 +14,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
   }
 
   public PgCqlFieldText withFullText() {
-    return withFullText("english");
+    return withFullText("simple");
   }
 
   public PgCqlFieldText withLikeOps() {
@@ -25,9 +25,6 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
   static boolean append(StringBuilder t, char c, boolean backslash) {
     if (c == '\\' && !backslash) {
       return true;
-    }
-    if (backslash && c == '\\') {
-      t.append('\\');
     }
     if (c == '\'') {
       t.append(c);
@@ -62,7 +59,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
           c = '_';
           ops = true;
         }
-      } else if (c == '_' || c == '%') {
+      } else if (c == '_' || c == '%' || (c == '\\' && backslash)) {
         pgTerm.append('\\');
       }
       backslash = append(pgTerm, c, backslash);

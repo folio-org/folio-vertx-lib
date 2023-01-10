@@ -16,6 +16,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.vertx.sqlclient.Tuple;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldAlwaysMatches;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldText;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldUuid;
@@ -36,7 +37,7 @@ import static org.hamcrest.Matchers.is;
 
 @Testcontainers
 @ExtendWith({VertxExtension.class})
-public class PgCqlStorageTest {
+class PgCqlStorageTest {
 
   @Container
   static final PostgreSQLContainer<?> container = TenantPgPoolContainer.create();
@@ -106,18 +107,12 @@ public class PgCqlStorageTest {
     pgPool.close().onComplete(context.succeedingThenComplete());
   }
 
-  @Test
-  private void checkCount(Vertx vertx, VertxTestContext context) {
-    pgPool.query("SELECT * FROM entries")
-        .execute()
-        .onComplete(context.succeeding(rowSet -> assertThat(rowSet.rowCount(), is(sample.size() + 1))));
-  }
-
   private Future<Void> test(String query, List<Integer> expected) {
     PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
     pgCqlDefinition.addField("cql.allRecords", new PgCqlFieldAlwaysMatches());
     pgCqlDefinition.addField("id", new PgCqlFieldUuid());
-    pgCqlDefinition.addField("title", new PgCqlFieldText().withFullText());
+    pgCqlDefinition.addField("stitle", new PgCqlFieldText().withColumn("title"));
+    pgCqlDefinition.addField("title", new PgCqlFieldText().withFullText("english"));
     pgCqlDefinition.addField("author", new PgCqlFieldText().withLikeOps());
     PgCqlQuery parse = pgCqlDefinition.parse(query);
     String where = parse.getWhereClause() == null ? ""
@@ -173,5 +168,44 @@ public class PgCqlStorageTest {
   void testCqlQueries(String q, List<Integer> exp, Vertx vertx, VertxTestContext context) {
     test(q, exp).onComplete(context.succeedingThenComplete());
   }
+
+  private Future<Void> matchField(String fieldName, PgCqlFieldType pgCqlFieldType, String cql, String value, boolean expected) {
+    PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
+    pgCqlDefinition.addField(fieldName, pgCqlFieldType);
+    PgCqlQuery parse = pgCqlDefinition.parse(cql);
+    return matchValue(parse, fieldName, value, expected);
+  }
+
+  private Future<Void> matchValue(PgCqlQuery parse, String column, String value, boolean expected) {
+    String sql = "SELECT " + parse.getWhereClause() + " FROM (SELECT $1 " + column + ") x";
+    return pgPool.preparedQuery(sql)
+        .execute(Tuple.of(value))
+        .map(rowSet -> {
+          assertThat(sql, rowSet.iterator().next().getBoolean(0), is(expected));
+          return null;
+        });
+  }
+
+  static Stream<Arguments> fieldValueQueries() {
+    return Stream.of(
+        Arguments.of(new PgCqlFieldText(), "issn = \"foo\\\\bar\"", "foo\\bar", true),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "issn = \"foo\\\\bar\"", "foo\\bar", true),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "issn = \"foo\\\\ba?\"", "foo\\bar", true),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "issn = \"foo_%ba?\"", "foo_%bar", true),
+        Arguments.of(new PgCqlFieldText().withFullText(), "issn = \"foo\\\\bar\"", "foo\\bar", true),
+        Arguments.of(new PgCqlFieldText().withFullText(), "issn = \"foo bar\"", "foo\\bar", true),
+        Arguments.of(new PgCqlFieldText(), "issn = \"*\"", "*", true),
+        Arguments.of(new PgCqlFieldText(), "issn = \"*\"", "x", false),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "issn = \"*\"", "x", true)
+    );
+  }
+
+  @ParameterizedTest
+  @MethodSource("fieldValueQueries")
+  void testCqlQueries(PgCqlFieldType pgCqlFieldType, String query, String value, boolean expected,
+      Vertx vertx, VertxTestContext context) {
+    matchField("issn", pgCqlFieldType, query, value, expected).onComplete(context.succeedingThenComplete());
+  }
+
 
 }

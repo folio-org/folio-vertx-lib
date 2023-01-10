@@ -19,7 +19,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class PgCqlQueryTest {
+class PgCqlQueryTest {
 
   static Stream<Arguments> cql2ComboQueries() {
     return Stream.of(
@@ -49,11 +49,11 @@ public class PgCqlQueryTest {
   }
 
   static String ftResponseAdj(String column, String term) {
-    return ftResponse(column, term, "phraseto_tsquery", "english");
+    return ftResponse(column, term, "phraseto_tsquery", "simple");
   }
 
   static String ftResponseAll(String column, String term) {
-    return ftResponse(column, term, "plainto_tsquery", "english");
+    return ftResponse(column, term, "plainto_tsquery", "simple");
   }
 
   static String ftResponse(String column, String term, String func, String language) {
@@ -83,27 +83,27 @@ public class PgCqlQueryTest {
         Arguments.of( "Title=\"a\\\"\"", ftResponseAdj("title", "a\"") ),
         Arguments.of( "Title=\"a\\\"b\"", ftResponseAdj("title", "a\"b") ),
         Arguments.of( "Title=a\\12", ftResponseAdj("title", "a12") ),
-        Arguments.of( "Title=a\\\\", ftResponseAdj("title", "a\\\\") ),
+        Arguments.of( "Title=a\\\\", ftResponseAdj("title", "a\\") ),
         Arguments.of( "Title=a\\'", ftResponseAdj("title", "a''") ),
         Arguments.of( "Title=a\\'b", ftResponseAdj("title", "a''b") ),
-        Arguments.of( "Title=a\\\\n", ftResponseAdj("title", "a\\\\n") ),
-        Arguments.of( "Title=a\\\\", ftResponseAdj("title", "a\\\\") ),
-        Arguments.of( "Title=aa\\\\1", ftResponseAdj("title", "aa\\\\1") ),
-        Arguments.of( "Title=ab\\\\\\?", ftResponseAdj("title", "ab\\\\?") ),
-        Arguments.of( "Title=\"b\\\\\"", ftResponseAdj("title", "b\\\\") ),
-        Arguments.of( "Title=\"c\\\\'\"", ftResponseAdj("title", "c\\\\''") ),
-        Arguments.of( "Title=\"c\\\\d\"", ftResponseAdj("title", "c\\\\d") ),
-        Arguments.of( "Title=\"d\\\\\\\\\"", ftResponseAdj("title", "d\\\\\\\\") ),
-        Arguments.of( "Title=\"x\\\\\\\"\\\\\"", ftResponseAdj("title", "x\\\\\"\\\\") ),
+        Arguments.of( "Title=a\\\\n", ftResponseAdj("title", "a\\n") ),
+        Arguments.of( "Title=a\\\\", ftResponseAdj("title", "a\\") ),
+        Arguments.of( "Title=aa\\\\1", ftResponseAdj("title", "aa\\1") ),
+        Arguments.of( "Title=ab\\\\\\?", ftResponseAdj("title", "ab\\?") ),
+        Arguments.of( "Title=\"b\\\\\"", ftResponseAdj("title", "b\\") ),
+        Arguments.of( "Title=\"c\\\\'\"", ftResponseAdj("title", "c\\''") ),
+        Arguments.of( "Title=\"c\\\\d\"", ftResponseAdj("title", "c\\d") ),
+        Arguments.of( "Title=\"d\\\\\\\\\"", ftResponseAdj("title", "d\\\\") ),
+        Arguments.of( "Title=\"x\\\\\\\"\\\\\"", ftResponseAdj("title", "x\\\"\\") ),
         Arguments.of( "Title=\"\"", "title IS NOT NULL" ),
         Arguments.of( "Title<>\"\"", "title IS NULL" ),
         Arguments.of( "Title==\"\"", "title = ''" ),
         Arguments.of( "Title==\"*?^\"", "title = '*?^'" ),
         Arguments.of( "Title==\"\\*\\?\\^\"", "title = '*?^'" ),
-        Arguments.of( "Title==\"b\\\\\"", "title = 'b\\\\'" ),
-        Arguments.of( "Title==\"c\\\\'\"", "title = 'c\\\\'''" ),
-        Arguments.of( "Title==\"d\\\\\\\\\"", "title = 'd\\\\\\\\'" ),
-        Arguments.of( "Title==\"e\\\\\\\"\\\\\"", "title = 'e\\\\\"\\\\'" ),
+        Arguments.of( "Title==\"b\\\\\"", "title = 'b\\'" ),
+        Arguments.of( "Title==\"c\\\\'\"", "title = 'c\\'''" ),
+        Arguments.of( "Title==\"d\\\\\\\\\"", "title = 'd\\\\'" ),
+        Arguments.of( "Title==\"e\\\\\\\"\\\\\"", "title = 'e\\\"\\'" ),
         Arguments.of( "Title>\"\"", "error: Unsupported operator > for: Title > \"\"" ),
         Arguments.of( "Title==v1 or title==v2",  "(title = 'v1' OR title = 'v2')"),
         Arguments.of( "isbn=978-3-16-148410-0", "isbn = '978-3-16-148410-0'" ),
@@ -152,13 +152,13 @@ public class PgCqlQueryTest {
         Arguments.of( "issn = 3", "issn = '3'"),
         Arguments.of( "issn = ^2?3", "issn LIKE '^2_3'"),
         Arguments.of( "issn = 2*3", "issn LIKE '2%3'"),
-        Arguments.of( "issn = 2'3", "issn = '2''3'"),
-        Arguments.of( "issn = 2_3*", "issn LIKE '2\\_3%'"),
-        Arguments.of( "issn = 2\\_%3*", "issn LIKE '2\\_\\%3%'"),
-        Arguments.of( "issn = 2\\\\?\\_3\\*", "issn LIKE '2\\\\_\\_3*'"),
-        Arguments.of( "issn = 2\\?\\_3\\*", "issn = '2?_3*'"),
-        Arguments.of( "issn <> 2*3", "issn <> '2*3'"),
-        Arguments.of( "issn == 2_3*", "issn = '2_3*'")
+        Arguments.of( "issn = 2'4", "issn = '2''4'"),
+        Arguments.of( "issn = 2_5*", "issn LIKE '2\\_5%'"),
+        Arguments.of( "issn = 2\\_%6*", "issn LIKE '2\\_\\%6%'"),
+        Arguments.of( "issn = 2\\\\?\\_7\\*", "issn LIKE '2\\\\_\\_7*'"),
+        Arguments.of( "issn = 2\\?_8\\*", "issn = '2?_8*'"),
+        Arguments.of( "issn <> 2*9", "issn <> '2*9'"),
+        Arguments.of( "issn == 2_9*", "issn = '2_9*'")
     );
   }
 
