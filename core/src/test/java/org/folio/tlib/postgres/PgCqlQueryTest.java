@@ -2,6 +2,7 @@ package org.folio.tlib.postgres;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.stream.Stream;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldAlwaysMatches;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldBase;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldBoolean;
@@ -9,42 +10,42 @@ import org.folio.tlib.postgres.cqlfield.PgCqlFieldNumber;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldText;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldUuid;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.z3950.zing.cql.CQLTermNode;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class PgCqlQueryTest {
 
-  @Test
-  public void testSimple() {
+  static Stream<Arguments> cql2ComboQueries() {
+    return Stream.of(
+        Arguments.of(null, null, null),
+        Arguments.of("dc.Title==value", null, "title = 'value'"),
+        Arguments.of(null, "dc.Title==value", "title = 'value'"),
+        Arguments.of("dc.Title==value", "cql.allRecords=1", "title = 'value'"),
+        Arguments.of("cql.allRecords=1", "dc.Title==value", "title = 'value'"),
+        Arguments.of(null, "dc.Title==value2 OR dc.title==value3", "(title = 'value2' OR title = 'value3')"),
+        Arguments.of("dc.Title==value1", "dc.Title==value2 OR dc.title==value3",
+            "(title = 'value1' AND (title = 'value2' OR title = 'value3'))"),
+        Arguments.of("dc.Title==value1 sortby title", "dc.Title==value2 OR dc.title==value3",
+            "(title = 'value1' AND (title = 'value2' OR title = 'value3'))"),
+        Arguments.of("cql.allRecords = 1", "dc.title==value1", "title = 'value1'"),
+        Arguments.of("cql.allRecords = 1 sortby title", "dc.title==value1", "title = 'value1'")
+    );
+  }
+
+  @ParameterizedTest
+  @MethodSource("cql2ComboQueries")
+  void testCqlQueries(String query1, String query2, String expect) {
     PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
-    PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(null);
-    assertThat(pgCqlQuery.getWhereClause(), is(nullValue()));
-    assertThat(pgCqlQuery.getOrderByClause(), is(nullValue()));
-
     pgCqlDefinition.addField("dc.title", new PgCqlFieldText().withColumn("title"));
-
-    pgCqlQuery = pgCqlDefinition.parse("dc.Title==value");
-    assertThat(pgCqlQuery.getWhereClause(), is("title = 'value'"));
-
-    pgCqlQuery = pgCqlDefinition.parse(null, "dc.Title==value2 OR dc.title==value3");
-    assertThat(pgCqlQuery.getWhereClause(), is("(title = 'value2' OR title = 'value3')"));
-
-    pgCqlQuery = pgCqlDefinition.parse("dc.Title==value1", "dc.Title==value2 OR dc.title==value3");
-    assertThat(pgCqlQuery.getWhereClause(), is("(title = 'value1' AND (title = 'value2' OR title = 'value3'))"));
-
-    pgCqlQuery = pgCqlDefinition.parse("dc.Title==value1 sortby title", "dc.Title==value2 OR dc.title==value3");
-    assertThat(pgCqlQuery.getWhereClause(), is("(title = 'value1' AND (title = 'value2' OR title = 'value3'))"));
-
     pgCqlDefinition.addField("cql.allRecords", new PgCqlFieldAlwaysMatches());
-    pgCqlQuery = pgCqlDefinition.parse("cql.allRecords = 1", "dc.title==value1");
-    assertThat(pgCqlQuery.getWhereClause(), is("title = 'value1'"));
-
-    pgCqlQuery = pgCqlDefinition.parse("cql.allRecords = 1 sortby title", "dc.title==value1");
-    assertThat(pgCqlQuery.getWhereClause(), is("title = 'value1'"));
+    PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(query1, query2);
+    assertThat(pgCqlQuery.getWhereClause(), is(expect));
   }
 
   static String ftResponseAdj(String column, String term) {
@@ -60,107 +61,110 @@ public class PgCqlQueryTest {
         + ") @@ " + func + "('" + language + "', '" + term + "')";
   }
 
-  @Test
-  void testQueries() {
-    String[][] list = new String[][] {
-        { "(", "error: expected index or term, got EOF" },
-        { "foo=bar", "error: Unsupported CQL index: foo" },
-        { "Title=v1", ftResponseAdj("title", "v1") },
-        { "Title=v1", ftResponseAdj("title", "v1") },
-        { "Title all v1", ftResponseAll("title", "v1") },
-        { "Title adj v1", ftResponseAdj("title", "v1") },
-        { "Title>v1", "error: Unsupported operator > for: Title > v1" },
-        { "Title=\"men's room\"", ftResponseAdj("title", "men''s room") },
-        { "Title=men's room", ftResponseAdj("title", "men''s room") },
-        { "Title=v1*", "error: Masking op * unsupported for: Title = v1*" },
-        { "Title=v1?", "error: Masking op ? unsupported for: Title = v1?" },
-        { "Title=v1^", "error: Anchor op ^ unsupported for: Title = v1^" },
-        { "Title=\"a\\\"b\"", ftResponseAdj("title", "a\"b") },
-        { "Title=a\\*b", ftResponseAdj("title", "a*b") },
-        { "Title=a\\^b", ftResponseAdj("title", "a^b") },
-        { "Title=a\\?b", ftResponseAdj("title", "a?b") },
-        { "Title=a\\?b", ftResponseAdj("title", "a?b") },
-        { "Title=a\\n", ftResponseAdj("title", "an") },
-        { "Title=\"a\\\"\"", ftResponseAdj("title", "a\"") },
-        { "Title=\"a\\\"b\"", ftResponseAdj("title", "a\"b") },
-        { "Title=a\\12", ftResponseAdj("title", "a12") },
-        { "Title=a\\\\", ftResponseAdj("title", "a\\\\") },
-        { "Title=a\\'", ftResponseAdj("title", "a''") },
-        { "Title=a\\'b", ftResponseAdj("title", "a''b") },
-        { "Title=a\\\\n", ftResponseAdj("title", "a\\\\n") },
-        { "Title=a\\\\", ftResponseAdj("title", "a\\\\") },
-        { "Title=aa\\\\1", ftResponseAdj("title", "aa\\\\1") },
-        { "Title=ab\\\\\\?", ftResponseAdj("title", "ab\\\\?") },
-        { "Title=\"b\\\\\"", ftResponseAdj("title", "b\\\\") },
-        { "Title=\"c\\\\'\"", ftResponseAdj("title", "c\\\\''") },
-        { "Title=\"c\\\\d\"", ftResponseAdj("title", "c\\\\d") },
-        { "Title=\"d\\\\\\\\\"", ftResponseAdj("title", "d\\\\\\\\") },
-        { "Title=\"x\\\\\\\"\\\\\"", ftResponseAdj("title", "x\\\\\"\\\\") },
-        { "Title=\"\"", "title IS NOT NULL" },
-        { "Title<>\"\"", "title IS NULL" },
-        { "Title==\"\"", "title = ''" },
-        { "Title==\"*?^\"", "title = '*?^'" },
-        { "Title==\"\\*\\?\\^\"", "title = '*?^'" },
-        { "Title==\"b\\\\\"", "title = 'b\\\\'" },
-        { "Title==\"c\\\\'\"", "title = 'c\\\\'''" },
-        { "Title==\"d\\\\\\\\\"", "title = 'd\\\\\\\\'" },
-        { "Title==\"e\\\\\\\"\\\\\"", "title = 'e\\\\\"\\\\'" },
-        { "Title>\"\"", "error: Unsupported operator > for: Title > \"\"" },
-        { "Title==v1 or title==v2",  "(title = 'v1' OR title = 'v2')"},
-        { "isbn=978-3-16-148410-0", "isbn = '978-3-16-148410-0'" },
-        { "isbn=978-3-16-148410-*", "isbn = '978-3-16-148410-*'" },
-        { "cql.allRecords=1 or title==v1", null },
-        { "title==v1 or cql.allRecords=1", null },
-        { "Title==v1 and title==v2", "(title = 'v1' AND title = 'v2')" },
-        { "Title==v1 and cql.allRecords=1", "title = 'v1'" },
-        { "cql.allRecords=1 and Title==v2", "title = 'v2'" },
-        { "Title==v1 not title==v2", "(title = 'v1' AND NOT title = 'v2')" },
-        { "cql.allRecords=1 not title==v2", "NOT (title = 'v2')" },
-        { "title==v1 not cql.allRecords=1", "FALSE" },
-        { "title==v1 prox title==v2", "error: Unsupported operator PROX" },
-        { "cost=1 or cost=2 and cost=3", "((cost=1 OR cost=2) AND cost=3)" }, // boolean are left-assoc and same precedence in CQL
-        { "cost=1 or (cost=2 and cost=3)", "(cost=1 OR (cost=2 AND cost=3))" },
-        { "cost=\"\" or cost<>\"\" not cost<>\"\"", "((cost IS NOT NULL OR cost IS NULL) AND NOT cost IS NULL)" },
-        { "cost=1", "cost=1" },
-        { "cost=+1.9", "cost=+1.9" },
-        { "cost=e", "error: Bad numeric for: cost = e" },
-        { "cost=1.5e3", "cost=1.5e3" },
-        { "cost=-1,90", "error: Bad numeric for: cost = -1,90" },
-        { "cost=0x100", "error: Bad numeric for: cost = 0x100" },
-        { "cost==\"\"", "error: Bad numeric for: cost == \"\"" },
-        { "cost>1", "cost>1" },
-        { "cost>=2", "cost>=2" },
-        { "cost==3", "cost=3" },
-        { "cost<>4", "cost<>4" },
-        { "cost<5", "cost<5" },
-        { "cost<=6", "cost<=6" },
-        { "cost adj 7", "error: Unsupported operator adj for: cost adj 7" },
-        { "cost=\"\"", "cost IS NOT NULL" },
-        { "paid=true", "paid=TRUE" },
-        { "paid=False", "paid=FALSE" },
-        { "paid=fals", "error: Bad boolean for: paid = fals" },
-        { "paid=\"\"", "paid IS NOT NULL" },
-        { "paid==\"\"", "error: Bad boolean for: paid == \"\"" },
-        { "id=null", "error: Invalid UUID in id = null" },
-        { "id==\"\"", "error: Invalid UUID in id == \"\"" },
-        { "id=\"\"", "id IS NOT NULL" },
-        { "id=6736bd11-5073-4026-81b5-b70b24179e02", "id='6736bd11-5073-4026-81b5-b70b24179e02'" },
-        { "id=6736BD11-5073-4026-81B5-B70B24179E02", "id='6736bd11-5073-4026-81b5-b70b24179e02'" },
-        { "id<>6736bd11-5073-4026-81b5-b70b24179e02", "id<>'6736bd11-5073-4026-81b5-b70b24179e02'" },
-        { "title==v1 sortby cost", "title = 'v1'"},
-        { ">x = \"http://foo.org/p\" title==v1", "title = 'v1'"},
-        { "Parrot=dead", ftResponse("parrot", "dead", "phraseto_tsquery", "norwegian") },
-        { "issn = 3", "issn = '3'"},
-        { "issn = ^2?3", "issn LIKE '^2_3'"},
-        { "issn = 2*3", "issn LIKE '2%3'"},
-        { "issn = 2'3", "issn = '2''3'"},
-        { "issn = 2_3*", "issn LIKE '2\\_3%'"},
-        { "issn = 2\\_%3*", "issn LIKE '2\\_\\%3%'"},
-        { "issn = 2\\\\?\\_3\\*", "issn LIKE '2\\\\_\\_3*'"},
-        { "issn = 2\\?\\_3\\*", "issn = '2?_3*'"},
-        { "issn <> 2*3", "issn <> '2*3'"},
-        { "issn == 2_3*", "issn = '2_3*'"}
-    };
+  static Stream<Arguments> cqlQueries() {
+    return Stream.of(
+        Arguments.of( "foo=bar", "error: Unsupported CQL index: foo" ),
+        Arguments.of( "Title=v1", ftResponseAdj("title", "v1") ),
+        Arguments.of( "Title=v1", ftResponseAdj("title", "v1") ),
+        Arguments.of( "Title all v1", ftResponseAll("title", "v1") ),
+        Arguments.of( "Title adj v1", ftResponseAdj("title", "v1") ),
+        Arguments.of( "Title>v1", "error: Unsupported operator > for: Title > v1" ),
+        Arguments.of( "Title=\"men's room\"", ftResponseAdj("title", "men''s room") ),
+        Arguments.of( "Title=men's room", ftResponseAdj("title", "men''s room") ),
+        Arguments.of( "Title=v1*", "error: Masking op * unsupported for: Title = v1*" ),
+        Arguments.of( "Title=v1?", "error: Masking op ? unsupported for: Title = v1?" ),
+        Arguments.of( "Title=v1^", "error: Anchor op ^ unsupported for: Title = v1^" ),
+        Arguments.of( "Title=\"a\\\"b\"", ftResponseAdj("title", "a\"b") ),
+        Arguments.of( "Title=a\\*b", ftResponseAdj("title", "a*b") ),
+        Arguments.of( "Title=a\\^b", ftResponseAdj("title", "a^b") ),
+        Arguments.of( "Title=a\\?b", ftResponseAdj("title", "a?b") ),
+        Arguments.of( "Title=a\\?b", ftResponseAdj("title", "a?b") ),
+        Arguments.of( "Title=a\\n", ftResponseAdj("title", "an") ),
+        Arguments.of( "Title=\"a\\\"\"", ftResponseAdj("title", "a\"") ),
+        Arguments.of( "Title=\"a\\\"b\"", ftResponseAdj("title", "a\"b") ),
+        Arguments.of( "Title=a\\12", ftResponseAdj("title", "a12") ),
+        Arguments.of( "Title=a\\\\", ftResponseAdj("title", "a\\\\") ),
+        Arguments.of( "Title=a\\'", ftResponseAdj("title", "a''") ),
+        Arguments.of( "Title=a\\'b", ftResponseAdj("title", "a''b") ),
+        Arguments.of( "Title=a\\\\n", ftResponseAdj("title", "a\\\\n") ),
+        Arguments.of( "Title=a\\\\", ftResponseAdj("title", "a\\\\") ),
+        Arguments.of( "Title=aa\\\\1", ftResponseAdj("title", "aa\\\\1") ),
+        Arguments.of( "Title=ab\\\\\\?", ftResponseAdj("title", "ab\\\\?") ),
+        Arguments.of( "Title=\"b\\\\\"", ftResponseAdj("title", "b\\\\") ),
+        Arguments.of( "Title=\"c\\\\'\"", ftResponseAdj("title", "c\\\\''") ),
+        Arguments.of( "Title=\"c\\\\d\"", ftResponseAdj("title", "c\\\\d") ),
+        Arguments.of( "Title=\"d\\\\\\\\\"", ftResponseAdj("title", "d\\\\\\\\") ),
+        Arguments.of( "Title=\"x\\\\\\\"\\\\\"", ftResponseAdj("title", "x\\\\\"\\\\") ),
+        Arguments.of( "Title=\"\"", "title IS NOT NULL" ),
+        Arguments.of( "Title<>\"\"", "title IS NULL" ),
+        Arguments.of( "Title==\"\"", "title = ''" ),
+        Arguments.of( "Title==\"*?^\"", "title = '*?^'" ),
+        Arguments.of( "Title==\"\\*\\?\\^\"", "title = '*?^'" ),
+        Arguments.of( "Title==\"b\\\\\"", "title = 'b\\\\'" ),
+        Arguments.of( "Title==\"c\\\\'\"", "title = 'c\\\\'''" ),
+        Arguments.of( "Title==\"d\\\\\\\\\"", "title = 'd\\\\\\\\'" ),
+        Arguments.of( "Title==\"e\\\\\\\"\\\\\"", "title = 'e\\\\\"\\\\'" ),
+        Arguments.of( "Title>\"\"", "error: Unsupported operator > for: Title > \"\"" ),
+        Arguments.of( "Title==v1 or title==v2",  "(title = 'v1' OR title = 'v2')"),
+        Arguments.of( "isbn=978-3-16-148410-0", "isbn = '978-3-16-148410-0'" ),
+        Arguments.of( "isbn=978-3-16-148410-*", "isbn = '978-3-16-148410-*'" ),
+        Arguments.of( "cql.allRecords=1 or title==v1", null ),
+        Arguments.of( "title==v1 or cql.allRecords=1", null ),
+        Arguments.of( "Title==v1 and title==v2", "(title = 'v1' AND title = 'v2')" ),
+        Arguments.of( "Title==v1 and cql.allRecords=1", "title = 'v1'" ),
+        Arguments.of( "cql.allRecords=1 and Title==v2", "title = 'v2'" ),
+        Arguments.of( "Title==v1 not title==v2", "(title = 'v1' AND NOT title = 'v2')" ),
+        Arguments.of( "cql.allRecords=1 not title==v2", "NOT (title = 'v2')" ),
+        Arguments.of( "title==v1 not cql.allRecords=1", "FALSE" ),
+        Arguments.of( "title==v1 prox title==v2", "error: Unsupported operator PROX" ),
+        Arguments.of( "cost=1 or cost=2 and cost=3", "((cost=1 OR cost=2) AND cost=3)" ), // boolean are left-assoc and same precedence in CQL
+        Arguments.of( "cost=1 or (cost=2 and cost=3)", "(cost=1 OR (cost=2 AND cost=3))" ),
+        Arguments.of( "cost=\"\" or cost<>\"\" not cost<>\"\"", "((cost IS NOT NULL OR cost IS NULL) AND NOT cost IS NULL)" ),
+        Arguments.of( "cost=1", "cost=1" ),
+        Arguments.of( "cost=+1.9", "cost=+1.9" ),
+        Arguments.of( "cost=e", "error: Bad numeric for: cost = e" ),
+        Arguments.of( "cost=1.5e3", "cost=1.5e3" ),
+        Arguments.of( "cost=-1,90", "error: Bad numeric for: cost = -1,90" ),
+        Arguments.of( "cost=0x100", "error: Bad numeric for: cost = 0x100" ),
+        Arguments.of( "cost==\"\"", "error: Bad numeric for: cost == \"\"" ),
+        Arguments.of( "cost>1", "cost>1" ),
+        Arguments.of( "cost>=2", "cost>=2" ),
+        Arguments.of( "cost==3", "cost=3" ),
+        Arguments.of( "cost<>4", "cost<>4" ),
+        Arguments.of( "cost<5", "cost<5" ),
+        Arguments.of( "cost<=6", "cost<=6" ),
+        Arguments.of( "cost adj 7", "error: Unsupported operator adj for: cost adj 7" ),
+        Arguments.of( "cost=\"\"", "cost IS NOT NULL" ),
+        Arguments.of( "paid=true", "paid=TRUE" ),
+        Arguments.of( "paid=False", "paid=FALSE" ),
+        Arguments.of( "paid=fals", "error: Bad boolean for: paid = fals" ),
+        Arguments.of( "paid=\"\"", "paid IS NOT NULL" ),
+        Arguments.of( "paid==\"\"", "error: Bad boolean for: paid == \"\"" ),
+        Arguments.of( "id=null", "error: Invalid UUID in id = null" ),
+        Arguments.of( "id==\"\"", "error: Invalid UUID in id == \"\"" ),
+        Arguments.of( "id=\"\"", "id IS NOT NULL" ),
+        Arguments.of( "id=6736bd11-5073-4026-81b5-b70b24179e02", "id='6736bd11-5073-4026-81b5-b70b24179e02'" ),
+        Arguments.of( "id=6736BD11-5073-4026-81B5-B70B24179E02", "id='6736bd11-5073-4026-81b5-b70b24179e02'" ),
+        Arguments.of( "id<>6736bd11-5073-4026-81b5-b70b24179e02", "id<>'6736bd11-5073-4026-81b5-b70b24179e02'" ),
+        Arguments.of( "title==v1 sortby cost", "title = 'v1'"),
+        Arguments.of( ">x = \"http://foo.org/p\" title==v1", "title = 'v1'"),
+        Arguments.of( "Parrot=dead", ftResponse("parrot", "dead", "phraseto_tsquery", "norwegian") ),
+        Arguments.of( "issn = 3", "issn = '3'"),
+        Arguments.of( "issn = ^2?3", "issn LIKE '^2_3'"),
+        Arguments.of( "issn = 2*3", "issn LIKE '2%3'"),
+        Arguments.of( "issn = 2'3", "issn = '2''3'"),
+        Arguments.of( "issn = 2_3*", "issn LIKE '2\\_3%'"),
+        Arguments.of( "issn = 2\\_%3*", "issn LIKE '2\\_\\%3%'"),
+        Arguments.of( "issn = 2\\\\?\\_3\\*", "issn LIKE '2\\\\_\\_3*'"),
+        Arguments.of( "issn = 2\\?\\_3\\*", "issn = '2?_3*'"),
+        Arguments.of( "issn <> 2*3", "issn <> '2*3'"),
+        Arguments.of( "issn == 2_3*", "issn = '2_3*'")
+    );
+  }
+
+  @ParameterizedTest
+  @MethodSource("cqlQueries")
+  void testCqlQueries(String query, String expect) {
     PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
     pgCqlDefinition.addField("cql.allRecords", new PgCqlFieldAlwaysMatches());
     pgCqlDefinition.addField("title", new PgCqlFieldText().withFullText());
@@ -170,28 +174,28 @@ public class PgCqlQueryTest {
     pgCqlDefinition.addField("cost", new PgCqlFieldNumber());
     pgCqlDefinition.addField("paid", new PgCqlFieldBoolean());
     pgCqlDefinition.addField("id", new PgCqlFieldUuid());
-    for (String [] entry : list) {
-      String query = entry[0];
-      String expect = entry[1];
-      try {
-        PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(query);
-        assertThat(pgCqlQuery.getWhereClause(), is(expect));
-      } catch (IllegalArgumentException e) {
-        assertThat("error: " + e.getMessage(), is(expect));
-      }
+    try {
+      PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(query);
+      assertThat(pgCqlQuery.getWhereClause(), is(expect));
+    } catch (IllegalArgumentException e) {
+      assertThat("error: " + e.getMessage(), is(expect));
     }
   }
 
-  @Test
-  void testSort() {
-    String[][] list = new String[][]{
-        {"isbn=1234 sortby foo", "error: Unsupported CQL index: foo", null},
-        {"paid=1234", null, null},
-        {"paid=1234 sortby isbn/xx", "error: Unsupported sort modifier: xx", null},
-        {"paid=1234 sortby isbn", "isbn ASC", "isbn"},
-        {">dc=\"http://foo.org/p\" paid=1234 sortby isbn", "isbn ASC", "isbn"},
-        {"paid=1234 sortby cost/sort.descending title/sort.ascending", "cost DESC, title ASC", "cost, title"},
-    };
+  static Stream<Arguments> cqlSortQueries() {
+    return Stream.of(
+        Arguments.of("isbn=1234 sortby foo", "error: Unsupported CQL index: foo", null),
+        Arguments.of("paid=1234", null, null),
+        Arguments.of("paid=1234 sortby isbn/xx", "error: Unsupported sort modifier: xx", null),
+        Arguments.of("paid=1234 sortby isbn", "isbn ASC", "isbn"),
+        Arguments.of(">dc=\"http://foo.org/p\" paid=1234 sortby isbn", "isbn ASC", "isbn"),
+        Arguments.of("paid=1234 sortby cost/sort.descending title/sort.ascending", "cost DESC, title ASC", "cost, title")
+    );
+  }
+
+  @ParameterizedTest
+  @MethodSource("cqlSortQueries")
+  void testSort(String query, String expect, String fields) {
     PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
     pgCqlDefinition.addField("cql.allRecords", new PgCqlFieldAlwaysMatches());
     pgCqlDefinition.addField("title", new PgCqlFieldText().withFullText());
@@ -199,17 +203,12 @@ public class PgCqlQueryTest {
     pgCqlDefinition.addField("cost", new PgCqlFieldNumber());
     pgCqlDefinition.addField("paid", new PgCqlFieldBoolean());
     pgCqlDefinition.addField("id", new PgCqlFieldUuid());
-    for (String [] entry : list) {
-      String query = entry[0];
-      String expect = entry[1];
-      String fields = entry[2];
-      try {
-        PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(query);
-        assertThat(pgCqlQuery.getOrderByClause(), is(expect));
-        assertThat(pgCqlQuery.getOrderByFields(), is(fields));
-      } catch (IllegalArgumentException e) {
-        assertThat("error: " + e.getMessage(), is(expect));
-      }
+    try {
+      PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(query);
+      assertThat(pgCqlQuery.getOrderByClause(), is(expect));
+      assertThat(pgCqlQuery.getOrderByFields(), is(fields));
+    } catch (IllegalArgumentException e) {
+      assertThat("error: " + e.getMessage(), is(expect));
     }
   }
 

@@ -14,12 +14,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldAlwaysMatches;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldText;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldUuid;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -144,87 +149,29 @@ public class PgCqlStorageTest {
         });
   }
 
-  @Test
-  public void testAllRecords(Vertx vertx, VertxTestContext context) {
-    test("cql.allRecords=1", List.of(0, 1, 2, 3))
-        .onComplete(context.succeedingThenComplete());
+  static Stream<Arguments> cqlQueries() {
+    return Stream.of(
+        Arguments.of("cql.allRecords=1", List.of(0, 1, 2, 3)),
+        Arguments.of("id=" + sample.get(0).getString("id"), List.of(0)),
+        Arguments.of("id=" + UUID.randomUUID(), List.of()),
+        Arguments.of("author=\"Larry \\\"Ratso\\\" Sloman\"", List.of(0)),
+        Arguments.of("author=\"Larry \\\"Ratso\\\"\"", List.of()),
+        Arguments.of("author=\"Larry Ratso Sloman\"", List.of()),
+        Arguments.of("title=\"road with bob\"", List.of(0)),
+        Arguments.of("title=\"Road the bob\"", List.of(0)),  // "the" and "with" are both stop words.
+        Arguments.of("title=\"bob the road\"", List.of()),
+        Arguments.of("title all \"bob the road\"", List.of(0)),
+        Arguments.of("title=\"with cry\"", List.of(1)), // "with" a stop word
+        Arguments.of("title=\"bob cry\"", List.of()),
+        Arguments.of("author=\"\"", List.of(0, 1)),
+        Arguments.of("author = Garnet Mi?ms", List.of(1))
+    );
   }
 
-  @Test
-  public void testIdEqualHit(Vertx vertx, VertxTestContext context) {
-    test("id=" + sample.get(0).getString("id"), List.of(0))
-        .onComplete(context.succeedingThenComplete());
+  @ParameterizedTest
+  @MethodSource("cqlQueries")
+  void testCqlQueries(String q, List<Integer> exp, Vertx vertx, VertxTestContext context) {
+    test(q, exp).onComplete(context.succeedingThenComplete());
   }
 
-  @Test
-  public void testIdEqualNoHit(Vertx vertx, VertxTestContext context) {
-    test("id=" + UUID.randomUUID(), List.of())
-        .onComplete(context.succeedingThenComplete());
-  }
-
-  @Test
-  public void testAuthorEqualHit(Vertx vertx, VertxTestContext context) {
-    test("author=\"Larry \\\"Ratso\\\" Sloman\"", List.of(0))
-        .onComplete(context.succeedingThenComplete());
-  }
-
-  @Test
-  public void testAuthorEqualNoHit(Vertx vertx, VertxTestContext context) {
-    test("author=\"Larry \\\"Ratso\\\"\"", List.of())
-        .onComplete(context.succeedingThenComplete());
-  }
-
-  @Test
-  public void testAuthorEqualNoHit2(Vertx vertx, VertxTestContext context) {
-    test("author=\"Larry Ratso Sloman\"", List.of())
-        .onComplete(context.succeedingThenComplete());
-  }
-
-  @Test
-  public void testTitleHit1(Vertx vertx, VertxTestContext context) {
-    test("title=\"road with bob\"", List.of(0))
-        .onComplete(context.succeedingThenComplete());
-  }
-
-  @Test
-  public void testTitleHit2(Vertx vertx, VertxTestContext context) {
-    test("title=\"Road the bob\"", List.of(0)) // "the" and "with" are both stop words.
-        .onComplete(context.succeedingThenComplete());
-  }
-
-  @Test
-  public void testTitleHit3(Vertx vertx, VertxTestContext context) {
-    test("title=\"bob the road\"", List.of())
-        .onComplete(context.succeedingThenComplete());
-  }
-
-  @Test
-  public void testTitleHit4(Vertx vertx, VertxTestContext context) {
-    test("title all \"bob the road\"", List.of(0))
-        .onComplete(context.succeedingThenComplete());
-  }
-
-  @Test
-  public void testTitleHit5(Vertx vertx, VertxTestContext context) {
-    test("title=\"with cry\"", List.of(1)) // "with" a stop word
-        .onComplete(context.succeedingThenComplete());
-  }
-
-  @Test
-  public void testTitleHit6(Vertx vertx, VertxTestContext context) {
-    test("title=\"bob cry\"", List.of())
-        .onComplete(context.succeedingThenComplete());
-  }
-
-  @Test
-  public void testAuthorEqEmpty(Vertx vertx, VertxTestContext context) {
-    test("author=\"\"", List.of(0, 1))
-        .onComplete(context.succeedingThenComplete());
-  }
-
-  @Test
-  public void testAuthorMask(Vertx vertx, VertxTestContext context) {
-    test("author = Garnet Mi?ms", List.of(1))
-        .onComplete(context.succeedingThenComplete());
-  }
 }
