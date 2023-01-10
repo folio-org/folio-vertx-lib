@@ -8,9 +8,13 @@ import org.folio.tlib.postgres.cqlfield.PgCqlFieldBoolean;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldNumber;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldText;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldUuid;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.z3950.zing.cql.CQLTermNode;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class PgCqlQueryTest {
 
@@ -18,33 +22,29 @@ public class PgCqlQueryTest {
   public void testSimple() {
     PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
     PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(null);
-    Assert.assertNull(pgCqlQuery.getWhereClause());
-    Assert.assertNull(pgCqlQuery.getOrderByClause());
+    assertThat(pgCqlQuery.getWhereClause(), is(nullValue()));
+    assertThat(pgCqlQuery.getOrderByClause(), is(nullValue()));
 
     pgCqlDefinition.addField("dc.title", new PgCqlFieldText().withColumn("title"));
 
     pgCqlQuery = pgCqlDefinition.parse("dc.Title==value");
-    Assert.assertEquals("title = 'value'", pgCqlQuery.getWhereClause());
+    assertThat(pgCqlQuery.getWhereClause(), is("title = 'value'"));
 
     pgCqlQuery = pgCqlDefinition.parse(null, "dc.Title==value2 OR dc.title==value3");
-    Assert.assertEquals("(title = 'value2' OR title = 'value3')",
-        pgCqlQuery.getWhereClause());
+    assertThat(pgCqlQuery.getWhereClause(), is("(title = 'value2' OR title = 'value3')"));
 
     pgCqlQuery = pgCqlDefinition.parse("dc.Title==value1", "dc.Title==value2 OR dc.title==value3");
-    Assert.assertEquals("(title = 'value1' AND (title = 'value2' OR title = 'value3'))",
-        pgCqlQuery.getWhereClause());
+    assertThat(pgCqlQuery.getWhereClause(), is("(title = 'value1' AND (title = 'value2' OR title = 'value3'))"));
 
     pgCqlQuery = pgCqlDefinition.parse("dc.Title==value1 sortby title", "dc.Title==value2 OR dc.title==value3");
-    Assert.assertEquals("(title = 'value1' AND (title = 'value2' OR title = 'value3'))",
-        pgCqlQuery.getWhereClause());
+    assertThat(pgCqlQuery.getWhereClause(), is("(title = 'value1' AND (title = 'value2' OR title = 'value3'))"));
 
     pgCqlDefinition.addField("cql.allRecords", new PgCqlFieldAlwaysMatches());
     pgCqlQuery = pgCqlDefinition.parse("cql.allRecords = 1", "dc.title==value1");
-    Assert.assertEquals("title = 'value1'", pgCqlQuery.getWhereClause());
+    assertThat(pgCqlQuery.getWhereClause(), is("title = 'value1'"));
 
     pgCqlQuery = pgCqlDefinition.parse("cql.allRecords = 1 sortby title", "dc.title==value1");
-    Assert.assertEquals("title = 'value1'",
-        pgCqlQuery.getWhereClause());
+    assertThat(pgCqlQuery.getWhereClause(), is("title = 'value1'"));
   }
 
   static String ftResponseAdj(String column, String term) {
@@ -61,7 +61,7 @@ public class PgCqlQueryTest {
   }
 
   @Test
-  public void testQueries() {
+  void testQueries() {
     String[][] list = new String[][] {
         { "(", "error: expected index or term, got EOF" },
         { "foo=bar", "error: Unsupported CQL index: foo" },
@@ -175,15 +175,15 @@ public class PgCqlQueryTest {
       String expect = entry[1];
       try {
         PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(query);
-        Assert.assertEquals("CQL: " + query, expect, pgCqlQuery.getWhereClause());
+        assertThat(pgCqlQuery.getWhereClause(), is(expect));
       } catch (IllegalArgumentException e) {
-        Assert.assertEquals(expect, "error: " + e.getMessage());
+        assertThat("error: " + e.getMessage(), is(expect));
       }
     }
   }
 
   @Test
-  public void testSort() {
+  void testSort() {
     String[][] list = new String[][]{
         {"isbn=1234 sortby foo", "error: Unsupported CQL index: foo", null},
         {"paid=1234", null, null},
@@ -205,10 +205,10 @@ public class PgCqlQueryTest {
       String fields = entry[2];
       try {
         PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(query);
-        Assert.assertEquals("CQL: " + query, expect, pgCqlQuery.getOrderByClause());
-        Assert.assertEquals("CQL: " + query, fields, pgCqlQuery.getOrderByFields());
+        assertThat(pgCqlQuery.getOrderByClause(), is(expect));
+        assertThat(pgCqlQuery.getOrderByFields(), is(fields));
       } catch (IllegalArgumentException e) {
-        Assert.assertEquals(expect, "error: " + e.getMessage());
+        assertThat("error: " + e.getMessage(), is(expect));
       }
     }
   }
@@ -227,14 +227,14 @@ public class PgCqlQueryTest {
   }
 
   @Test
-  public void testCustomField() {
+  void testCustomField() {
     PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
     pgCqlDefinition.addField("datestamp", new CqlFieldTimestamp());
 
     PgCqlQuery pgCqlQuery1 = pgCqlDefinition.parse("datestamp = 2022-02-03T04:05:06");
-    Assert.assertEquals("datestamp='2022-02-03T04:05:06'", pgCqlQuery1.getWhereClause());
+    assertThat(pgCqlQuery1.getWhereClause(), is("datestamp='2022-02-03T04:05:06'"));
 
     PgCqlQuery pgCqlQuery2 = pgCqlDefinition.parse("datestamp = 2022-02-03T04:05:06'");
-    Assert.assertThrows(DateTimeParseException.class, () -> pgCqlQuery2.getWhereClause());
+    assertThrows(DateTimeParseException.class, () -> pgCqlQuery2.getWhereClause());
   }
 }

@@ -3,8 +3,8 @@ package org.folio.tlib.postgres;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 import io.vertx.pgclient.PgConnectOptions;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
@@ -17,23 +17,24 @@ import java.util.stream.Collectors;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldAlwaysMatches;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldText;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldUuid;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
+
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-@RunWith(VertxUnitRunner.class)
+@Testcontainers
+@ExtendWith({VertxExtension.class})
 public class PgCqlStorageTest {
 
-  static Vertx vertx;
-
-  @ClassRule
-  public static PostgreSQLContainer<?> container = TenantPgPoolContainer.create();
+  @Container
+  static final PostgreSQLContainer<?> container = TenantPgPoolContainer.create();
 
   public static PgPool pgPool;
 
@@ -53,9 +54,8 @@ public class PgCqlStorageTest {
           .put("title", "only title")
   );
 
-  @BeforeClass
-  public static void beforeClass(TestContext context) {
-    vertx = Vertx.vertx();
+  @BeforeAll
+  static void beforeClass(Vertx vertx, VertxTestContext context) {
     pgPool = PgPool.pool(vertx,
         new PgConnectOptions()
             .setPort(container.getFirstMappedPort())
@@ -67,7 +67,7 @@ public class PgCqlStorageTest {
     pgPool.query("CREATE TABLE entries (id UUID, title TEXT, author TEXT)")
         .execute()
         .compose(x -> insertSample())
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
   static String getValue(String elem) {
@@ -76,6 +76,7 @@ public class PgCqlStorageTest {
     }
     return "'" + elem + "'";
   }
+
   static Future<Void> insertSample() {
     StringBuilder b = new StringBuilder("INSERT INTO entries (id, title, author) VALUES ");
     sample.forEach(o -> {
@@ -95,20 +96,19 @@ public class PgCqlStorageTest {
         .mapEmpty();
   }
 
-  @AfterClass
-  public static void afterClass(TestContext context) {
-    pgPool.close();
-    vertx.close().onComplete(context.asyncAssertSuccess());
+  @AfterAll
+  static void afterClass(Vertx vertx, VertxTestContext context) {
+    pgPool.close().onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void checkCount(TestContext context) {
+  private void checkCount(Vertx vertx, VertxTestContext context) {
     pgPool.query("SELECT * FROM entries")
         .execute()
-        .onComplete(context.asyncAssertSuccess(rowSet -> assertThat(rowSet.rowCount(), is(sample.size() + 1))));
+        .onComplete(context.succeeding(rowSet -> assertThat(rowSet.rowCount(), is(sample.size() + 1))));
   }
 
-  Future<Void> test(String query, List<Integer> expected) {
+  private Future<Void> test(String query, List<Integer> expected) {
     PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
     pgCqlDefinition.addField("cql.allRecords", new PgCqlFieldAlwaysMatches());
     pgCqlDefinition.addField("id", new PgCqlFieldUuid());
@@ -145,86 +145,86 @@ public class PgCqlStorageTest {
   }
 
   @Test
-  public void testAllRecords(TestContext context) {
+  public void testAllRecords(Vertx vertx, VertxTestContext context) {
     test("cql.allRecords=1", List.of(0, 1, 2, 3))
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void testIdEqualHit(TestContext context) {
+  public void testIdEqualHit(Vertx vertx, VertxTestContext context) {
     test("id=" + sample.get(0).getString("id"), List.of(0))
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void testIdEqualNoHit(TestContext context) {
+  public void testIdEqualNoHit(Vertx vertx, VertxTestContext context) {
     test("id=" + UUID.randomUUID(), List.of())
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void testAuthorEqualHit(TestContext context) {
+  public void testAuthorEqualHit(Vertx vertx, VertxTestContext context) {
     test("author=\"Larry \\\"Ratso\\\" Sloman\"", List.of(0))
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void testAuthorEqualNoHit(TestContext context) {
+  public void testAuthorEqualNoHit(Vertx vertx, VertxTestContext context) {
     test("author=\"Larry \\\"Ratso\\\"\"", List.of())
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void testAuthorEqualNoHit2(TestContext context) {
+  public void testAuthorEqualNoHit2(Vertx vertx, VertxTestContext context) {
     test("author=\"Larry Ratso Sloman\"", List.of())
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void testTitleHit1(TestContext context) {
+  public void testTitleHit1(Vertx vertx, VertxTestContext context) {
     test("title=\"road with bob\"", List.of(0))
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void testTitleHit2(TestContext context) {
+  public void testTitleHit2(Vertx vertx, VertxTestContext context) {
     test("title=\"Road the bob\"", List.of(0)) // "the" and "with" are both stop words.
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void testTitleHit3(TestContext context) {
+  public void testTitleHit3(Vertx vertx, VertxTestContext context) {
     test("title=\"bob the road\"", List.of())
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void testTitleHit4(TestContext context) {
+  public void testTitleHit4(Vertx vertx, VertxTestContext context) {
     test("title all \"bob the road\"", List.of(0))
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void testTitleHit5(TestContext context) {
+  public void testTitleHit5(Vertx vertx, VertxTestContext context) {
     test("title=\"with cry\"", List.of(1)) // "with" a stop word
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void testTitleHit6(TestContext context) {
+  public void testTitleHit6(Vertx vertx, VertxTestContext context) {
     test("title=\"bob cry\"", List.of())
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void testAuthorEqEmpty(TestContext context) {
+  public void testAuthorEqEmpty(Vertx vertx, VertxTestContext context) {
     test("author=\"\"", List.of(0, 1))
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void testAuthorMask(TestContext context) {
+  public void testAuthorMask(Vertx vertx, VertxTestContext context) {
     test("author = Garnet Mi?ms", List.of(1))
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 }
