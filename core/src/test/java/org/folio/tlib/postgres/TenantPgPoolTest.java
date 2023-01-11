@@ -192,6 +192,7 @@ class TenantPgPoolTest {
   }
 
   @Test
+  @SuppressWarnings("squid:S2699") // "Add at least one assertion" SQ does not know about context.*
   void execute1(Vertx vertx, VertxTestContext context) {
     List<String> list = new LinkedList<>();
     list.add("CREATE TABLE a (year int)");
