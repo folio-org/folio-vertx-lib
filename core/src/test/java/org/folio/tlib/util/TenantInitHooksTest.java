@@ -13,6 +13,7 @@ class TenantInitHooksTest {
   class MyHooks implements TenantInitHooks {}
 
   @Test
+  @SuppressWarnings("squid:S2699") // "Add at least one assertion" SQ does not know about context.*
   void testDefault(Vertx vertx, VertxTestContext context) {
     MyHooks m = new MyHooks();
     m.postInit(null, null, null)

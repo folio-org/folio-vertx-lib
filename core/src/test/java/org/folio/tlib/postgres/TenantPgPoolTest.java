@@ -117,6 +117,7 @@ class TenantPgPoolTest {
   }
 
   @Test
+  @SuppressWarnings("squid:S2699") // "Add at least one assertion" SQ does not know about context.*
   void queryOk(Vertx vertx, VertxTestContext context) {
     withPool(vertx, pool -> pool
         .query("SELECT count(*) FROM pg_database")
@@ -125,6 +126,7 @@ class TenantPgPoolTest {
   }
 
   @Test
+  @SuppressWarnings("squid:S2699") // "Add at least one assertion" SQ does not know about context.*
   void useSqlTemplate(Vertx vertx, VertxTestContext context) {
     withPool(vertx, pool ->
         SqlTemplate.forQuery(pool.getPool(), "SELECT count(*) FROM pg_database")
@@ -133,6 +135,7 @@ class TenantPgPoolTest {
   }
 
   @Test
+  @SuppressWarnings("squid:S2699") // "Add at least one assertion" SQ does not know about context.*
   void preparedQueryOptionsOk(Vertx vertx, VertxTestContext context) {
     withPool(vertx, pool -> pool
         .preparedQuery("SELECT * FROM pg_database WHERE datname=$1", new PrepareOptions())
@@ -141,6 +144,7 @@ class TenantPgPoolTest {
   }
 
   @Test
+  @SuppressWarnings("squid:S2699") // "Add at least one assertion" SQ does not know about context.*
   void executeOk(Vertx vertx, VertxTestContext context) {
     withPool(vertx, pool -> pool
         .execute("SELECT * FROM pg_database WHERE datname=$1", Tuple.of("postgres")))
@@ -148,6 +152,7 @@ class TenantPgPoolTest {
   }
 
   @Test
+  @SuppressWarnings("squid:S2699") // "Add at least one assertion" SQ does not know about context.*
   void executeAnalyze(Vertx vertx, VertxTestContext context) {
     vertx.getOrCreateContext().config().put("explain_analyze", Boolean.TRUE);
     withPool(vertx, pool -> pool
@@ -170,6 +175,7 @@ class TenantPgPoolTest {
   }
 
   @Test
+  @SuppressWarnings("squid:S2699") // "Add at least one assertion" SQ does not know about context.*
   void getConnection1(Vertx vertx, VertxTestContext context) {
     withPool(vertx, pool -> pool.withConnection(con ->
         con.query("SELECT count(*) FROM pg_database").execute()))
@@ -177,6 +183,7 @@ class TenantPgPoolTest {
   }
 
   @Test
+  @SuppressWarnings("squid:S2699") // "Add at least one assertion" SQ does not know about context.*
   void getConnection2(Vertx vertx, VertxTestContext context) {
     withPool(vertx, pool ->
         Future.<SqlConnection>future(promise -> pool.getConnection(promise))
@@ -195,6 +202,7 @@ class TenantPgPoolTest {
   }
 
   @Test
+  @SuppressWarnings("squid:S2699") // "Add at least one assertion" SQ does not know about context.*
   void execute2(Vertx vertx, VertxTestContext context) {
     // execute not using a transaction as this test shows.
     List<String> list = new LinkedList<>();
@@ -253,6 +261,7 @@ class TenantPgPoolTest {
   }
 
   @Test
+  @SuppressWarnings("squid:S2699") // "Add at least one assertion" SQ does not know about context.*
   void close(Vertx vertx, VertxTestContext context) {
     TenantPgPool pool = TenantPgPool.pool(vertx, "diku");
     pool.close(context.succeedingThenComplete());

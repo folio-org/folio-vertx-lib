@@ -393,7 +393,7 @@ class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostMissingTenant() {
+  void testPostMissingTenant() {
     RestAssured.given()
         .contentType(ContentType.JSON)
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\"}")
@@ -403,7 +403,7 @@ class Tenant2ApiTest {
   }
 
   @Test
-  public void testGetMissingTenant(){
+  void testGetMissingTenant(){
     String id = UUID.randomUUID().toString();
     RestAssured.given()
         .get("/_/tenant/" + id)
@@ -412,7 +412,7 @@ class Tenant2ApiTest {
   }
 
   @Test
-  public void testGetBadId(){
+  void testGetBadId(){
     String id = "1234";
     RestAssured.given()
         .header("X-Okapi-Tenant", "testlib")
