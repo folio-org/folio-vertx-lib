@@ -1,20 +1,22 @@
 package org.folio.tlib.util;
 
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 import org.folio.tlib.TenantInitHooks;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-@RunWith(VertxUnitRunner.class)
-public class TenantInitHooksTest {
+@ExtendWith({VertxExtension.class})
+class TenantInitHooksTest {
 
   class MyHooks implements TenantInitHooks {}
 
   @Test
-  public void testDefault(TestContext context) {
+  void testDefault(Vertx vertx, VertxTestContext context) {
     MyHooks m = new MyHooks();
-    m.postInit(null, null, null).onComplete(context.asyncAssertSuccess());
-    m.preInit(null, null, null).onComplete(context.asyncAssertSuccess());
+    m.postInit(null, null, null)
+        .compose(x -> m.preInit(null, null, null))
+        .onComplete(context.succeedingThenComplete());
   }
 }

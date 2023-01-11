@@ -53,7 +53,7 @@ class Tenant2ApiTest {
 
 
   @Container
-  public static PostgreSQLContainer<?> postgresSQLContainer = TenantPgPoolContainer.create();
+  static PostgreSQLContainer<?> postgresSQLContainer = TenantPgPoolContainer.create();
 
   static class TestInitHooks implements org.folio.tlib.TenantInitHooks {
 
@@ -81,7 +81,7 @@ class Tenant2ApiTest {
   private static PgConnectOptions initialPgConnectOptions;
 
   @BeforeAll
-  public static void beforeClass(Vertx vertx, VertxTestContext context) {
+  static void beforeAll(Vertx vertx, VertxTestContext context) {
     TenantPgPool.setModule("mod-tenant");
     RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     RestAssured.baseURI = "http://localhost:" + port;
@@ -103,24 +103,24 @@ class Tenant2ApiTest {
   }
 
   @AfterAll
-  public static void afterClass(Vertx vertx, VertxTestContext context) {
+  static void afterAll(Vertx vertx, VertxTestContext context) {
     TenantPgPool.closeAll()
         .onComplete(context.succeedingThenComplete());
   }
 
   @AfterEach
-  public void setDefaultConnectOptions() {
+  void setDefaultConnectOptions() {
     TenantPgPool.setDefaultConnectOptions(initialPgConnectOptions);
   }
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     hooks.preInitPromise = null;
     hooks.postInitPromise = null;
   }
 
   @Test
-  public void testPostTenantBadTenant1() {
+  void testPostTenantBadTenant1() {
     String tenant = "test'lib";
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
@@ -133,7 +133,7 @@ class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostTenantBadTenant2() {
+  void testPostTenantBadTenant2() {
     String tenant = "test\"lib";
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
@@ -146,7 +146,7 @@ class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostTenantBadPort() throws IOException {
+  void testPostTenantBadPort() throws IOException {
     Assumptions.assumeTrue(System.getenv("DB_HOST") == null);
     Assumptions.assumeTrue(System.getenv("DB_PORT") == null);
 
@@ -165,7 +165,7 @@ class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostTenantBadDatabase() {
+  void testPostTenantBadDatabase() {
     Assumptions.assumeTrue(System.getenv("DB_DATABASE") == null);
 
     String tenant = "testlib";
@@ -197,7 +197,7 @@ class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostTenantOK(Vertx vertx, VertxTestContext context) {
+  void testPostTenantOK(Vertx vertx, VertxTestContext context) {
     String tenant = "testlib";
 
     // init
@@ -242,7 +242,7 @@ class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostTenantPreInitFail() {
+  void testPostTenantPreInitFail() {
     String tenant = "testlib";
     hooks.preInitPromise = Promise.promise();
     hooks.preInitPromise.fail("pre init failure");
@@ -315,7 +315,7 @@ class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostTenantPostInitFail() {
+  void testPostTenantPostInitFail() {
     hooks.postInitPromise = Promise.promise();
     hooks.postInitPromise.fail("post init failure");
     String tenant = "testlib";
@@ -354,7 +354,7 @@ class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostTenantPostInitFailNull() {
+  void testPostTenantPostInitFailNull() {
     String tenant = "testlib";
     hooks.postInitPromise = Promise.promise();
     hooks.postInitPromise.fail((String) null);
@@ -423,7 +423,7 @@ class Tenant2ApiTest {
   }
 
   @Test
-  public void testDeleteMissingTenant(){
+  void testDeleteMissingTenant(){
     String id = UUID.randomUUID().toString();
     RestAssured.given()
         .delete("/_/tenant/" + id)
@@ -432,7 +432,7 @@ class Tenant2ApiTest {
   }
 
   @Test
-  public void testDeleteBadId(){
+  void testDeleteBadId(){
     String id = "1234";
     RestAssured.given()
         .header("X-Okapi-Tenant", "testlib")
@@ -443,7 +443,7 @@ class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostTenantBadJson() {
+  void testPostTenantBadJson() {
     RestAssured.given()
         .contentType(ContentType.JSON)
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\"")
@@ -452,7 +452,7 @@ class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostTenantBadType() {
+  void testPostTenantBadType() {
     RestAssured.given()
         .contentType(ContentType.JSON)
         .body("{\"module_to\" : true}")
@@ -461,7 +461,7 @@ class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostTenantAdditional() {
+  void testPostTenantAdditional() {
     RestAssured.given()
         .contentType(ContentType.JSON)
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\", \"extra\":true}")

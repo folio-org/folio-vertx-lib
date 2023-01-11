@@ -7,27 +7,25 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 import org.folio.tlib.RouterCreator;
 import org.folio.tlib.TenantInitHooks;
-import org.folio.tlib.postgres.TenantPgPool;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.folio.tlib.api.EchoApi.BODY_LIMIT;
 import static org.hamcrest.Matchers.is;
 
-@RunWith(VertxUnitRunner.class)
-public class EchoApiTest {
-  static Vertx vertx;
+@Testcontainers
+@ExtendWith({VertxExtension.class})
+class EchoApiTest {
   static int port = 9230;
 
-  @BeforeClass
-  public static void beforeClass(TestContext context) {
-    vertx = Vertx.vertx();
+  @BeforeAll
+  static void beforeAll(Vertx vertx, VertxTestContext context) {
     RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     RestAssured.baseURI = "http://localhost:" + port;
     RestAssured.requestSpecification = new RequestSpecBuilder().build();
@@ -51,16 +49,11 @@ public class EchoApiTest {
               .requestHandler(router)
               .listen(port).mapEmpty();
         })
-        .onComplete(context.asyncAssertSuccess());
-  }
-
-  @AfterClass
-  public static void afterClass(TestContext context) {
-    vertx.close().onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void testHealth() {
+  void testHealth() {
     RestAssured.given()
         .get("/admin/health")
         .then().statusCode(200)
@@ -69,7 +62,7 @@ public class EchoApiTest {
   }
 
   @Test
-  public void testEcho200() {
+  void testEcho200() {
     String request = "x".repeat(BODY_LIMIT);
     RestAssured.given()
         .contentType(ContentType.TEXT)
@@ -81,7 +74,7 @@ public class EchoApiTest {
   }
 
   @Test
-  public void testEcho413() {
+  void testEcho413() {
     String request = "x".repeat(BODY_LIMIT+1); // one too many!
     RestAssured.given()
         .body(request)
@@ -93,7 +86,7 @@ public class EchoApiTest {
   }
 
   @Test
-  public void testTenant413() {
+  void testTenant413() {
     String request = "x".repeat(BODY_LIMIT + 1);
     RestAssured.given()
         .contentType(ContentType.JSON)
@@ -106,7 +99,7 @@ public class EchoApiTest {
   }
 
   @Test
-  public void testNoPath413() {
+  void testNoPath413() {
     String request = "x".repeat(BODY_LIMIT + 1);
     RestAssured.given()
         .contentType(ContentType.JSON)

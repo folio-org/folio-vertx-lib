@@ -2,42 +2,41 @@ package org.folio.tlib.postgres;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 import io.vertx.sqlclient.PrepareOptions;
-import io.vertx.sqlclient.SqlClient;
 import io.vertx.sqlclient.SqlConnection;
 import io.vertx.sqlclient.Tuple;
+import io.vertx.sqlclient.templates.SqlTemplate;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
-
-import io.vertx.sqlclient.templates.SqlTemplate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.tlib.postgres.impl.TenantPgPoolImpl;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.testcontainers.containers.Container;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.MountableFile;
 
-@RunWith(VertxUnitRunner.class)
-public class TenantPgPoolTest {
+@Testcontainers
+@ExtendWith({VertxExtension.class})
+class TenantPgPoolTest {
   private final static Logger log = LogManager.getLogger(TenantPgPoolTest.class);
 
-  @ClassRule
+  @Container
   public static PostgreSQLContainer<?> postgresSQLContainer = TenantPgPoolContainer.create();
 
   static final String KEY_PATH = "/var/lib/postgresql/data/server.key";
@@ -45,12 +44,10 @@ public class TenantPgPoolTest {
   static final String CONF_PATH = "/var/lib/postgresql/data/postgresql.conf";
   static final String CONF_BAK_PATH = "/var/lib/postgresql/data/postgresql.conf.bak";
 
-  static Vertx vertx;
-
   // execute commands in container (stolen from Okapi's PostgresHandleTest
   static void exec(String... command) {
     try {
-      Container.ExecResult execResult = postgresSQLContainer.execInContainer(command);
+      org.testcontainers.containers.Container.ExecResult execResult = postgresSQLContainer.execInContainer(command);
       if (execResult.getExitCode() != 0) {
         log.info("{} {}", execResult.getExitCode(), String.join(" ", command));
         log.info("stderr: {}", execResult.getStderr());
@@ -74,10 +71,8 @@ public class TenantPgPoolTest {
     exec("su-exec", "postgres", "pg_ctl", "reload");
   }
 
-  @BeforeClass
-  public static void beforeClass() {
-    vertx = Vertx.vertx();
-
+  @BeforeAll
+  static void beforeAll() {
     MountableFile serverKeyFile = MountableFile.forClasspathResource("server.key");
     MountableFile serverCrtFile = MountableFile.forClasspathResource("server.crt");
     postgresSQLContainer.copyFileToContainer(serverKeyFile, KEY_PATH);
@@ -87,184 +82,191 @@ public class TenantPgPoolTest {
     exec("cp", "-p", CONF_PATH, CONF_BAK_PATH);
   }
 
-  @AfterClass
-  public static void afterClass(TestContext context) {
-    vertx.close(context.asyncAssertSuccess());
-  }
-
-  @Before
-  public void before() {
+  @BeforeEach
+  void before() {
     configure();  // default postgresql.conf
     TenantPgPool.setServerPem(null);
     TenantPgPool.setModule("mod-foo");
+  }
+
+  @AfterEach
+  void after(Vertx vertx, VertxTestContext context) {
+    TenantPgPool.closeAll().onComplete(context.succeedingThenComplete());
   }
 
   /**
    * Create a TenantPgPool, run the mapper on it, close the pool,
    * and return the result from the mapper.
    */
-  private <T> Future<T> withPool(Function<TenantPgPool, Future<T>> mapper) {
+  private <T> Future<T> withPool(Vertx vertx, Function<TenantPgPool, Future<T>> mapper) {
     TenantPgPool pool = TenantPgPool.pool(vertx, "diku");
     Future<T> future = mapper.apply(pool);
     return future.eventually(x -> pool.close());
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testBadModule() {
-    TenantPgPoolImpl.setModule("mod'a");
-  }
-
-  @Test(expected = IllegalStateException.class)
-  public void testNoSetModule() {
-    TenantPgPoolImpl.setModule(null);
-    TenantPgPoolImpl.tenantPgPool(vertx, "diku");
+  @Test
+  void testBadModule() {
+    Assertions.assertThrows(IllegalArgumentException.class, () -> TenantPgPoolImpl.setModule("mod'a"));
   }
 
   @Test
-  public void queryOk(TestContext context) {
-    withPool(pool -> pool
+  void testNoSetModule(Vertx vertx, VertxTestContext context) {
+    TenantPgPoolImpl.setModule(null);
+    Assertions.assertThrows(IllegalStateException.class, () -> TenantPgPoolImpl.tenantPgPool(vertx, "diku"));
+    context.completeNow();
+  }
+
+  @Test
+  void queryOk(Vertx vertx, VertxTestContext context) {
+    withPool(vertx, pool -> pool
         .query("SELECT count(*) FROM pg_database")
         .execute())
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void useSqlTemplate(TestContext context) {
-    withPool(pool ->
+  void useSqlTemplate(Vertx vertx, VertxTestContext context) {
+    withPool(vertx, pool ->
         SqlTemplate.forQuery(pool.getPool(), "SELECT count(*) FROM pg_database")
             .execute(Collections.emptyMap()))
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void preparedQueryOptionsOk(TestContext context) {
-    withPool(pool -> pool
+  void preparedQueryOptionsOk(Vertx vertx, VertxTestContext context) {
+    withPool(vertx, pool -> pool
         .preparedQuery("SELECT * FROM pg_database WHERE datname=$1", new PrepareOptions())
         .execute(Tuple.of("postgres")))
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void executeOk(TestContext context) {
-    withPool(pool -> pool
+  void executeOk(Vertx vertx, VertxTestContext context) {
+    withPool(vertx, pool -> pool
         .execute("SELECT * FROM pg_database WHERE datname=$1", Tuple.of("postgres")))
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void executeAnalyze(TestContext context) {
+  void executeAnalyze(Vertx vertx, VertxTestContext context) {
     vertx.getOrCreateContext().config().put("explain_analyze", Boolean.TRUE);
-    withPool(pool -> pool
+    withPool(vertx, pool -> pool
         .execute("SELECT * FROM pg_database WHERE datname=$1", Tuple.of("postgres")))
-        .onComplete(x -> {
+        .onComplete(context.succeeding(x -> {
           vertx.getOrCreateContext().config().remove("explain_analyze");
-          context.assertTrue(x.succeeded());
-        });
+          context.completeNow();
+        }));
   }
 
   @Test
-  public void applicationName(TestContext context) {
-    withPool(pool -> pool
+  void applicationName(Vertx vertx, VertxTestContext context) {
+    withPool(vertx, pool -> pool
         .query("SELECT application_name FROM pg_stat_activity WHERE pid = pg_backend_pid()")
         .execute())
-    .onComplete(context.asyncAssertSuccess(rowSet -> {
+    .onComplete(context.succeeding(rowSet -> {
       assertThat(rowSet.iterator().next().getString(0), is("mod_foo"));
+      context.completeNow();
     }));
   }
 
   @Test
-  public void getConnection1(TestContext context) {
-    withPool(pool -> pool.withConnection(con ->
+  void getConnection1(Vertx vertx, VertxTestContext context) {
+    withPool(vertx, pool -> pool.withConnection(con ->
         con.query("SELECT count(*) FROM pg_database").execute()))
-    .onComplete(context.asyncAssertSuccess());
+    .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void getConnection2(TestContext context) {
-    withPool(pool ->
+  void getConnection2(Vertx vertx, VertxTestContext context) {
+    withPool(vertx, pool ->
         Future.<SqlConnection>future(promise -> pool.getConnection(promise))
         .compose(con -> con.query("SELECT count(*) FROM pg_database").execute()))
-    .onComplete(context.asyncAssertSuccess());
+    .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void execute1(TestContext context) {
+  void execute1(Vertx vertx, VertxTestContext context) {
     List<String> list = new LinkedList<>();
     list.add("CREATE TABLE a (year int)");
     list.add("SELECT * FROM a");
     list.add("DROP TABLE a");
-    withPool(pool -> pool.execute(list))
-    .onComplete(context.asyncAssertSuccess());
+    withPool(vertx, pool -> pool.execute(list))
+        .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void execute2(TestContext context) {
+  void execute2(Vertx vertx, VertxTestContext context) {
     // execute not using a transaction as this test shows.
     List<String> list = new LinkedList<>();
     list.add("CREATE TABLE a (year int)");
     list.add("ALTER TABLE a RENAME TO b");  // renames
     list.add("DROP TABLOIDS b");            // fails
     list.add("ALTER TABLE b RENAME TO c");  // not executed
-    withPool(pool ->
+    withPool(vertx, pool ->
         pool.execute(list)
-        .onComplete(context.asyncAssertFailure())
+        .onComplete(x -> assertThat(x.failed(), is(true)))
         .recover(x -> pool.execute(List.of("DROP TABLE b")))) // better now
-    .onComplete(context.asyncAssertSuccess());
+    .onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void testGetPoolOptions() {
+  void testGetPoolOptions(Vertx vertx, VertxTestContext context) {
     TenantPgPool.setMaxPoolSize("4");
     TenantPgPool pool = TenantPgPool.pool(vertx, "diku");
     int sz = pool.getPoolOptions().getMaxSize();
     assertThat(sz, is(4));
+    context.completeNow();
   }
 
   @Test
-  public void testSSL(TestContext context) throws IOException {
-    Assume.assumeThat(System.getenv("DB_HOST"), is(nullValue()));
-    Assume.assumeThat(System.getenv("DB_PORT"), is(nullValue()));
+  void testSSL(Vertx vertx, VertxTestContext context) throws IOException {
+    Assumptions.assumeTrue(System.getenv("DB_HOST") == null);
+    Assumptions.assumeTrue(System.getenv("DB_PORT") == null);
     configure("ssl=on");
     TenantPgPool.setMaxPoolSize("3");
     TenantPgPool.setServerPem(new String(TenantPgPoolTest.class.getClassLoader()
         .getResourceAsStream("server.crt").readAllBytes()));
 
-    withPool(pool -> pool
+    withPool(vertx, pool -> pool
         .query("SELECT version FROM pg_stat_ssl WHERE pid = pg_backend_pid()")
         .execute())
-        .onComplete(context.asyncAssertSuccess(rowSet -> {
+        .onComplete(context.succeeding(rowSet -> {
           assertThat(rowSet.iterator().next().getString(0), is("TLSv1.3"));
+          context.completeNow();
         }));
   }
 
   @Test
-  public void size(TestContext context) {
+  void size(Vertx vertx, VertxTestContext context) {
     final TenantPgPool pool = TenantPgPool.pool(vertx, "diku");
     assertThat(pool.size(), is(0));
     pool.query("SELECT count(*) FROM pg_database")
         .execute()
-        .onComplete(context.asyncAssertSuccess(x -> {
+        .onComplete(context.succeeding(x -> {
           assertThat(pool.size(), is(1));
           pool.close()
-              .onComplete(context.asyncAssertSuccess(y -> assertThat(pool.size(), is(0))));
+              .onComplete(context.succeeding(y -> {
+                assertThat(pool.size(), is(0));
+                context.completeNow();
+              }));
         }));
   }
 
   @Test
-  public void close(TestContext context) {
+  void close(Vertx vertx, VertxTestContext context) {
     TenantPgPool pool = TenantPgPool.pool(vertx, "diku");
-    pool.close(context.asyncAssertSuccess());
+    pool.close(context.succeedingThenComplete());
   }
 
   @Test
-  public void closeAll(TestContext context) {
+  void closeAll(Vertx vertx, VertxTestContext context) {
     TenantPgPool pool = TenantPgPool.pool(vertx, "diku");
     assertThat(pool.size(), is(0));
-    TenantPgPool.closeAll().onComplete(context.asyncAssertSuccess());
+    TenantPgPool.closeAll().onComplete(context.succeedingThenComplete());
   }
 
   @Test
-  public void connectHandler(TestContext context) {
+  void connectHandler(Vertx vertx, VertxTestContext context) {
     TenantPgPool pool = TenantPgPool.pool(vertx, "diku");
     pool.connectHandler(conn ->
         conn.query("CREATE TEMP TABLE connecthandler()")
@@ -272,6 +274,9 @@ public class TenantPgPoolTest {
             .eventually(x -> conn.close())
     );
     pool.withConnection(conn -> conn.preparedQuery("SELECT * FROM connecthandler").execute())
-        .onComplete(context.asyncAssertSuccess(rowSet -> assertThat(rowSet.size(), is(0))));
+        .onComplete(context.succeeding(rowSet -> {
+          assertThat(rowSet.size(), is(0));
+          context.completeNow();
+        }));
   }
 }

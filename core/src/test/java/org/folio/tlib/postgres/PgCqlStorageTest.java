@@ -60,7 +60,7 @@ class PgCqlStorageTest {
   );
 
   @BeforeAll
-  static void beforeClass(Vertx vertx, VertxTestContext context) {
+  static void beforeAll(Vertx vertx, VertxTestContext context) {
     pgPool = PgPool.pool(vertx,
         new PgConnectOptions()
             .setPort(container.getFirstMappedPort())
@@ -102,7 +102,7 @@ class PgCqlStorageTest {
   }
 
   @AfterAll
-  static void afterClass(Vertx vertx, VertxTestContext context) {
+  static void afterAll(Vertx vertx, VertxTestContext context) {
     pgPool.close().onComplete(context.succeedingThenComplete());
   }
 
