@@ -17,8 +17,9 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.junit5.Timeout;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 import io.vertx.pgclient.PgConnectOptions;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -26,21 +27,21 @@ import java.util.UUID;
 import org.folio.tlib.RouterCreator;
 import org.folio.tlib.postgres.TenantPgPool;
 import org.folio.tlib.postgres.TenantPgPoolContainer;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.Timeout;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-@RunWith(VertxUnitRunner.class)
-public class Tenant2ApiTest {
-  static Vertx vertx;
+@Timeout(10000)
+@Testcontainers
+@ExtendWith({VertxExtension.class})
+class Tenant2ApiTest {
   static int port = 9230;
 
   private static int getFreePort() throws IOException {
@@ -50,10 +51,8 @@ public class Tenant2ApiTest {
     }
   }
 
-  @Rule
-  public Timeout timeout = Timeout.seconds(10);
 
-  @ClassRule
+  @Container
   public static PostgreSQLContainer<?> postgresSQLContainer = TenantPgPoolContainer.create();
 
   static class TestInitHooks implements org.folio.tlib.TenantInitHooks {
@@ -81,10 +80,9 @@ public class Tenant2ApiTest {
   static TestInitHooks hooks = new TestInitHooks();
   private static PgConnectOptions initialPgConnectOptions;
 
-  @BeforeClass
-  public static void beforeClass(TestContext context) {
+  @BeforeAll
+  public static void beforeClass(Vertx vertx, VertxTestContext context) {
     TenantPgPool.setModule("mod-tenant");
-    vertx = Vertx.vertx();
     RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     RestAssured.baseURI = "http://localhost:" + port;
     RestAssured.requestSpecification = new RequestSpecBuilder().build();
@@ -101,22 +99,21 @@ public class Tenant2ApiTest {
               .requestHandler(router)
               .listen(port).mapEmpty();
         })
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
-  @AfterClass
-  public static void afterClass(TestContext context) {
+  @AfterAll
+  public static void afterClass(Vertx vertx, VertxTestContext context) {
     TenantPgPool.closeAll()
-        .compose(x -> vertx.close())
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
-  @After
+  @AfterEach
   public void setDefaultConnectOptions() {
     TenantPgPool.setDefaultConnectOptions(initialPgConnectOptions);
   }
 
-  @Before
+  @BeforeEach
   public void setup() {
     hooks.preInitPromise = null;
     hooks.postInitPromise = null;
@@ -150,8 +147,8 @@ public class Tenant2ApiTest {
 
   @Test
   public void testPostTenantBadPort() throws IOException {
-    Assume.assumeThat(System.getenv("DB_HOST"), is(nullValue()));
-    Assume.assumeThat(System.getenv("DB_PORT"), is(nullValue()));
+    Assumptions.assumeTrue(System.getenv("DB_HOST") == null);
+    Assumptions.assumeTrue(System.getenv("DB_PORT") == null);
 
     String tenant = "testlib";
     PgConnectOptions bad = new PgConnectOptions(initialPgConnectOptions);
@@ -169,7 +166,7 @@ public class Tenant2ApiTest {
 
   @Test
   public void testPostTenantBadDatabase() {
-    Assume.assumeThat(System.getenv("DB_DATABASE"), is(nullValue()));
+    Assumptions.assumeTrue(System.getenv("DB_DATABASE") == null);
 
     String tenant = "testlib";
     PgConnectOptions bad = new PgConnectOptions(initialPgConnectOptions);
@@ -200,22 +197,22 @@ public class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostTenantOK() {
+  public void testPostTenantOK(Vertx vertx, VertxTestContext context) {
     String tenant = "testlib";
 
     // init
-    tenantOp(tenant, new JsonObject()
+    tenantOp(vertx, tenant, new JsonObject()
         .put("module_to", "mod-eusage-reports-1.0.0")
     );
 
     // upgrade
-    tenantOp(tenant, new JsonObject()
+    tenantOp(vertx, tenant, new JsonObject()
         .put("module_from", "mod-eusage-reports-1.0.0")
         .put("module_to", "mod-eusage-reports-1.0.1")
     );
 
     // disable
-    tenantOp(tenant, new JsonObject()
+    tenantOp(vertx, tenant, new JsonObject()
         .put("module_from", "mod-eusage-reports-1.0.1")
     );
 
@@ -240,6 +237,8 @@ public class Tenant2ApiTest {
             .encode())
         .post("/_/tenant")
         .then().statusCode(204);
+
+    context.completeNow();
   }
 
   @Test
@@ -257,7 +256,7 @@ public class Tenant2ApiTest {
         .body(is("pre init failure"));
   }
 
-  private void tenantOp(String tenant, JsonObject body) {
+  private void tenantOp(Vertx vertx, String tenant, JsonObject body) {
     hooks.postInitPromise = Promise.promise(); // not completed yet
 
     ExtractableResponse<Response> response = RestAssured.given()
