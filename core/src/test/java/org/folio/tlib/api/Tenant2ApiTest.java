@@ -197,22 +197,22 @@ class Tenant2ApiTest {
   }
 
   @Test
-  void testPostTenantOK(Vertx vertx, VertxTestContext context) {
+  void testPostTenantOK() {
     String tenant = "testlib";
 
     // init
-    tenantOp(vertx, tenant, new JsonObject()
+    tenantOp(tenant, new JsonObject()
         .put("module_to", "mod-eusage-reports-1.0.0")
     );
 
     // upgrade
-    tenantOp(vertx, tenant, new JsonObject()
+    tenantOp(tenant, new JsonObject()
         .put("module_from", "mod-eusage-reports-1.0.0")
         .put("module_to", "mod-eusage-reports-1.0.1")
     );
 
     // disable
-    tenantOp(vertx, tenant, new JsonObject()
+    tenantOp(tenant, new JsonObject()
         .put("module_from", "mod-eusage-reports-1.0.1")
     );
 
@@ -237,8 +237,6 @@ class Tenant2ApiTest {
             .encode())
         .post("/_/tenant")
         .then().statusCode(204);
-
-    context.completeNow();
   }
 
   @Test
@@ -256,7 +254,7 @@ class Tenant2ApiTest {
         .body(is("pre init failure"));
   }
 
-  private void tenantOp(Vertx vertx, String tenant, JsonObject body) {
+  private void tenantOp(String tenant, JsonObject body) {
     hooks.postInitPromise = Promise.promise(); // not completed yet
 
     ExtractableResponse<Response> response = RestAssured.given()
@@ -291,7 +289,7 @@ class Tenant2ApiTest {
         .time(greaterThan(500L /* ms */))
         .time(lessThan(1500L /* ms */));
 
-    vertx.setTimer(1000 /* ms */, timerFired -> hooks.postInitPromise.tryComplete());
+    Vertx.vertx().setTimer(1000 /* ms */, timerFired -> hooks.postInitPromise.tryComplete());
 
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
