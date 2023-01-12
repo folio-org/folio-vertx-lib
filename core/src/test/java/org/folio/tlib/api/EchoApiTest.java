@@ -72,6 +72,7 @@ public class EchoApiTest {
   public void testEcho200() {
     String request = "x".repeat(BODY_LIMIT);
     RestAssured.given()
+        .header("X-Okapi-Tenant", "tenant")
         .contentType(ContentType.TEXT)
         .body(request)
         .post("/echo")
