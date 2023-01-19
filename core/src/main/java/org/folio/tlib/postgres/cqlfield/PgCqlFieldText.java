@@ -107,8 +107,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
           case '\\':
             break;
           case '\'':
-            pgTerm.append(c);
-            pgTerm.append(c);
+            pgTerm.append("''");
             break;
           default:
             pgTerm.append(c);
@@ -145,8 +144,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
             pgTerm.append(c);
             break;
           case '\\':
-            pgTerm.append(c);
-            pgTerm.append(c);
+            pgTerm.append("\\\\");
             break;
           default:
             unsupportedBackslashSequence(termNode);
@@ -176,8 +174,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
             pgTerm.append(c);
             break;
           case '\'':
-            pgTerm.append(c);
-            pgTerm.append(c);
+            pgTerm.append("''");
             break;
           default:
             pgTerm.append(c);
