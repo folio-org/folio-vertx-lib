@@ -193,7 +193,19 @@ class PgCqlStorageTest {
         Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"foo_%ba?\"", "foo_%bar", true),
         Arguments.of(new PgCqlFieldText().withFullText(), "= \"foo\\\\bar\"", "foo\\bar", true),
         Arguments.of(new PgCqlFieldText().withFullText(), "= \"foo bar\"", "foo\\bar", true),
-        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"*\"", "x", true)
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"*\"", "x", true),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"\\\\\"", "\\", true),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"\\\\\"", "x", false),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"\\^\"", "^", true),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"\\^\"", "x", false),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"\\?\"", "?", true),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"\\?\"", "x", false),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"\\_\"", "_", true),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"\\_\"", "x", false),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"\\*\"", "*", true),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"\\*\"", "x", false),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"\\%\"", "%", true),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"\\%\"", "x", false)
     );
   }
 
