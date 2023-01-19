@@ -95,7 +95,7 @@ class PgCqlQueryTest {
         Arguments.of( "Title=\"\"", "title IS NOT NULL" ),
         Arguments.of( "Title<>\"\"", "title IS NULL" ),
         Arguments.of( "Title==\"\"", "title = ''" ),
-        Arguments.of( "Title==\"*?^\"", "error: Masking op * unsupported for: Title == *?^" ),
+        Arguments.of( "Title==\"*?^\"", "title LIKE '%_'" ),
         Arguments.of( "Title==\"\\*\\?\\^\"", "title = '*?^'" ),
         Arguments.of( "Title==\"b\\\\\"", "title = 'b\\'" ),
         Arguments.of( "Title==\"c\\\\'\"", "title = 'c\\'''" ),
@@ -171,7 +171,7 @@ class PgCqlQueryTest {
   void testCqlQueries(String query, String expect) {
     PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
     pgCqlDefinition.addField("cql.allRecords", new PgCqlFieldAlwaysMatches());
-    pgCqlDefinition.addField("title", new PgCqlFieldText().withFullText());
+    pgCqlDefinition.addField("title", new PgCqlFieldText().withFullText().withLikeOps());
     pgCqlDefinition.addField("parrot", new PgCqlFieldText().withFullText("norwegian"));
     pgCqlDefinition.addField("isbn", new PgCqlFieldText());
     pgCqlDefinition.addField("issn", new PgCqlFieldText().withLikeOps());

@@ -129,20 +129,19 @@ class Tenant2ApiTest {
         .post("/_/tenant")
         .then().statusCode(400)
         .contentType(ContentType.TEXT)
-        .body(containsString("X-Okapi-Tenant header must match"));
+        .body(containsString("X-Okapi-Tenant in location HEADER: provided string should respect pattern"));
   }
 
   @Test
   void testPostTenantBadTenant2() {
     String tenant = "test\"lib";
     RestAssured.given()
-        .header("X-Okapi-Tenant", tenant)
         .contentType(ContentType.JSON)
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\"}")
         .post("/_/tenant")
         .then().statusCode(400)
         .contentType(ContentType.TEXT)
-        .body(containsString("X-Okapi-Tenant header must match"));
+        .body(containsString("Missing parameter X-Okapi-Tenant in HEADER"));
   }
 
   @Test
