@@ -9,6 +9,8 @@ import org.folio.tlib.postgres.cqlfield.PgCqlFieldBoolean;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldNumber;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldText;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldUuid;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -46,6 +48,11 @@ class PgCqlQueryTest {
     pgCqlDefinition.addField("cql.allRecords", new PgCqlFieldAlwaysMatches());
     PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(query1, query2);
     assertThat(pgCqlQuery.getWhereClause(), is(expect));
+  }
+
+  @Test
+  void withFullTextNull() {
+    Assertions.assertThrows(IllegalArgumentException.class, () -> new PgCqlFieldText().withFullText(null));
   }
 
   static String ftResponseAdj(String column, String term) {
