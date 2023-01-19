@@ -168,11 +168,11 @@ class PgCqlStorageTest {
     test(q, exp).onComplete(context.succeedingThenComplete());
   }
 
-  private Future<Void> matchField(String fieldName, PgCqlFieldType pgCqlFieldType, String cql, String value, boolean expected) {
+  private Future<Void> matchField(PgCqlFieldType pgCqlFieldType, String cql, String value, boolean expected) {
     PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
-    pgCqlDefinition.addField(fieldName, pgCqlFieldType);
-    PgCqlQuery parse = pgCqlDefinition.parse(cql);
-    return matchValue(parse, fieldName, value, expected);
+    pgCqlDefinition.addField("field", pgCqlFieldType);
+    PgCqlQuery parse = pgCqlDefinition.parse("field " + cql);
+    return matchValue(parse, "field", value, expected);
   }
 
   private Future<Void> matchValue(PgCqlQuery parse, String column, String value, boolean expected) {
@@ -187,15 +187,13 @@ class PgCqlStorageTest {
 
   static Stream<Arguments> fieldValueQueries() {
     return Stream.of(
-        Arguments.of(new PgCqlFieldText(), "issn = \"foo\\\\bar\"", "foo\\bar", true),
-        Arguments.of(new PgCqlFieldText().withLikeOps(), "issn = \"foo\\\\bar\"", "foo\\bar", true),
-        Arguments.of(new PgCqlFieldText().withLikeOps(), "issn = \"foo\\\\ba?\"", "foo\\bar", true),
-        Arguments.of(new PgCqlFieldText().withLikeOps(), "issn = \"foo_%ba?\"", "foo_%bar", true),
-        Arguments.of(new PgCqlFieldText().withFullText(), "issn = \"foo\\\\bar\"", "foo\\bar", true),
-        Arguments.of(new PgCqlFieldText().withFullText(), "issn = \"foo bar\"", "foo\\bar", true),
-        Arguments.of(new PgCqlFieldText(), "issn = \"*\"", "*", true),
-        Arguments.of(new PgCqlFieldText(), "issn = \"*\"", "x", false),
-        Arguments.of(new PgCqlFieldText().withLikeOps(), "issn = \"*\"", "x", true)
+        Arguments.of(new PgCqlFieldText(), "= \"foo\\\\bar\"", "foo\\bar", true),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"foo\\\\bar\"", "foo\\bar", true),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"foo\\\\ba?\"", "foo\\bar", true),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"foo_%ba?\"", "foo_%bar", true),
+        Arguments.of(new PgCqlFieldText().withFullText(), "= \"foo\\\\bar\"", "foo\\bar", true),
+        Arguments.of(new PgCqlFieldText().withFullText(), "= \"foo bar\"", "foo\\bar", true),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"*\"", "x", true)
     );
   }
 
@@ -203,7 +201,7 @@ class PgCqlStorageTest {
   @MethodSource("fieldValueQueries")
   void testCqlQueries(PgCqlFieldType pgCqlFieldType, String query, String value, boolean expected,
       Vertx vertx, VertxTestContext context) {
-    matchField("issn", pgCqlFieldType, query, value, expected).onComplete(context.succeedingThenComplete());
+    matchField(pgCqlFieldType, query, value, expected).onComplete(context.succeedingThenComplete());
   }
 
 

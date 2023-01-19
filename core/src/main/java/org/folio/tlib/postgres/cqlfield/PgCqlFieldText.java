@@ -22,23 +22,48 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
     return this;
   }
 
-  static boolean append(StringBuilder t, char c, boolean backslash) {
-    if (c == '\\' && !backslash) {
-      return true;
-    }
-    if (c == '\'') {
-      t.append(c);
-    }
-    t.append(c);
-    return false;
-  }
-
   static String cqlTermToPgTermExact(CQLTermNode termNode) {
     String cqlTerm = termNode.getTerm();
     StringBuilder pgTerm = new StringBuilder();
     boolean backslash = false;
     for (int i = 0; i < cqlTerm.length(); i++) {
-      backslash = append(pgTerm, cqlTerm.charAt(i), backslash);
+      char c = cqlTerm.charAt(i);
+      if (backslash) {
+        switch (c) {
+          case '*':
+          case '\"':
+          case '?':
+          case '^':
+          case '\\':
+            pgTerm.append(c);
+            break;
+          default:
+            throw new IllegalArgumentException("Unsupported backslash sequence for: "
+                + termNode.toCQL());
+        }
+        backslash = false;
+      } else {
+        switch (c) {
+          case '*':
+            throw new IllegalArgumentException("Masking op * unsupported for: " + termNode.toCQL());
+          case '?':
+            throw new IllegalArgumentException("Masking op ? unsupported for: " + termNode.toCQL());
+          case '^':
+            throw new IllegalArgumentException("Anchor op ^ unsupported for: " + termNode.toCQL());
+          case '\\':
+            break;
+          case '\'':
+            pgTerm.append(c);
+            pgTerm.append(c);
+            break;
+          default:
+            pgTerm.append(c);
+        }
+        backslash = c == '\\';
+      }
+    }
+    if (backslash) {
+      throw new IllegalArgumentException("Unsupported backslash sequence for: " + termNode.toCQL());
     }
     return pgTerm.toString();
   }
@@ -49,20 +74,61 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
     boolean backslash = false;
     for (int i = 0; i < cqlTerm.length(); i++) {
       char c = cqlTerm.charAt(i);
-      if (c == '*') {
-        if (!backslash) {
-          c = '%';
-          ops = true;
+      if (backslash) {
+        switch (c) {
+          case '*':
+          case '?':
+          case '^':
+          case '\"':
+            pgTerm.append(c);
+            break;
+          case '\\':
+            pgTerm.append(c);
+            pgTerm.append(c);
+            break;
+          default:
+            throw new IllegalArgumentException("Unsupported backslash sequence for: "
+                + termNode.toCQL());
         }
-      } else if (c == '?') {
-        if (!backslash) {
-          c = '_';
-          ops = true;
+        backslash = false;
+      } else {
+        switch (c) {
+          case '*':
+            pgTerm.append('%');
+            ops = true;
+            break;
+          case '?':
+            pgTerm.append('_');
+            ops = true;
+            break;
+          case '^':
+            if (i != 0 && i != cqlTerm.length() - 1) {
+              throw new IllegalArgumentException("Anchor op ^ unsupported for: "
+                  + termNode.toCQL());
+            }
+            break;
+          case '\\':
+            break;
+          case '%':
+            pgTerm.append('\\');
+            pgTerm.append(c);
+            break;
+          case '_':
+            pgTerm.append('\\');
+            pgTerm.append(c);
+            break;
+          case '\'':
+            pgTerm.append(c);
+            pgTerm.append(c);
+            break;
+          default:
+            pgTerm.append(c);
         }
-      } else if (c == '_' || c == '%' || (c == '\\' && backslash)) {
-        pgTerm.append('\\');
+        backslash = c == '\\';
       }
-      backslash = append(pgTerm, c, backslash);
+    }
+    if (backslash) {
+      throw new IllegalArgumentException("Unsupported backslash sequence for: " + termNode.toCQL());
     }
     return ops;
   }
@@ -77,26 +143,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
    * @return Postgres term.
    */
   static String cqlTermToPgTermFullText(CQLTermNode termNode) {
-    String cqlTerm = termNode.getTerm();
-    StringBuilder pgTerm = new StringBuilder();
-    boolean backslash = false;
-    for (int i = 0; i < cqlTerm.length(); i++) {
-      char c = cqlTerm.charAt(i);
-      // handle the CQL specials *, ?, ^, \\, rest are passed through
-      if (c == '*') {
-        if (!backslash) {
-          throw new IllegalArgumentException("Masking op * unsupported for: " + termNode.toCQL());
-        }
-      } else if (c == '?') {
-        if (!backslash) {
-          throw new IllegalArgumentException("Masking op ? unsupported for: " + termNode.toCQL());
-        }
-      } else if (c == '^' && !backslash) {
-        throw new IllegalArgumentException("Anchor op ^ unsupported for: " + termNode.toCQL());
-      }
-      backslash = append(pgTerm, c, backslash);
-    }
-    return pgTerm.toString();
+    return cqlTermToPgTermExact(termNode);
   }
 
   @Override
@@ -105,29 +152,37 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
     if (s != null) {
       return s;
     }
-    String base = termNode.getRelation().getBase();
-    if (enableLike && "=".equals(base)) {
-      // not including "<>" as it is exact match, just like ==
-      StringBuilder cqlTerm = new StringBuilder();
-      if (cqlTermToPgTermLike(termNode, cqlTerm)) {
-        return column + " LIKE '" + cqlTerm + "'";
-      }
-    }
     boolean fulltext = language != null;
+    String base = termNode.getRelation().getBase();
+    if ("<>".equals(base) || "==".equals(base) || ("=".equals(base) && !fulltext)) {
+      if (enableLike) {
+        StringBuilder cqlTerm = new StringBuilder();
+        if (cqlTermToPgTermLike(termNode, cqlTerm)) {
+          if (!enableLike) {
+            throw new IllegalArgumentException("Masking unsupported " + base + " for: "
+                + termNode.toCQL());
+          }
+          String op = "<>".equals(base) ? "NOT LIKE" : "LIKE";
+          return column + " " + op + " '" + cqlTerm + "'";
+        }
+      }
+      return column + " " + handleUnorderedRelation(termNode)
+          + " '" + cqlTermToPgTermExact(termNode) + "'";
+    }
+    String func = null;
     if (fulltext) {
-      String func = null;
       if ("adj".equals(base) || "=".equals(base)) {
         func = "phraseto_tsquery";
       } else if ("all".equals(base)) {
         func = "plainto_tsquery";
       }
-      if (func != null) {
-        String pgTerm = cqlTermToPgTermFullText(termNode);
-        return "to_tsvector('" + language + "', " + column + ") @@ " + func + "('"
-            + language + "', '" + pgTerm + "')";
-      }
     }
-    return column + " " + handleUnorderedRelation(termNode)
-        + " '" +  cqlTermToPgTermExact(termNode) + "'";
+    if (func == null) {
+      throw new IllegalArgumentException("Unsupported operator " + base + " for: "
+          + termNode.toCQL());
+    }
+    String pgTerm = cqlTermToPgTermFullText(termNode);
+    return "to_tsvector('" + language + "', " + column + ") @@ " + func + "('"
+        + language + "', '" + pgTerm + "')";
   }
 }
