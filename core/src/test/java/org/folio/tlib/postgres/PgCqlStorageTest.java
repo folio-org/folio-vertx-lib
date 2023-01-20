@@ -32,6 +32,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
 
 @Testcontainers
@@ -43,20 +44,11 @@ class PgCqlStorageTest {
 
   public static PgPool pgPool;
 
-  static List<JsonObject> sample = List.of(
-      new JsonObject()
-          .put("id", UUID.randomUUID().toString())
-          .put("title", "On the road with Bob Dylan")
-          .put("author", "Larry \"Ratso\" Sloman")
-      ,
-      new JsonObject()
-          .put("id", UUID.randomUUID().toString())
-          .put("title", "Cry baby")
-          .put("author",  "Garnet Mimms")
-      ,
-      new JsonObject()
-          .put("id", UUID.randomUUID().toString())
-          .put("title", "only title")
+  static List<Tuple> batch = List.of(
+      Tuple.of(UUID.randomUUID(), "On the road with Bob Dylan", "Larry \"Ratso\" Sloman"),
+      Tuple.of(UUID.randomUUID(), "Cry baby", "Garnet Mimms"),
+      Tuple.of(UUID.randomUUID(), "only title", null),
+      Tuple.of(UUID.randomUUID(), null, null)
   );
 
   @BeforeAll
@@ -75,29 +67,9 @@ class PgCqlStorageTest {
         .onComplete(context.succeedingThenComplete());
   }
 
-  static String getValue(String elem) {
-    if (elem == null) {
-      return "NULL";
-    }
-    return "'" + elem + "'";
-  }
-
   static Future<Void> insertSample() {
-    StringBuilder b = new StringBuilder("INSERT INTO entries (id, title, author) VALUES ");
-    sample.forEach(o -> {
-      b.append("(");
-      b.append(getValue(o.getString("id")));
-      b.append(", ");
-      b.append(getValue(o.getString("title")));
-      b.append(", ");
-      b.append(getValue(o.getString("author")));
-      b.append("),");
-    });
-    b.append("('");
-    b.append(UUID.randomUUID());
-    b.append("', NULL, NULL);");
-    return pgPool.query(b.toString())
-        .execute()
+    return pgPool.preparedQuery("INSERT INTO entries (id, title, author) VALUES ($1, $2, $3)")
+        .executeBatch(batch)
         .mapEmpty();
   }
 
@@ -121,32 +93,23 @@ class PgCqlStorageTest {
         .compose(rowSet -> {
           Set<Integer> got = new HashSet<>();
           rowSet.forEach(row -> {
-            String id = row.getUUID("id").toString();
-            Iterator<JsonObject> iterator = sample.iterator();
-            int off;
-            for (off = 0; iterator.hasNext(); off++) {
-              if (iterator.next().getString("id").equals(id)) {
-                break;
-              }
+            UUID id = row.getUUID("id");
+            Iterator<Tuple> iterator = batch.iterator();
+            int off = 0;
+            while (iterator.hasNext() && !iterator.next().getUUID(0).equals(id)) {
+              off++;
             }
             got.add(off);
           });
-          if (got.size() == expected.size() && got.containsAll(expected)) {
-            return Future.succeededFuture();
-          }
-          return Future.failedFuture("Query " + query
-              + ". Expected entries ["
-              + expected.stream().map(x -> Integer.toString(x)).collect(Collectors.joining(","))
-              + "], but got ["
-              + got.stream().map(x -> Integer.toString(x)).collect(Collectors.joining(","))
-              + "]");
+          assertThat(got, containsInAnyOrder(expected.toArray()));
+          return Future.succeededFuture();
         });
   }
 
   static Stream<Arguments> cqlQueries() {
     return Stream.of(
         Arguments.of("cql.allRecords=1", List.of(0, 1, 2, 3)),
-        Arguments.of("id=" + sample.get(0).getString("id"), List.of(0)),
+        Arguments.of("id=" + batch.get(0).getUUID(0), List.of(0)),
         Arguments.of("id=" + UUID.randomUUID(), List.of()),
         Arguments.of("author=\"Larry \\\"Ratso\\\" Sloman\"", List.of(0)),
         Arguments.of("author=\"Larry \\\"Ratso\\\"\"", List.of()),
