@@ -1,5 +1,6 @@
 package org.folio.tlib.postgres.cqlfield;
 
+import org.folio.tlib.postgres.PgCqlException;
 import org.folio.tlib.postgres.PgCqlFieldType;
 import org.z3950.zing.cql.CQLTermNode;
 
@@ -37,7 +38,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
    */
   public PgCqlFieldText withFullText(String language) {
     if (language == null) {
-      throw new IllegalArgumentException("language must not be null");
+      throw new PgCqlException("language must not be null");
     }
     this.language = language.replace("'", "''");
     return this;
@@ -66,9 +67,10 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
     return this;
   }
 
-  static void unsupportedBackslashSequence(CQLTermNode termNode) {
-    throw new IllegalArgumentException("Unsupported backslash sequence for: "
-        + termNode.toCQL());
+  static void checkUnhandledBackslash(boolean backslash, CQLTermNode termNode) {
+    if (backslash) {
+      throw new PgCqlException("Unsupported backslash sequence", termNode);
+    }
   }
 
   /**
@@ -93,17 +95,17 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
             pgTerm.append(c);
             break;
           default:
-            unsupportedBackslashSequence(termNode);
+            checkUnhandledBackslash(backslash, termNode);
         }
         backslash = false;
       } else {
         switch (c) {
           case '*':
-            throw new IllegalArgumentException("Masking op * unsupported for: " + termNode.toCQL());
+            throw new PgCqlException("Masking op * unsupported", termNode);
           case '?':
-            throw new IllegalArgumentException("Masking op ? unsupported for: " + termNode.toCQL());
+            throw new PgCqlException("Masking op ? unsupported", termNode);
           case '^':
-            throw new IllegalArgumentException("Anchor op ^ unsupported for: " + termNode.toCQL());
+            throw new PgCqlException("Anchor op ^ unsupported", termNode);
           case '\\':
             break;
           case '\'':
@@ -115,9 +117,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
         backslash = c == '\\';
       }
     }
-    if (backslash) {
-      unsupportedBackslashSequence(termNode);
-    }
+    checkUnhandledBackslash(backslash, termNode);
     return pgTerm.toString();
   }
 
@@ -147,7 +147,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
             pgTerm.append("\\\\");
             break;
           default:
-            unsupportedBackslashSequence(termNode);
+            checkUnhandledBackslash(backslash, termNode);
         }
         backslash = false;
       } else {
@@ -162,8 +162,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
             break;
           case '^':
             if (i != 0 && i != cqlTerm.length() - 1) {
-              throw new IllegalArgumentException("Anchor op ^ unsupported for: "
-                  + termNode.toCQL());
+              throw new PgCqlException("Anchor op ^ unsupported", termNode);
             }
             break;
           case '\\':
@@ -182,9 +181,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
         backslash = c == '\\';
       }
     }
-    if (backslash) {
-      unsupportedBackslashSequence(termNode);
-    }
+    checkUnhandledBackslash(backslash, termNode);
     return ops;
   }
 

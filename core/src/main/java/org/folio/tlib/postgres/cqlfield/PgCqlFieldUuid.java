@@ -1,6 +1,7 @@
 package org.folio.tlib.postgres.cqlfield;
 
 import java.util.UUID;
+import org.folio.tlib.postgres.PgCqlException;
 import org.folio.tlib.postgres.PgCqlFieldType;
 import org.z3950.zing.cql.CQLTermNode;
 
@@ -20,7 +21,7 @@ public class PgCqlFieldUuid extends PgCqlFieldBase implements PgCqlFieldType {
       String op = handleUnorderedRelation(termNode);
       return column + op + pgTerm;
     } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("Invalid UUID in " + termNode.toCQL());
+      throw new PgCqlException("Invalid UUID", termNode);
     }
   }
 }

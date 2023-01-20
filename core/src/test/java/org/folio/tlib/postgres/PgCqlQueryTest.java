@@ -51,7 +51,8 @@ class PgCqlQueryTest {
 
   @Test
   void withFullTextNull() {
-    Assertions.assertThrows(IllegalArgumentException.class, () -> new PgCqlFieldText().withFullText(null));
+    PgCqlFieldText pgCqlFieldText = new PgCqlFieldText();
+    Assertions.assertThrows(PgCqlException.class, () -> pgCqlFieldText.withFullText(null));
   }
 
   static String ftResponseAdj(String column, String term) {
@@ -73,7 +74,7 @@ class PgCqlQueryTest {
         Arguments.of( "Title=v1", ftResponseAdj("title", "v1") ),
         Arguments.of( "Title all v1", ftResponseAll("title", "v1") ),
         Arguments.of( "Title adj v1", ftResponseAdj("title", "v1") ),
-        Arguments.of( "Title>v1", "error: Unsupported operator > for: Title > v1" ),
+        Arguments.of( "Title>v1", "error: Unsupported operator for: Title > v1" ),
         Arguments.of( "Title=\"men's room\"", ftResponseAdj("title", "men''s room") ),
         Arguments.of( "Title=men's room", ftResponseAdj("title", "men''s room") ),
         Arguments.of( "Title=v1*", "error: Masking op * unsupported for: Title = v1*" ),
@@ -107,7 +108,7 @@ class PgCqlQueryTest {
         Arguments.of( "Title==\"c\\\\'\"", "title = 'c\\'''" ),
         Arguments.of( "Title==\"d\\\\\\\\\"", "title = 'd\\\\'" ),
         Arguments.of( "Title==\"e\\\\\\\"\\\\\"", "title = 'e\\\"\\'" ),
-        Arguments.of( "Title>\"\"", "error: Unsupported operator > for: Title > \"\"" ),
+        Arguments.of( "Title>\"\"", "error: Unsupported operator for: Title > \"\"" ),
         Arguments.of( "Title==v1 or title==v2",  "(title = 'v1' OR title = 'v2')"),
         Arguments.of( "isbn=978-3-16-148410-0", "isbn = '978-3-16-148410-0'" ),
         Arguments.of( "isbn=978-3-16-148410-*", "error: Masking op * unsupported for: isbn = 978-3-16-148410-*" ),
@@ -136,15 +137,15 @@ class PgCqlQueryTest {
         Arguments.of( "cost<>4", "cost<>4" ),
         Arguments.of( "cost<5", "cost<5" ),
         Arguments.of( "cost<=6", "cost<=6" ),
-        Arguments.of( "cost adj 7", "error: Unsupported operator adj for: cost adj 7" ),
+        Arguments.of( "cost adj 7", "error: Unsupported operator for: cost adj 7" ),
         Arguments.of( "cost=\"\"", "cost IS NOT NULL" ),
         Arguments.of( "paid=true", "paid=TRUE" ),
         Arguments.of( "paid=False", "paid=FALSE" ),
         Arguments.of( "paid=fals", "error: Bad boolean for: paid = fals" ),
         Arguments.of( "paid=\"\"", "paid IS NOT NULL" ),
         Arguments.of( "paid==\"\"", "error: Bad boolean for: paid == \"\"" ),
-        Arguments.of( "id=null", "error: Invalid UUID in id = null" ),
-        Arguments.of( "id==\"\"", "error: Invalid UUID in id == \"\"" ),
+        Arguments.of( "id=null", "error: Invalid UUID for: id = null" ),
+        Arguments.of( "id==\"\"", "error: Invalid UUID for: id == \"\"" ),
         Arguments.of( "id=\"\"", "id IS NOT NULL" ),
         Arguments.of( "id=6736bd11-5073-4026-81b5-b70b24179e02", "id='6736bd11-5073-4026-81b5-b70b24179e02'" ),
         Arguments.of( "id=6736BD11-5073-4026-81B5-B70B24179E02", "id='6736bd11-5073-4026-81b5-b70b24179e02'" ),
@@ -187,7 +188,7 @@ class PgCqlQueryTest {
     try {
       PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(query);
       assertThat(pgCqlQuery.getWhereClause(), is(expect));
-    } catch (IllegalArgumentException e) {
+    } catch (PgCqlException e) {
       assertThat("error: " + e.getMessage(), is(expect));
     }
   }
@@ -217,7 +218,7 @@ class PgCqlQueryTest {
       PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(query);
       assertThat(pgCqlQuery.getOrderByClause(), is(expect));
       assertThat(pgCqlQuery.getOrderByFields(), is(fields));
-    } catch (IllegalArgumentException e) {
+    } catch (PgCqlException e) {
       assertThat("error: " + e.getMessage(), is(expect));
     }
   }
@@ -230,7 +231,6 @@ class PgCqlQueryTest {
         return s;
       }
       LocalDateTime localDateTime = LocalDateTime.parse(termNode.getTerm());
-      System.out.println("got here term=" + termNode.getTerm());
       return getColumn() + handleOrderedRelation(termNode) + "'" + localDateTime + "'";
     }
   }

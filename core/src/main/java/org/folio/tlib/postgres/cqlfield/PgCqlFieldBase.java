@@ -1,5 +1,6 @@
 package org.folio.tlib.postgres.cqlfield;
 
+import org.folio.tlib.postgres.PgCqlException;
 import org.folio.tlib.postgres.PgCqlFieldType;
 import org.z3950.zing.cql.CQLTermNode;
 
@@ -56,8 +57,7 @@ public abstract class PgCqlFieldBase implements PgCqlFieldType {
       case "<>":
         return base;
       default:
-        throw new IllegalArgumentException("Unsupported operator " + base + " for: "
-            + termNode.toCQL());
+        throw new PgCqlException("Unsupported operator", termNode);
     }
   }
 
@@ -80,8 +80,7 @@ public abstract class PgCqlFieldBase implements PgCqlFieldType {
       case ">=":
         return base;
       default:
-        throw new IllegalArgumentException("Unsupported operator " + base + " for: "
-            + termNode.toCQL());
+        throw new PgCqlException("Unsupported operator", termNode);
     }
   }
 }
