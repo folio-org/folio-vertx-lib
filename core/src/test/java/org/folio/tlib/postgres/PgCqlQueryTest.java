@@ -70,6 +70,7 @@ class PgCqlQueryTest {
 
   static Stream<Arguments> cqlQueries() {
     return Stream.of(
+        Arguments.of( "foo >", "error: expected index or term, got EOF" ),
         Arguments.of( "foo=bar", "error: Unsupported CQL index: foo" ),
         Arguments.of( "Title=v1", ftResponseAdj("title", "v1") ),
         Arguments.of( "Title all v1", ftResponseAll("title", "v1") ),
@@ -159,17 +160,17 @@ class PgCqlQueryTest {
         Arguments.of( "issn = ^2?3^", "issn LIKE '2_3'"),
         Arguments.of( "issn = 2^3", "error: Anchor op ^ unsupported for: issn = 2^3"),
         Arguments.of( "issn = 2*3", "issn LIKE '2%3'"),
+        Arguments.of( "issn = 2'4*", "issn LIKE '2''4%'"),
         Arguments.of( "issn = 2'4", "issn = '2''4'"),
         Arguments.of( "issn = 2_5*", "issn LIKE '2\\_5%'"),
         Arguments.of( "issn = 2%5*", "issn LIKE '2\\%5%'"),
         Arguments.of( "issn = 2\\", "error: Unsupported backslash sequence for: issn = 2\\"),
         Arguments.of( "issn = 2\\_%6*", "error: Unsupported backslash sequence for: issn = 2\\_%6*"),
-        Arguments.of( "issn = 2\\\\?\\_7\\*", "error: Unsupported backslash sequence for: issn = 2\\\\?\\_7\\*"),
-        Arguments.of( "issn = 2^5", "error: Anchor op ^ unsupported for: issn = 2^5"),
         Arguments.of( "issn = 2\\?_8\\*", "issn = '2?_8*'"),
         Arguments.of( "issn <> 2*9", "issn NOT LIKE '2%9'"),
         Arguments.of( "issn <> 2_9", "issn <> '2_9'"),
-        Arguments.of( "issn == 2_9*", "issn LIKE '2\\_9%'")
+        Arguments.of( "issn == 2_9*", "issn LIKE '2\\_9%'"),
+        Arguments.of( ">dc=\"http://dublin.org/\" isbn = 3", "isbn = '3'" )
     );
   }
 
@@ -244,6 +245,6 @@ class PgCqlQueryTest {
     assertThat(pgCqlQuery1.getWhereClause(), is("datestamp='2022-02-03T04:05:06'"));
 
     PgCqlQuery pgCqlQuery2 = pgCqlDefinition.parse("datestamp = 2022-02-03T04:05:06'");
-    assertThrows(DateTimeParseException.class, () -> pgCqlQuery2.getWhereClause());
+    assertThrows(DateTimeParseException.class, pgCqlQuery2::getWhereClause);
   }
 }
