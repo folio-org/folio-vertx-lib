@@ -35,8 +35,6 @@ public abstract class PgCqlFieldBase implements PgCqlFieldType {
     switch (base) {
       case "=":
         return column + " IS NOT NULL";
-      case "<>":
-        return column + " IS NULL";
       default:
         return null;
     }

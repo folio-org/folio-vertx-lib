@@ -102,7 +102,7 @@ class PgCqlQueryTest {
         Arguments.of( "Title=\"d\\\\\\\\\"", ftResponseAdj("title", "d\\\\") ),
         Arguments.of( "Title=\"x\\\\\\\"\\\\\"", ftResponseAdj("title", "x\\\"\\") ),
         Arguments.of( "Title=\"\"", "title IS NOT NULL" ),
-        Arguments.of( "Title<>\"\"", "title IS NULL" ),
+        Arguments.of( "Title<>\"\"", "title <> ''" ),
         Arguments.of( "Title==\"\"", "title = ''" ),
         Arguments.of( "Title==\"*?^\"", "title LIKE '%_'" ),
         Arguments.of( "Title==\"\\*\\?\\^\"", "title = '*?^'" ),
@@ -125,7 +125,7 @@ class PgCqlQueryTest {
         Arguments.of( "title==v1 prox title==v2", "error: Unsupported operator PROX" ),
         Arguments.of( "cost=1 or cost=2 and cost=3", "((cost=1 OR cost=2) AND cost=3)" ), // boolean are left-assoc and same precedence in CQL
         Arguments.of( "cost=1 or (cost=2 and cost=3)", "(cost=1 OR (cost=2 AND cost=3))" ),
-        Arguments.of( "cost=\"\" or cost<>\"\" not cost<>\"\"", "((cost IS NOT NULL OR cost IS NULL) AND NOT cost IS NULL)" ),
+        Arguments.of( "cost=\"\" or cost<>3", "(cost IS NOT NULL OR cost<>3)" ),
         Arguments.of( "cost=1", "cost=1" ),
         Arguments.of( "cost=+1.9", "cost=+1.9" ),
         Arguments.of( "cost=e", "error: Bad numeric for: cost = e" ),
