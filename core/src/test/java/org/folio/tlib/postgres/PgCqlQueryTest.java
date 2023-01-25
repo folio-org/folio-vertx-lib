@@ -86,8 +86,9 @@ class PgCqlQueryTest {
         Arguments.of( "Title=a\\^b", ftResponseAdj("title", "a^b") ),
         Arguments.of( "Title=a\\?b", ftResponseAdj("title", "a?b") ),
         Arguments.of( "Title=a\\?b", ftResponseAdj("title", "a?b") ),
-        Arguments.of( "Title=a\\n", "error: Unsupported backslash sequence for: Title = a\\n"),
-        Arguments.of( "Title=a\\", "error: Backslash at end of term for: Title = a\\" ),
+        Arguments.of( "Title=a\\n", "error: A masking backslash in a CQL string must be followed by"
+            + " *, ?, ^, \" or \\ for: Title = a\\n"),
+        Arguments.of( "Title=a\\", "error: A CQL string must not end with a masking backslash for: Title = a\\" ),
         Arguments.of( "Title=\"a\\\"\"", ftResponseAdj("title", "a\"") ),
         Arguments.of( "Title=\"a\\\"b\"", ftResponseAdj("title", "a\"b") ),
         Arguments.of( "Title=a\\\\", ftResponseAdj("title", "a\\") ),
@@ -169,8 +170,9 @@ class PgCqlQueryTest {
         Arguments.of( "issn = 2'4", "issn = '2''4'"),
         Arguments.of( "issn = 2_5*", "issn LIKE '2\\_5%'"),
         Arguments.of( "issn = 2%5*", "issn LIKE '2\\%5%'"),
-        Arguments.of( "issn = 2\\", "error: Backslash at end of term for: issn = 2\\"),
-        Arguments.of( "issn = 2\\_%6*", "error: Unsupported backslash sequence for: issn = 2\\_%6*"),
+        Arguments.of( "issn = 2\\", "error: A CQL string must not end with a masking backslash for: issn = 2\\"),
+        Arguments.of( "issn = 2\\_%6*", "error: A masking backslash in a CQL string must be followed by"
+            + " *, ?, ^, \" or \\ for: issn = 2\\_%6*"),
         Arguments.of( "issn = 2\\?_8\\*", "issn = '2?_8*'"),
         Arguments.of( "issn <> 2*9", "issn NOT LIKE '2%9'"),
         Arguments.of( "issn <> 2_9", "issn <> '2_9'"),

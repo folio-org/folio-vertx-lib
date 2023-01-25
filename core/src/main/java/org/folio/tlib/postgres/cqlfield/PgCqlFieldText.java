@@ -16,6 +16,7 @@ import org.z3950.zing.cql.CQLTermNode;
  * </p>
  */
 public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
+
   private String language;
 
   private boolean enableLike;
@@ -46,6 +47,8 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
    * Allow full-text search for field using text-search configuration "simple".
    * <p>This is triggered for relations =, adj, all.
    * Full-text terms are case insensitive.
+   * Operator = with the empty string is not allowed unless
+   * withExact or withLikeOps is specified in which case it maps to <code>IS NOT NULL</code>.
    * </p><p>
    * A GIN index should be created for the relation. See
    * <a href="https://www.postgresql.org/docs/current/textsearch-tables.html">Tables and Indexes</a>.
@@ -58,8 +61,8 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
 
   /**
    * Allow masking for field.
-   * <p>This is triggered for relations ==, <> when at least one of the
-   * masking operators *, ? in CQL is used.
+   * <p>This is triggered for relations ==, <> when at least one of the masking
+   * operators *, ? in CQL is used and is converted into a <code>SQL LIKE</code> search with %, _.
    * </p><p>
    * A B-Tree index with operator class <code>text_pattern_ops</code> should be
    * created for the relation.
@@ -73,7 +76,9 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
 
   /**
    * Allow exact searches.
-   * <p>This is triggered for relations ==, <>.</p>
+   * <p>This is triggered for relations ==, <>. It also allows = with
+   * empty string which maps to <code>IS NOT NULL</code> as well as <> with empty string
+   * which maps to <code>IS NULL</code>. To search for empty string, operator == must be used.
    * </p><p>
    * A B-Tree index should be created for the relation.
    * </p>
@@ -111,7 +116,8 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
             pgTerm.append(c);
             break;
           default:
-            throw new PgCqlException("Unsupported backslash sequence", termNode);
+            throw new PgCqlException("A masking backslash in a CQL string must be followed by"
+                + " *, ?, ^, \" or \\", termNode);
         }
         backslash = false;
       } else {
@@ -134,7 +140,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
       }
     }
     if (backslash) {
-      throw new PgCqlException("Backslash at end of term", termNode);
+      throw new PgCqlException("A CQL string must not end with a masking backslash", termNode);
     }
     return pgTerm.toString();
   }
@@ -169,7 +175,8 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
             pgTerm.append("\\\\");
             break;
           default:
-            throw new PgCqlException("Unsupported backslash sequence", termNode);
+            throw new PgCqlException("A masking backslash in a CQL string must be followed by"
+                + " *, ?, ^, \" or \\", termNode);
         }
         backslash = false;
       } else {
@@ -204,7 +211,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
       }
     }
     if (backslash) {
-      throw new PgCqlException("Backslash at end of term", termNode);
+      throw new PgCqlException("A CQL string must not end with a masking backslash", termNode);
     }
     return ops;
   }
