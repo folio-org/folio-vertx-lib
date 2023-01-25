@@ -32,12 +32,7 @@ public abstract class PgCqlFieldBase implements PgCqlFieldType {
       return null;
     }
     String base = termNode.getRelation().getBase();
-    switch (base) {
-      case "=":
-        return column + " IS NOT NULL";
-      default:
-        return null;
-    }
+    return "=".equals(base) ? column + " IS NOT NULL" : null;
   }
 
   /**
