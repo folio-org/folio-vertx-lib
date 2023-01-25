@@ -43,7 +43,7 @@ class PgCqlQueryTest {
   @MethodSource("cql2ComboQueries")
   void testCqlQueries(String query1, String query2, String expect) {
     PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
-    pgCqlDefinition.addField("dc.title", new PgCqlFieldText().withColumn("title"));
+    pgCqlDefinition.addField("dc.title", new PgCqlFieldText().withExact().withColumn("title"));
     pgCqlDefinition.addField("cql.allRecords", new PgCqlFieldAlwaysMatches());
     PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(query1, query2);
     assertThat(pgCqlQuery.getWhereClause(), is(expect));
@@ -87,7 +87,7 @@ class PgCqlQueryTest {
         Arguments.of( "Title=a\\?b", ftResponseAdj("title", "a?b") ),
         Arguments.of( "Title=a\\?b", ftResponseAdj("title", "a?b") ),
         Arguments.of( "Title=a\\n", "error: Unsupported backslash sequence for: Title = a\\n"),
-        Arguments.of( "Title=a\\", "error: Unsupported backslash sequence for: Title = a\\" ),
+        Arguments.of( "Title=a\\", "error: Backslash at end of term for: Title = a\\" ),
         Arguments.of( "Title=\"a\\\"\"", ftResponseAdj("title", "a\"") ),
         Arguments.of( "Title=\"a\\\"b\"", ftResponseAdj("title", "a\"b") ),
         Arguments.of( "Title=a\\\\", ftResponseAdj("title", "a\\") ),
@@ -153,7 +153,12 @@ class PgCqlQueryTest {
         Arguments.of( "id<>6736bd11-5073-4026-81b5-b70b24179e02", "id<>'6736bd11-5073-4026-81b5-b70b24179e02'" ),
         Arguments.of( "title==v1 sortby cost", "title = 'v1'"),
         Arguments.of( ">x = \"http://foo.org/p\" title==v1", "title = 'v1'"),
-        Arguments.of( "Parrot=dead", ftResponse("parrot", "dead", "phraseto_tsquery", "norwegian") ),
+        Arguments.of( "Parrot = dead", ftResponse("parrot", "dead", "phraseto_tsquery", "norwegian") ),
+        Arguments.of( "Parrot =\"\"", "error: Unsupported operator for: Parrot = \"\""),
+        Arguments.of( "Parrot == \"x\"", "error: Unsupported operator for: Parrot == x"),
+        Arguments.of( "base =\"\"", "error: Unsupported operator for: base = \"\""),
+        Arguments.of( "base == \"x\"", "error: Unsupported operator for: base == x"),
+        Arguments.of( "base adj \"x\"", "error: Unsupported operator for: base adj x"),
         Arguments.of( "issn = 3", "issn = '3'"),
         Arguments.of( "issn = ^2?3", "issn LIKE '2_3'"),
         Arguments.of( "issn = 2?3^", "issn LIKE '2_3'"),
@@ -164,7 +169,7 @@ class PgCqlQueryTest {
         Arguments.of( "issn = 2'4", "issn = '2''4'"),
         Arguments.of( "issn = 2_5*", "issn LIKE '2\\_5%'"),
         Arguments.of( "issn = 2%5*", "issn LIKE '2\\%5%'"),
-        Arguments.of( "issn = 2\\", "error: Unsupported backslash sequence for: issn = 2\\"),
+        Arguments.of( "issn = 2\\", "error: Backslash at end of term for: issn = 2\\"),
         Arguments.of( "issn = 2\\_%6*", "error: Unsupported backslash sequence for: issn = 2\\_%6*"),
         Arguments.of( "issn = 2\\?_8\\*", "issn = '2?_8*'"),
         Arguments.of( "issn <> 2*9", "issn NOT LIKE '2%9'"),
@@ -181,8 +186,9 @@ class PgCqlQueryTest {
     pgCqlDefinition.addField("cql.allRecords", new PgCqlFieldAlwaysMatches());
     pgCqlDefinition.addField("title", new PgCqlFieldText().withFullText().withLikeOps());
     pgCqlDefinition.addField("parrot", new PgCqlFieldText().withFullText("norwegian"));
-    pgCqlDefinition.addField("isbn", new PgCqlFieldText());
+    pgCqlDefinition.addField("isbn", new PgCqlFieldText().withExact());
     pgCqlDefinition.addField("issn", new PgCqlFieldText().withLikeOps());
+    pgCqlDefinition.addField("base", new PgCqlFieldText());
     pgCqlDefinition.addField("cost", new PgCqlFieldNumber());
     pgCqlDefinition.addField("paid", new PgCqlFieldBoolean());
     pgCqlDefinition.addField("id", new PgCqlFieldUuid());

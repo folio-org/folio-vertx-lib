@@ -150,7 +150,7 @@ class PgCqlStorageTest {
 
   static Stream<Arguments> fieldValueQueries() {
     return Stream.of(
-        Arguments.of(new PgCqlFieldText(), "= \"foo\\\\bar\"", "foo\\bar", true),
+        Arguments.of(new PgCqlFieldText().withExact(), "= \"foo\\\\bar\"", "foo\\bar", true),
         Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"foo\\\\bar\"", "foo\\bar", true),
         Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"foo\\\\ba?\"", "foo\\bar", true),
         Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"foo_%ba?\"", "foo_%bar", true),

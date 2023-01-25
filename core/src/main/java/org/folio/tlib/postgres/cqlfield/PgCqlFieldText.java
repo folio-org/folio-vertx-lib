@@ -5,20 +5,14 @@ import org.folio.tlib.postgres.PgCqlFieldType;
 import org.z3950.zing.cql.CQLTermNode;
 
 /**
+ * Create field for searching relations of type TEXT / VARCHAR / CHAR.
  * <p>
- * Text fields always supports relation =, ==, &lt;>. By default
- * masking is enabled, but not allowed. The searches are exact match (case-sensitive).
- * </p>
- * <p>
- * There are two special cases for the empty term .
- * <ul>
- *   <li>field = "" matches all records where field is present (NOT NULL)</li>
- *   <li>field &lt;> matches all records where field is not present (NULL).</li>
- * </ul>
- * </p>
- * <p>
- *   Use {@link #withFullText()} to enable full-searches. Use {@link #withLikeOps()} to enable
- *   masking on exact searches.
+ * Use one or more of
+ * <ll>
+ *   <li>{@link #withFullText()} to enable full-searches (masking unsupported).</li>
+ *   <li>{@link #withExact()} ()} to exact match searches (masking unsupported)</li>
+ *   <li>{@link #withLikeOps()} to enable exact searches with masking operators</li>
+ * </ll>
  * </p>
  */
 public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
@@ -26,13 +20,17 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
 
   private boolean enableLike;
 
+  private boolean enableExact;
+
   /**
    * Allow full-text search for field.
    * <p>This is triggered for relations "=", "adj", "all".
    * Relation "=" has same meaning as "adj" (except for empty term)
    * Full-text terms are case insensitive.
+   * </p><p>
+   * An index of type GIN should be created for the relation. See
+   * <a href="https://www.postgresql.org/docs/current/textsearch-tables.html">Tables and Indexes</a>.
    * </p>
-   *
    * @param language text-search configuration for PostgresQL
    * @return this.
    */
@@ -46,8 +44,12 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
 
   /**
    * Allow full-text search for field using text-search configuration "simple".
-   * <p>This is triggered for relations =, adj, all. Full-text terms are case insensitive</p>
-   *
+   * <p>This is triggered for relations =, adj, all.
+   * Full-text terms are case insensitive.
+   * </p><p>
+   * A GIN index should be created for the relation. See
+   * <a href="https://www.postgresql.org/docs/current/textsearch-tables.html">Tables and Indexes</a>.
+   * </p>
    * @return this.
    */
   public PgCqlFieldText withFullText() {
@@ -56,30 +58,44 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
 
   /**
    * Allow masking for field.
-   * <p>This is triggered for relations ==, <> when at least one of the masking operators
-   * *, ? in CQL is used.
+   * <p>This is triggered for relations ==, <> when at least one of the
+   * masking operators *, ? in CQL is used.
+   * </p><p>
+   * A B-Tree index with operator class <code>text_pattern_ops</code> should be
+   * created for the relation.
    * </p>
-   *
    * @return this.
    */
   public PgCqlFieldText withLikeOps() {
-    this.enableLike = true;
+    this.enableExact = this.enableLike = true;
     return this;
   }
 
-  static void checkUnhandledBackslash(boolean backslash, CQLTermNode termNode) {
-    if (backslash) {
-      throw new PgCqlException("Unsupported backslash sequence", termNode);
-    }
+  /**
+   * Allow exact searches.
+   * <p>This is triggered for relations ==, <>.</p>
+   * </p><p>
+   * A B-Tree index should be created for the relation.
+   * </p>
+   * @return this.
+   */
+  public PgCqlFieldText withExact() {
+    this.enableExact = true;
+    return this;
   }
 
   /**
    * CQL text term to PostgresSQL equality / inequality match.
-   *
+   * <p>Unrecognized backslash sequences are treated as errors; see
+   * <a href="https://docs.oasis-open.org/search-ws/searchRetrieve/v1.0/os/part5-cql/searchRetrieve-v1.0-os-part5-cql.html#_Toc235849921">B3.3 Masking</a>
+   * of the CQL standard.
+   * </p>
    * @param termNode which includes term and relation.
    * @return PostgresQL term
+   * @see <a href="https://www.postgresql.org/docs/13/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS">
+   * String Constants section</a>
    */
-  static String cqlTermToPgTermExact(CQLTermNode termNode) {
+  static String maskedExact(CQLTermNode termNode) {
     String cqlTerm = termNode.getTerm();
     StringBuilder pgTerm = new StringBuilder();
     boolean backslash = false;
@@ -95,7 +111,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
             pgTerm.append(c);
             break;
           default:
-            checkUnhandledBackslash(backslash, termNode);
+            throw new PgCqlException("Unsupported backslash sequence", termNode);
         }
         backslash = false;
       } else {
@@ -117,19 +133,25 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
         backslash = c == '\\';
       }
     }
-    checkUnhandledBackslash(backslash, termNode);
+    if (backslash) {
+      throw new PgCqlException("Backslash at end of term", termNode);
+    }
     return pgTerm.toString();
   }
 
   /**
-   * CQL text term to Postgres term with LIKE operator.
+   * CQL masked text term to Postgres term with LIKE operator.
+   * <p>Unrecognized backslash sequences are treated as errors; see
+   * <a href="https://docs.oasis-open.org/search-ws/searchRetrieve/v1.0/os/part5-cql/searchRetrieve-v1.0-os-part5-cql.html#_Toc235849921">B3.3 Masking</a>
+   * of the CQL standard.
+   * </p>
    *
    * @param termNode which includes term and relation.
    * @param pgTerm   PostgresSQL term argument for LIKE upon completion.
    *                 Should be empty before this call.
    * @return true if LIKE must be used to honor masking operators.
    */
-  static boolean cqlTermToPgTermLike(CQLTermNode termNode, StringBuilder pgTerm) {
+  static boolean maskedLike(CQLTermNode termNode, StringBuilder pgTerm) {
     boolean ops = false;
     String cqlTerm = termNode.getTerm();
     boolean backslash = false;
@@ -147,7 +169,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
             pgTerm.append("\\\\");
             break;
           default:
-            checkUnhandledBackslash(backslash, termNode);
+            throw new PgCqlException("Unsupported backslash sequence", termNode);
         }
         backslash = false;
       } else {
@@ -181,12 +203,14 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
         backslash = c == '\\';
       }
     }
-    checkUnhandledBackslash(backslash, termNode);
+    if (backslash) {
+      throw new PgCqlException("Backslash at end of term", termNode);
+    }
     return ops;
   }
 
   /**
-   * CQL full text term to Postgres term.
+   * CQL masked full text term to Postgres term.
    *
    * @param termNode which includes term and relation.
    * @return Postgres term.
@@ -195,14 +219,17 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
    *
    * <p>At this stage masking is unsupported and rejected.</p>
    */
-  static String cqlTermToPgTermFullText(CQLTermNode termNode) {
-    return cqlTermToPgTermExact(termNode);
+  static String maskedFulltext(CQLTermNode termNode) {
+    return maskedExact(termNode);
   }
 
   @Override
   public String handleTermNode(CQLTermNode termNode) {
     String s = handleEmptyTerm(termNode);
     if (s != null) {
+      if (!enableExact) {
+        throw new PgCqlException("Unsupported operator", termNode);
+      }
       return s;
     }
     boolean fulltext = language != null;
@@ -216,18 +243,21 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
       }
     }
     if (func != null) {
-      String pgTerm = cqlTermToPgTermFullText(termNode);
+      String pgTerm = maskedFulltext(termNode);
       return "to_tsvector('" + language + "', " + column + ") @@ " + func + "('"
           + language + "', '" + pgTerm + "')";
     }
+    if (!enableExact) {
+      throw new PgCqlException("Unsupported operator", termNode);
+    }
     if (enableLike && ("=".equals(base) || "==".equals(base) || "<>".equals(base))) {
       StringBuilder cqlTerm = new StringBuilder();
-      if (cqlTermToPgTermLike(termNode, cqlTerm)) {
+      if (maskedLike(termNode, cqlTerm)) {
         String op = "<>".equals(base) ? "NOT LIKE" : "LIKE";
         return column + " " + op + " '" + cqlTerm + "'";
       }
     }
     return column + " " + handleUnorderedRelation(termNode)
-        + " '" + cqlTermToPgTermExact(termNode) + "'";
+        + " '" + maskedExact(termNode) + "'";
   }
 }
