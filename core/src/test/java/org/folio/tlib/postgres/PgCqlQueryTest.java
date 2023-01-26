@@ -168,6 +168,8 @@ class PgCqlQueryTest {
         Arguments.of( "issn = 2*3", "issn LIKE '2%3'"),
         Arguments.of( "issn = 2'4*", "issn LIKE '2''4%'"),
         Arguments.of( "issn = 2'4", "issn = '2''4'"),
+        Arguments.of( "issn = 2%4", "issn = '2%4'"),
+        Arguments.of( "issn = 2_4", "issn = '2_4'"),
         Arguments.of( "issn = 2_5*", "issn LIKE '2\\_5%'"),
         Arguments.of( "issn = 2%5*", "issn LIKE '2\\%5%'"),
         Arguments.of( "issn = 2\\", "error: A CQL string must not end with a masking backslash for: issn = 2\\"),
