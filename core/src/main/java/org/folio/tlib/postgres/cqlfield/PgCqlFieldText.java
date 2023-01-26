@@ -77,7 +77,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
   /**
    * Allow exact searches.
    * <p>This is triggered for relations ==, <>. It also allows = with
-   * empty string which maps to <code>fS NOT NULL</code>.
+   * empty string which maps to <code>IS NOT NULL</code>.
    * To search for empty string, operator == must be used.
    * </p><p>
    * A B-Tree index should be created for the relation.
