@@ -190,10 +190,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
             ops = true;
             break;
           case '^':
-            if (i != 0 && i != cqlTerm.length() - 1) {
-              throw new PgCqlException("Anchor op ^ unsupported", termNode);
-            }
-            break;
+            throw new PgCqlException("Anchor op ^ unsupported", termNode);
           case '\\':
             break;
           case '%':
