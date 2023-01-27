@@ -1,3 +1,31 @@
+## 3.0.0 2023-01-27
+
+Changes to the PgCql API. Introduce `PgCqlDefinition` interface with
+functionality previously part of `PgCqlQuery`.
+Example of old and new code:
+
+    // Version 2
+    PgCqlQuery pgCqlQuery = PgCqlQuery.query();
+    pgCqlQuery.addField(new PgCqlField("cql.allRecords", PgCqlField.Type.ALWAYS_MATCHES));
+    pgCqlQuery.addField(new PgCqlField("id", PgCqlField.Type.UUID));
+    pgCqlQuery.addField(new PgCqlField("key", PgCqlField.Type.TEXT));
+    pgCqlQuery.addField(new PgCqlField("title", PgCqlField.Type.FULLTEXT));
+    pgCqlQuery.parse(query);
+
+    // Version 3
+    PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
+    pgCqlDefinition.addField("cql.allRecords", new PgCqlFieldAlwaysMatches());
+    pgCqlDefinition.addField("id", new PgCqlFieldUuid());
+    pgCqlDefinition.addField("key", new PgCqlFieldText().withExact());
+    pgCqlDefinition.addField("title", new PgCqlFieldText().withFullText());
+    PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(query);
+
+ * [VERTXLIB-39](https://issues.folio.org/browse/VERTXLIB-39) Require the X-Okapi-Tenant header in the OpenAPI spec.
+ * [VERTXLIB-38](https://issues.folio.org/browse/VERTXLIB-38) CQL masking (like SQL OP), phrase search for full text.
+ * [VERTXLIB-35](https://issues.folio.org/browse/VERTXLIB-35) OpenAPI: OOM for any large POST/PUT
+ * [VERTXLIB-33](https://issues.folio.org/browse/VERTXLIB-33) Extensible CQL fields
+ * [VERTXLIB-31](https://issues.folio.org/browse/VERTXLIB-31) Split PgCqlPquery into query and definition
+
 ## 2.0.0 2022-06-14
 
  * [VERTXLIB-22](https://issues.folio.org/browse/VERTXLIB-22) Remove schema substitution in
