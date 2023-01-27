@@ -17,8 +17,9 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.junit5.Timeout;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 import io.vertx.pgclient.PgConnectOptions;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -26,21 +27,21 @@ import java.util.UUID;
 import org.folio.tlib.RouterCreator;
 import org.folio.tlib.postgres.TenantPgPool;
 import org.folio.tlib.postgres.TenantPgPoolContainer;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.Timeout;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-@RunWith(VertxUnitRunner.class)
-public class Tenant2ApiTest {
-  static Vertx vertx;
+@Timeout(10000)
+@Testcontainers
+@ExtendWith({VertxExtension.class})
+class Tenant2ApiTest {
   static int port = 9230;
 
   private static int getFreePort() throws IOException {
@@ -50,11 +51,9 @@ public class Tenant2ApiTest {
     }
   }
 
-  @Rule
-  public Timeout timeout = Timeout.seconds(10);
 
-  @ClassRule
-  public static PostgreSQLContainer<?> postgresSQLContainer = TenantPgPoolContainer.create();
+  @Container
+  static PostgreSQLContainer<?> postgresSQLContainer = TenantPgPoolContainer.create();
 
   static class TestInitHooks implements org.folio.tlib.TenantInitHooks {
 
@@ -81,10 +80,9 @@ public class Tenant2ApiTest {
   static TestInitHooks hooks = new TestInitHooks();
   private static PgConnectOptions initialPgConnectOptions;
 
-  @BeforeClass
-  public static void beforeClass(TestContext context) {
+  @BeforeAll
+  static void beforeAll(Vertx vertx, VertxTestContext context) {
     TenantPgPool.setModule("mod-tenant");
-    vertx = Vertx.vertx();
     RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     RestAssured.baseURI = "http://localhost:" + port;
     RestAssured.requestSpecification = new RequestSpecBuilder().build();
@@ -101,29 +99,28 @@ public class Tenant2ApiTest {
               .requestHandler(router)
               .listen(port).mapEmpty();
         })
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
-  @AfterClass
-  public static void afterClass(TestContext context) {
+  @AfterAll
+  static void afterAll(Vertx vertx, VertxTestContext context) {
     TenantPgPool.closeAll()
-        .compose(x -> vertx.close())
-        .onComplete(context.asyncAssertSuccess());
+        .onComplete(context.succeedingThenComplete());
   }
 
-  @After
-  public void setDefaultConnectOptions() {
+  @AfterEach
+  void setDefaultConnectOptions() {
     TenantPgPool.setDefaultConnectOptions(initialPgConnectOptions);
   }
 
-  @Before
-  public void setup() {
+  @BeforeEach
+  void setup() {
     hooks.preInitPromise = null;
     hooks.postInitPromise = null;
   }
 
   @Test
-  public void testPostTenantBadTenant() {
+  void testPostTenantBadTenant1() {
     String tenant = "test'lib";
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
@@ -136,7 +133,8 @@ public class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostTenantMissingTenant() {
+  void testPostTenantBadTenant2() {
+    String tenant = "test\"lib";
     RestAssured.given()
         .contentType(ContentType.JSON)
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\"}")
@@ -147,9 +145,9 @@ public class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostTenantBadPort() throws IOException {
-    Assume.assumeThat(System.getenv("DB_HOST"), is(nullValue()));
-    Assume.assumeThat(System.getenv("DB_PORT"), is(nullValue()));
+  void testPostTenantBadPort() throws IOException {
+    Assumptions.assumeTrue(System.getenv("DB_HOST") == null);
+    Assumptions.assumeTrue(System.getenv("DB_PORT") == null);
 
     String tenant = "testlib";
     PgConnectOptions bad = new PgConnectOptions(initialPgConnectOptions);
@@ -166,8 +164,8 @@ public class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostTenantBadDatabase() {
-    Assume.assumeThat(System.getenv("DB_DATABASE"), is(nullValue()));
+  void testPostTenantBadDatabase() {
+    Assumptions.assumeTrue(System.getenv("DB_DATABASE") == null);
 
     String tenant = "testlib";
     PgConnectOptions bad = new PgConnectOptions(initialPgConnectOptions);
@@ -198,7 +196,7 @@ public class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostTenantOK() {
+  void testPostTenantOK() {
     String tenant = "testlib";
 
     // init
@@ -241,7 +239,7 @@ public class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostTenantPreInitFail() {
+  void testPostTenantPreInitFail() {
     String tenant = "testlib";
     hooks.preInitPromise = Promise.promise();
     hooks.preInitPromise.fail("pre init failure");
@@ -290,7 +288,7 @@ public class Tenant2ApiTest {
         .time(greaterThan(500L /* ms */))
         .time(lessThan(1500L /* ms */));
 
-    vertx.setTimer(1000 /* ms */, timerFired -> hooks.postInitPromise.tryComplete());
+    Vertx.vertx().setTimer(1000 /* ms */, timerFired -> hooks.postInitPromise.tryComplete());
 
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
@@ -314,7 +312,7 @@ public class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostTenantPostInitFail() {
+  void testPostTenantPostInitFail() {
     hooks.postInitPromise = Promise.promise();
     hooks.postInitPromise.fail("post init failure");
     String tenant = "testlib";
@@ -353,7 +351,7 @@ public class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostTenantPostInitFailNull() {
+  void testPostTenantPostInitFailNull() {
     String tenant = "testlib";
     hooks.postInitPromise = Promise.promise();
     hooks.postInitPromise.fail((String) null);
@@ -392,7 +390,7 @@ public class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostMissingTenant() {
+  void testPostMissingTenant() {
     RestAssured.given()
         .contentType(ContentType.JSON)
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\"}")
@@ -402,7 +400,7 @@ public class Tenant2ApiTest {
   }
 
   @Test
-  public void testGetMissingTenant(){
+  void testGetMissingTenant(){
     String id = UUID.randomUUID().toString();
     RestAssured.given()
         .get("/_/tenant/" + id)
@@ -411,7 +409,7 @@ public class Tenant2ApiTest {
   }
 
   @Test
-  public void testGetBadId(){
+  void testGetBadId(){
     String id = "1234";
     RestAssured.given()
         .header("X-Okapi-Tenant", "testlib")
@@ -422,7 +420,7 @@ public class Tenant2ApiTest {
   }
 
   @Test
-  public void testDeleteMissingTenant(){
+  void testDeleteMissingTenant(){
     String id = UUID.randomUUID().toString();
     RestAssured.given()
         .delete("/_/tenant/" + id)
@@ -431,7 +429,7 @@ public class Tenant2ApiTest {
   }
 
   @Test
-  public void testDeleteBadId(){
+  void testDeleteBadId(){
     String id = "1234";
     RestAssured.given()
         .header("X-Okapi-Tenant", "testlib")
@@ -442,7 +440,7 @@ public class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostTenantBadJson() {
+  void testPostTenantBadJson() {
     RestAssured.given()
         .contentType(ContentType.JSON)
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\"")
@@ -451,7 +449,7 @@ public class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostTenantBadType() {
+  void testPostTenantBadType() {
     RestAssured.given()
         .contentType(ContentType.JSON)
         .body("{\"module_to\" : true}")
@@ -460,7 +458,7 @@ public class Tenant2ApiTest {
   }
 
   @Test
-  public void testPostTenantAdditional() {
+  void testPostTenantAdditional() {
     RestAssured.given()
         .contentType(ContentType.JSON)
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\", \"extra\":true}")

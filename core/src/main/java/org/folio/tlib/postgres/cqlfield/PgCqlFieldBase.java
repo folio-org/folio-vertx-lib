@@ -1,5 +1,6 @@
 package org.folio.tlib.postgres.cqlfield;
 
+import org.folio.tlib.postgres.PgCqlException;
 import org.folio.tlib.postgres.PgCqlFieldType;
 import org.z3950.zing.cql.CQLTermNode;
 
@@ -31,14 +32,7 @@ public abstract class PgCqlFieldBase implements PgCqlFieldType {
       return null;
     }
     String base = termNode.getRelation().getBase();
-    switch (base) {
-      case "=":
-        return column + " IS NOT NULL";
-      case "<>":
-        return column + " IS NULL";
-      default:
-        return null;
-    }
+    return "=".equals(base) ? column + " IS NOT NULL" : null;
   }
 
   /**
@@ -56,8 +50,7 @@ public abstract class PgCqlFieldBase implements PgCqlFieldType {
       case "<>":
         return base;
       default:
-        throw new IllegalArgumentException("Unsupported operator " + base + " for: "
-            + termNode.toCQL());
+        throw new PgCqlException("Unsupported operator", termNode);
     }
   }
 
@@ -80,8 +73,7 @@ public abstract class PgCqlFieldBase implements PgCqlFieldType {
       case ">=":
         return base;
       default:
-        throw new IllegalArgumentException("Unsupported operator " + base + " for: "
-            + termNode.toCQL());
+        throw new PgCqlException("Unsupported operator", termNode);
     }
   }
 }

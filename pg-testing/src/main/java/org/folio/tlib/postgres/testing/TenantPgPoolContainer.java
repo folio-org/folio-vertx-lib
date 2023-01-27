@@ -7,7 +7,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 public final class TenantPgPoolContainer {
 
   /**
-   * Create PostgreSQL container for TeanantPgPool.
+   * Create PostgreSQL container for TenantPgPool.
    * @return container.
    */
   public static PostgreSQLContainer<?> create() {

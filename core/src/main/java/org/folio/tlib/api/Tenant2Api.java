@@ -43,13 +43,21 @@ public class Tenant2Api implements RouterCreator {
     ctx.response().end(msg != null ? msg : "Failure");
   }
 
+  /**
+   * Error handler which produces HTTP response on Routing Context.
+   *
+   * <p>If throwable is not null error is logged, but not the stacktrace.
+   * @param ctx Routing context
+   * @param code error code if throwable is non-null
+   * @param e cause; if null, then the status code on routing context is used.
+   */
   static void failHandler(RoutingContext ctx, int code, Throwable e) {
     if (e == null) {
       // assume the status code error is stored in routing context
       failHandler(ctx, ctx.statusCode(),
           HttpResponseStatus.valueOf(ctx.statusCode()).reasonPhrase());
     } else {
-      log.error(e.getMessage(), e);
+      log.error("{}", e.getMessage());
       failHandler(ctx, code, e.getMessage());
     }
   }

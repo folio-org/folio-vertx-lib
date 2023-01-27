@@ -1,6 +1,7 @@
 package org.folio.tlib.postgres.cqlfield;
 
 import java.util.regex.Pattern;
+import org.folio.tlib.postgres.PgCqlException;
 import org.folio.tlib.postgres.PgCqlFieldType;
 import org.z3950.zing.cql.CQLTermNode;
 
@@ -24,7 +25,7 @@ public class PgCqlFieldNumber extends PgCqlFieldBase implements PgCqlFieldType {
     }
     String cqlTerm = termNode.getTerm();
     if (!POSTGRES_NUMBER_REGEXP.matcher(cqlTerm).matches()) {
-      throw new IllegalArgumentException("Bad numeric for: " + termNode.toCQL());
+      throw new PgCqlException("Bad numeric", termNode);
     }
     return column + handleOrderedRelation(termNode) + cqlTerm;
   }

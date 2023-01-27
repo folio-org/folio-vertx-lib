@@ -1,5 +1,6 @@
 package org.folio.tlib.postgres.cqlfield;
 
+import org.folio.tlib.postgres.PgCqlException;
 import org.folio.tlib.postgres.PgCqlFieldType;
 import org.z3950.zing.cql.CQLTermNode;
 
@@ -17,7 +18,7 @@ public class PgCqlFieldBoolean extends PgCqlFieldBase implements PgCqlFieldType 
     } else if ("true".equalsIgnoreCase(cqlTerm)) {
       pgTerm = "TRUE";
     } else {
-      throw new IllegalArgumentException("Bad boolean for: " + termNode.toCQL());
+      throw new PgCqlException("Bad boolean", termNode);
     }
     return column + handleUnorderedRelation(termNode) + pgTerm;
   }

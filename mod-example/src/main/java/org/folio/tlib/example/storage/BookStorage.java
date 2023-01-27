@@ -20,7 +20,7 @@ import org.folio.tlib.postgres.PgCqlDefinition;
 import org.folio.tlib.postgres.PgCqlQuery;
 import org.folio.tlib.postgres.TenantPgPool;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldAlwaysMatches;
-import org.folio.tlib.postgres.cqlfield.PgCqlFieldFullText;
+import org.folio.tlib.postgres.cqlfield.PgCqlFieldText;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldUuid;
 
 public class BookStorage {
@@ -107,7 +107,7 @@ public class BookStorage {
     PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
     pgCqlDefinition.addField("cql.allRecords", new PgCqlFieldAlwaysMatches());
     pgCqlDefinition.addField("id", new PgCqlFieldUuid());
-    pgCqlDefinition.addField("title", new PgCqlFieldFullText());
+    pgCqlDefinition.addField("title", new PgCqlFieldText().withFullText());
 
     RequestParameters params = ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY);
     RequestParameter query = params.queryParameter("query");

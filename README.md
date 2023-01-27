@@ -172,7 +172,7 @@ Example definition:
     PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
     pgCqlDefinition.addField("cql.allRecords", new PgCqlFieldAlwaysMatches());
     pgCqlDefinition.addField("id", new PgCqlFieldUuid());
-    pgCqlDefinition.addField("title", new PgCqlFieldText(true));
+    pgCqlDefinition.addField("title", new PgCqlFieldText());
 ```
 
 This definition can then be used in a handler to get books:

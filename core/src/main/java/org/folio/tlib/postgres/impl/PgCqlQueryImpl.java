@@ -4,6 +4,7 @@ import java.io.IOException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.tlib.postgres.PgCqlDefinition;
+import org.folio.tlib.postgres.PgCqlException;
 import org.folio.tlib.postgres.PgCqlFieldType;
 import org.folio.tlib.postgres.PgCqlQuery;
 import org.z3950.zing.cql.CQLBooleanNode;
@@ -52,7 +53,7 @@ public class PgCqlQueryImpl implements PgCqlQuery {
       log.debug("Parsing {}", resultingQuery);
       cqlNodeRoot = parser.parse(resultingQuery);
     } catch (CQLParseException | IOException e) {
-      throw new IllegalArgumentException(e.getMessage());
+      throw new PgCqlException(e.getMessage());
     }
   }
 
@@ -101,14 +102,14 @@ public class PgCqlQueryImpl implements PgCqlQuery {
           }
           return "FALSE";
         default:
-          throw new IllegalArgumentException("Unsupported operator "
+          throw new PgCqlException("Unsupported operator "
               + booleanNode.getOperator().name());
       }
     } else if (node instanceof CQLTermNode) {
       CQLTermNode termNode = (CQLTermNode) node;
       PgCqlFieldType type = pgCqlDefinition.getFieldType(termNode.getIndex());
       if (type == null) {
-        throw new IllegalArgumentException("Unsupported CQL index: " + termNode.getIndex());
+        throw new PgCqlException("Unsupported CQL index: " + termNode.getIndex());
       }
       return type.handleTermNode(termNode);
     } else if (node instanceof CQLSortNode) {
@@ -119,7 +120,7 @@ public class PgCqlQueryImpl implements PgCqlQuery {
       return handleWhere(prefixNode.getSubtree());
     }
     // other node types unsupported, for example proximity
-    throw new IllegalArgumentException("Unsupported CQL construct: " + node.toCQL());
+    throw new PgCqlException("Unsupported CQL construct: " + node.toCQL());
   }
 
   String handleOrderBy(CQLNode node, boolean includeOps) {
@@ -135,7 +136,7 @@ public class PgCqlQueryImpl implements PgCqlQuery {
         }
         PgCqlFieldType type = pgCqlDefinition.getFieldType(modifierSet.getBase());
         if (type == null) {
-          throw new IllegalArgumentException("Unsupported CQL index: " + modifierSet.getBase());
+          throw new PgCqlException("Unsupported CQL index: " + modifierSet.getBase());
         }
         res.append(type.getColumn());
         if (includeOps) {
@@ -149,7 +150,7 @@ public class PgCqlQueryImpl implements PgCqlQuery {
                 desc = "DESC";
                 break;
               default:
-                throw new IllegalArgumentException("Unsupported sort modifier: "
+                throw new PgCqlException("Unsupported sort modifier: "
                     + modifier.getType());
             }
           }
