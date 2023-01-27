@@ -9,9 +9,9 @@ import org.z3950.zing.cql.CQLTermNode;
  * <p>
  * Use one or more of
  * <ll>
- *   <li>{@link #withFullText()} to enable full-searches (masking unsupported).</li>
- *   <li>{@link #withExact()} ()} to exact match searches (masking unsupported)</li>
- *   <li>{@link #withLikeOps()} to enable exact searches with masking operators</li>
+ *   <li>{@link #withFullText()} to enable full-text searches (masking unsupported).</li>
+ *   <li>{@link #withExact()} ()} to enable exact match searches (masking unsupported)</li>
+ *   <li>{@link #withLikeOps()} to enable exact match searches with masking operators</li>
  * </ll>
  * </p>
  */
