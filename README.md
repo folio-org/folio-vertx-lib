@@ -212,6 +212,8 @@ This definition can then be used in a handler to get books:
   }
 ```
 
+CQL queries of the form `FIELD=""` have a special meaning; they find all records where the named field is NOT NULL. (This behaviour is the same as in the old RAML Module Builder.) To search for records where the field is present but empty, the double-equal operator can be used: `FIELD==""`.
+
 ## Additional information
 
 ### Issue tracker
