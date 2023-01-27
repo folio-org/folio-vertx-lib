@@ -232,7 +232,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
     String s = handleEmptyTerm(termNode);
     if (s != null) {
       if (!enableExact) {
-        throw new PgCqlException("Unsupported operator", termNode);
+        throw new PgCqlException("= \"\" (not null test) is not supported", termNode);
       }
       return s;
     }
