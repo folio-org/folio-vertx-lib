@@ -19,7 +19,7 @@ public interface RouterCreator {
    * @deprecated : use {{@link #mountAll(Vertx, RouterCreator[], String)}} and
    *     specify module.
    */
-  @Deprecated
+  @Deprecated(since = "3.1.0")
   static Future<Router> mountAll(Vertx vertx, RouterCreator [] routerCreators) {
     return mountAll(vertx, routerCreators, null);
   }
