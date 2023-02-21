@@ -11,9 +11,12 @@ import org.folio.tlib.example.service.BookService;
 import org.folio.tlib.postgres.TenantPgPool;
 
 public class MainVerticle extends AbstractVerticle {
+
+  static final String MODULE = "mod-example";
+
   @Override
   public void start(Promise<Void> promise) {
-    TenantPgPool.setModule("mod-mymodule"); // Postgres - schema separation
+    TenantPgPool.setModule(MODULE); // Postgres - schema separation
 
     // listening port
     final int port = Integer.parseInt(Config.getSysConf("http.port", "port", "8081", config()));
@@ -28,7 +31,7 @@ public class MainVerticle extends AbstractVerticle {
     HttpServerOptions so = new HttpServerOptions()
         .setHandle100ContinueAutomatically(true);
     // combine all routes and start server
-    RouterCreator.mountAll(vertx, routerCreators)
+    RouterCreator.mountAll(vertx, routerCreators, MODULE)
         .compose(router ->
             vertx.createHttpServer(so)
                 .requestHandler(router)
