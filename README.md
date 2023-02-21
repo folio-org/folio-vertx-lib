@@ -236,7 +236,7 @@ Generated [API documentation](https://dev.folio.org/reference/api/#folio-vertx-l
 
 ### Code analysis
 
-[SonarQube analysis](https://sonarcloud.io/project/overview?id=org.folio%3Avertx-lib)
+[SonarQube analysis](https://sonarcloud.io/project/overview?id=org.folio%3Afolio-vertx-lib)
 
 ### Download and configuration
 
