@@ -92,7 +92,7 @@ class Tenant2ApiTest {
     RouterCreator [] routerCreators = {
         new Tenant2Api(hooks)
     };
-    RouterCreator.mountAll(vertx, routerCreators)
+    RouterCreator.mountAll(vertx, routerCreators, "mod-tenant")
         .compose(router -> {
           HttpServerOptions so = new HttpServerOptions().setHandle100ContinueAutomatically(true);
           return vertx.createHttpServer(so)

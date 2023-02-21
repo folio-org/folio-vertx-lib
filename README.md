@@ -59,7 +59,7 @@ public class MainVerticle extends AbstractVerticle {
     HttpServerOptions so = new HttpServerOptions()
         .setHandle100ContinueAutomatically(true);
     // combine all routes and start server
-    RouterCreator.mountAll(vertx, routerCreators)
+    RouterCreator.mountAll(vertx, routerCreators, "mod-mymodule")
         .compose(router ->
             vertx.createHttpServer(so)
                 .requestHandler(router)
