@@ -1,20 +1,18 @@
 package org.folio.tlib.postgres;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.stream.Stream;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldAlwaysMatches;
-import org.folio.tlib.postgres.cqlfield.PgCqlFieldBase;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldBoolean;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldNumber;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldText;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldUuid;
+import org.folio.tlib.postgres.cqlfield.PgCqlFieldTimestamp;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.z3950.zing.cql.CQLTermNode;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -234,27 +232,25 @@ class PgCqlQueryTest {
     }
   }
 
-  class CqlFieldTimestamp extends PgCqlFieldBase implements PgCqlFieldType {
-    @Override
-    public String handleTermNode(CQLTermNode termNode) {
-      String s = handleEmptyTerm(termNode);
-      if (s != null) {
-        return s;
-      }
-      LocalDateTime localDateTime = LocalDateTime.parse(termNode.getTerm());
-      return getColumn() + handleOrderedRelation(termNode) + "'" + localDateTime + "'";
-    }
-  }
-
   @Test
-  void testCustomField() {
+  void testTimestampField() {
     PgCqlDefinition pgCqlDefinition = PgCqlDefinition.create();
-    pgCqlDefinition.addField("datestamp", new CqlFieldTimestamp());
+    pgCqlDefinition.addField("datestamp", new PgCqlFieldTimestamp());
 
     PgCqlQuery pgCqlQuery1 = pgCqlDefinition.parse("datestamp = 2022-02-03T04:05:06");
     assertThat(pgCqlQuery1.getWhereClause(), is("datestamp='2022-02-03T04:05:06'"));
 
-    PgCqlQuery pgCqlQuery2 = pgCqlDefinition.parse("datestamp = 2022-02-03T04:05:06'");
-    assertThrows(DateTimeParseException.class, pgCqlQuery2::getWhereClause);
+    PgCqlQuery pgCqlQuery2 = pgCqlDefinition.parse("datestamp >= 2022-02-03");
+    assertThat(pgCqlQuery2.getWhereClause(), is("datestamp>='2022-02-03'"));
+
+
+    PgCqlQuery pgCqlQuery3 = pgCqlDefinition.parse("datestamp >= 2022-02-03 and datestamp < 2022-05-03");
+    assertThat(pgCqlQuery3.getWhereClause(), is("(datestamp>='2022-02-03' AND datestamp<'2022-05-03')"));
+
+    PgCqlQuery pgCqlQuery4 = pgCqlDefinition.parse("datestamp >= 2022-02-03T04:05:06");
+    assertThat(pgCqlQuery4.getWhereClause(), is("datestamp>='2022-02-03T04:05:06'"));
+
+    PgCqlQuery pgCqlQuery5 = pgCqlDefinition.parse("datestamp = 2022-02-03T04:05:06'");
+    assertThrows(DateTimeParseException.class, pgCqlQuery5::getWhereClause);
   }
 }
