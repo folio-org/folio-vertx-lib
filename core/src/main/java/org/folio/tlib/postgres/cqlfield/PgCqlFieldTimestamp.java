@@ -5,6 +5,9 @@ import java.time.LocalDateTime;
 import org.folio.tlib.postgres.PgCqlFieldType;
 import org.z3950.zing.cql.CQLTermNode;
 
+/**
+ * Create field for ISO-like date-only and date-time expressions (e.g TIMESTAMP or DATE) w/o offset.
+ */
 public class PgCqlFieldTimestamp extends PgCqlFieldBase implements PgCqlFieldType {
   @Override
   public String handleTermNode(CQLTermNode termNode) {
