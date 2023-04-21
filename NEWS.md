@@ -1,3 +1,7 @@
+## 3.1.0 WIP
+
+* [VERTXLIB-43](https://issues.folio.org/browse/VERTXLIB-43) Add timestamp field class for date-only and date-time fields w/o offset.
+
 ## 3.0.0 2023-01-27
 
 Changes to the PgCql API. Introduce `PgCqlDefinition` interface with
