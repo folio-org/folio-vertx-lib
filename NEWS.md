@@ -1,6 +1,7 @@
 ## 3.1.0 2023-04-26
 
 * [VERTXLIB-43](https://issues.folio.org/browse/VERTXLIB-43) Add timestamp field class for date-only and date-time fields w/o offset.
+* [VERTXLIB-37](https://issues.folio.org/browse/VERTXLIB-37) Structured logging using FolioLoggingContext.
 
 ## 3.0.0 2023-01-27
 
