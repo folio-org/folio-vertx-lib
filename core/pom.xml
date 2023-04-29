@@ -37,6 +37,10 @@
       <artifactId>vertx-pg-client</artifactId>
     </dependency>
     <dependency>
+      <groupId>jakarta.validation</groupId>
+      <artifactId>jakarta.validation-api</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.z3950.zing</groupId>
       <artifactId>cql-java</artifactId>
     </dependency>
