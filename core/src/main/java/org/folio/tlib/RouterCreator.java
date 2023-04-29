@@ -7,12 +7,16 @@ import io.vertx.ext.web.Router;
 import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.okapi.common.logging.FolioLoggingContext;
 
+/**
+ * Creates a router that supports Okapi HTTP headers.
+ */
 public interface RouterCreator {
 
   Future<Router> createRouter(Vertx vertx);
 
   /**
    * Create router for a list of RouterCreators.
+   *
    * @param vertx Vertx. handle
    * @param routerCreators list of router creators
    * @return async result with combined router.
@@ -26,6 +30,7 @@ public interface RouterCreator {
 
   /**
    * Create router for a list of RouterCreators.
+   *
    * @param vertx Vert.x handle
    * @param routerCreators list of router creators
    * @param module to be logged

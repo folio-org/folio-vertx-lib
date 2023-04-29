@@ -4,6 +4,9 @@ import org.folio.tlib.postgres.PgCqlException;
 import org.folio.tlib.postgres.PgCqlFieldType;
 import org.z3950.zing.cql.CQLTermNode;
 
+/**
+ * Boolean {@link PgCqlFieldType}.
+ */
 public class PgCqlFieldBoolean extends PgCqlFieldBase implements PgCqlFieldType {
   @Override
   public String handleTermNode(CQLTermNode termNode) {

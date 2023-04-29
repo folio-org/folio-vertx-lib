@@ -4,6 +4,9 @@ import io.vertx.ext.web.RoutingContext;
 import java.util.regex.Pattern;
 import org.folio.okapi.common.XOkapiHeaders;
 
+/**
+ * Operations on tenant data.
+ */
 public final class TenantUtil {
   private static final String TENANT_PATTERN_STRING =  "^[_a-z][_a-z0-9]*$";
   private static final Pattern TENANT_PATTERN = Pattern.compile(TENANT_PATTERN_STRING);
@@ -14,6 +17,7 @@ public final class TenantUtil {
 
   /**
    * Return X-Okapi-Tenant header.
+   *
    * @throws IllegalArgumentException if header is missing or is invalid
    */
   public static String tenant(RoutingContext ctx) {

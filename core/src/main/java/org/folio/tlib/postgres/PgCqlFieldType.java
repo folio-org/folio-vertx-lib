@@ -2,16 +2,21 @@ package org.folio.tlib.postgres;
 
 import org.z3950.zing.cql.CQLTermNode;
 
+/**
+ * A field type like boolean, text, or UUID.
+ */
 public interface PgCqlFieldType {
 
   /**
    * Gets column for this field type handler.
+   *
    * @return column string
    */
   String getColumn();
 
   /**
    * Sets the column that this field type handler is using.
+   *
    * @param column SQL column
    * @return this
    */
@@ -26,6 +31,7 @@ public interface PgCqlFieldType {
    * Get relation by using {@link CQLTermNode#getRelation()}.
    * Get term by using {@link CQLTermNode#getTerm()}.
    * </p>
+   *
    * @param termNode for the "field relation".
    * @return SQL string.
    */

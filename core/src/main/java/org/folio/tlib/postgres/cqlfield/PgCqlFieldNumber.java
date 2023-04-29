@@ -5,6 +5,9 @@ import org.folio.tlib.postgres.PgCqlException;
 import org.folio.tlib.postgres.PgCqlFieldType;
 import org.z3950.zing.cql.CQLTermNode;
 
+/**
+ * Number {@link PgCqlFieldType}.
+ */
 public class PgCqlFieldNumber extends PgCqlFieldBase implements PgCqlFieldType {
 
   private static final Pattern POSTGRES_NUMBER_REGEXP = Pattern.compile(

@@ -13,10 +13,14 @@ import java.util.List;
 import javax.validation.constraints.NotNull;
 import org.folio.tlib.postgres.impl.TenantPgPoolImpl;
 
+/**
+ * The {@link PgPool} for a tenant.
+ */
 public interface TenantPgPool extends PgPool {
 
   /**
    * create tenant pool for tenant.
+   *
    * @param vertx vert.x instance
    * @param tenant tenant name.
    * @return pool.

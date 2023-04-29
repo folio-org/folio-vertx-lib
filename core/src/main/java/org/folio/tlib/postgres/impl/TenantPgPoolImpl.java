@@ -32,6 +32,9 @@ import org.apache.logging.log4j.Logger;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.tlib.postgres.TenantPgPool;
 
+/**
+ * The {@link PgPool} for a tenant.
+ */
 public class TenantPgPoolImpl implements TenantPgPool {
 
   private static final Logger log = LogManager.getLogger(TenantPgPoolImpl.class);
@@ -97,6 +100,7 @@ public class TenantPgPoolImpl implements TenantPgPool {
    * <p>The returned pool implements PgPool interface so this cab be used like PgPool as usual.
    * PgPool.setModule *must* be called before the queries are executed, since schema is based
    * on module name.
+   *
    * @param vertx Vert.x handle
    * @param tenant Tenant
    * @return pool with PgPool semantics
@@ -200,6 +204,7 @@ public class TenantPgPoolImpl implements TenantPgPool {
 
   /**
    * Execute a list of queries.
+   *
    * @param queries executed in order; processing is stopped if any queries fail.
    * @return async result.
    */
@@ -215,6 +220,7 @@ public class TenantPgPoolImpl implements TenantPgPool {
 
   /**
    * Execute prepared query.
+   *
    * @param sql query
    * @param tuple tuple
    * @return async result rowset
@@ -257,11 +263,12 @@ public class TenantPgPoolImpl implements TenantPgPool {
 
   /**
    * Close all pools.
+   *
    * @return async result
    */
   public static Future<Void> closeAll() {
     List<Future<Void>> futures = new ArrayList<>(pgPoolMap.size());
-    pgPoolMap.forEach((a,b) -> futures.add(b.close()));
+    pgPoolMap.forEach((a, b) -> futures.add(b.close()));
     return GenericCompositeFuture.all(futures)
         .onComplete(x -> pgPoolMap.clear())
         .mapEmpty();
