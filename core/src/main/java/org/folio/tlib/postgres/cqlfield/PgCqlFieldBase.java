@@ -24,6 +24,7 @@ public abstract class PgCqlFieldBase implements PgCqlFieldType {
 
   /**
    * If CQL term is empty, apply special semantics.
+   *
    * @param termNode CQL node.
    * @return SQL op rel value string; null if not handled.
    */
@@ -37,6 +38,7 @@ public abstract class PgCqlFieldBase implements PgCqlFieldType {
 
   /**
    * Return SQL for CQL unordered relation.
+   *
    * @param termNode CQL node.
    * @return SQL rel if handled.
    * @throws IllegalArgumentException for unsupported operator.
@@ -56,6 +58,7 @@ public abstract class PgCqlFieldBase implements PgCqlFieldType {
 
   /**
    * Return SQL for CQL ordered relation.
+   *
    * @param termNode CQL node.
    * @return SQL rel if handled.
    * @throws IllegalArgumentException for unsupported operator.

@@ -7,6 +7,9 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Router;
 import org.folio.tlib.RouterCreator;
 
+/**
+ * Implements {@code GET /admin/health}.
+ */
 public class HealthApi implements RouterCreator {
   @Override
   public Future<Router> createRouter(Vertx vertx) {

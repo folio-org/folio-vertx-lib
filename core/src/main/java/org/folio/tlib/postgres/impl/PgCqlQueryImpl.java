@@ -17,6 +17,9 @@ import org.z3950.zing.cql.CQLTermNode;
 import org.z3950.zing.cql.Modifier;
 import org.z3950.zing.cql.ModifierSet;
 
+/**
+ * PostgreSQL table definition.
+ */
 public class PgCqlQueryImpl implements PgCqlQuery {
   private static final Logger log = LogManager.getLogger(PgCqlQueryImpl.class);
 
@@ -130,7 +133,7 @@ public class PgCqlQueryImpl implements PgCqlQuery {
     if (node instanceof CQLSortNode) {
       StringBuilder res = new StringBuilder();
       CQLSortNode sortNode = (CQLSortNode) node;
-      for (ModifierSet modifierSet: sortNode.getSortIndexes()) {
+      for (ModifierSet modifierSet : sortNode.getSortIndexes()) {
         if (res.length() > 0) {
           res.append(", ");
         }

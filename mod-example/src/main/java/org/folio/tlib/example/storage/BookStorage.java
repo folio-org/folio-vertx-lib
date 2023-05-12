@@ -23,6 +23,9 @@ import org.folio.tlib.postgres.cqlfield.PgCqlFieldAlwaysMatches;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldText;
 import org.folio.tlib.postgres.cqlfield.PgCqlFieldUuid;
 
+/**
+ * Database CRUD for {@link Book}.
+ */
 public class BookStorage {
 
   TenantPgPool pool;
@@ -37,6 +40,7 @@ public class BookStorage {
 
   /**
    * tenant init handling (including disable).
+   *
    * @param tenantAttributes as passed in tenant init
    * @return async result.
    */
@@ -70,6 +74,7 @@ public class BookStorage {
 
   /**
    * Get book from identifier.
+   *
    * @param id identifier
    * @return async with Book == null if not found
    */
@@ -86,6 +91,7 @@ public class BookStorage {
 
   /**
    * Create book.
+   *
    * @param book the book to add.
    * @return async result.
    */
@@ -99,6 +105,7 @@ public class BookStorage {
 
   /**
    * Create SQL query for books.
+   *
    * @param ctx routing context from HTTP request
    * @param pool PostgresQL Pool
    * @return async result
@@ -127,6 +134,7 @@ public class BookStorage {
 
   /**
    * Get books with optional CQL query.
+   *
    * @param ctx routing context for HTTP request
    * @return async result with books list
    */

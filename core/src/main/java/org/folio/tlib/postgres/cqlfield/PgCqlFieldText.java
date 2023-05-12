@@ -32,6 +32,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
    * An index of type GIN should be created for the relation. See
    * <a href="https://www.postgresql.org/docs/current/textsearch-tables.html">Tables and Indexes</a>.
    * </p>
+   *
    * @param language text-search configuration for PostgresQL
    * @return this.
    */
@@ -53,6 +54,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
    * A GIN index should be created for the relation. See
    * <a href="https://www.postgresql.org/docs/current/textsearch-tables.html">Tables and Indexes</a>.
    * </p>
+   *
    * @return this.
    */
   public PgCqlFieldText withFullText() {
@@ -67,6 +69,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
    * A B-Tree index with operator class <code>text_pattern_ops</code> should be
    * created for the relation.
    * </p>
+   *
    * @return this.
    */
   public PgCqlFieldText withLikeOps() {
@@ -82,6 +85,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
    * </p><p>
    * A B-Tree index should be created for the relation.
    * </p>
+   *
    * @return this.
    */
   public PgCqlFieldText withExact() {
@@ -95,6 +99,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
    * <a href="https://docs.oasis-open.org/search-ws/searchRetrieve/v1.0/os/part5-cql/searchRetrieve-v1.0-os-part5-cql.html#_Toc235849921">B3.3 Masking</a>
    * of the CQL standard.
    * </p>
+   *
    * @param termNode which includes term and relation.
    * @return PostgresQL term
    * @see <a href="https://www.postgresql.org/docs/13/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS">
@@ -216,12 +221,12 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
   /**
    * CQL masked full text term to Postgres term.
    *
+   * <p>At this stage masking is unsupported and rejected.</p>
+   *
    * @param termNode which includes term and relation.
    * @return Postgres term.
    * @see <a href="https://www.postgresql.org/docs/13/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS">
    * String Constants section</a>
-   *
-   * <p>At this stage masking is unsupported and rejected.</p>
    */
   static String maskedFulltext(CQLTermNode termNode) {
     return maskedExact(termNode);

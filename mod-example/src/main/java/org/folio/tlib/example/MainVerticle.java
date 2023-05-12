@@ -2,6 +2,7 @@ package org.folio.tlib.example;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
+import io.vertx.core.Verticle;
 import io.vertx.core.http.HttpServerOptions;
 import org.folio.okapi.common.Config;
 import org.folio.tlib.RouterCreator;
@@ -10,6 +11,9 @@ import org.folio.tlib.api.Tenant2Api;
 import org.folio.tlib.example.service.BookService;
 import org.folio.tlib.postgres.TenantPgPool;
 
+/**
+ * This {@link Verticle} is the start point of the module.
+ */
 public class MainVerticle extends AbstractVerticle {
 
   static final String MODULE = "mod-example";
