@@ -26,6 +26,10 @@ import org.folio.tlib.TenantInitHooks;
 import org.folio.tlib.postgres.impl.TenantPgPoolImpl;
 import org.folio.tlib.util.TenantUtil;
 
+/**
+ * Implements {@code /_/tenant} APIs that create, update or delete
+ * the database schema and tables of a tenant.
+ */
 public class Tenant2Api implements RouterCreator {
   private static final Logger log = LogManager.getLogger(Tenant2Api.class);
 
@@ -47,6 +51,7 @@ public class Tenant2Api implements RouterCreator {
    * Error handler which produces HTTP response on Routing Context.
    *
    * <p>If throwable is not null error is logged, but not the stacktrace.
+   *
    * @param ctx Routing context
    * @param code error code if throwable is non-null
    * @param e cause; if null, then the status code on routing context is used.
@@ -261,6 +266,7 @@ public class Tenant2Api implements RouterCreator {
 
   /**
    * Create router for tenant API.
+   *
    * @param vertx Vert.x handle
    * @return async result: router
    */

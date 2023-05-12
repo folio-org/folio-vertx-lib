@@ -6,6 +6,9 @@ import org.folio.tlib.postgres.PgCqlDefinition;
 import org.folio.tlib.postgres.PgCqlFieldType;
 import org.folio.tlib.postgres.PgCqlQuery;
 
+/**
+ * PostgreSQL table definition.
+ */
 public class PgCqlDefinitionImpl implements PgCqlDefinition {
 
   final Map<String, PgCqlFieldType> types = new HashMap<>();

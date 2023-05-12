@@ -5,6 +5,9 @@ import org.folio.tlib.postgres.PgCqlException;
 import org.folio.tlib.postgres.PgCqlFieldType;
 import org.z3950.zing.cql.CQLTermNode;
 
+/**
+ * UUID {@link PgCqlFieldType}.
+ */
 public class PgCqlFieldUuid extends PgCqlFieldBase implements PgCqlFieldType {
   @Override
   public String handleTermNode(CQLTermNode termNode) {

@@ -6,6 +6,9 @@ import io.vertx.sqlclient.templates.annotations.Column;
 import io.vertx.sqlclient.templates.annotations.RowMapped;
 import java.util.UUID;
 
+/**
+ * Book DAO.
+ */
 @DataObject
 @RowMapped
 @JsonInclude(JsonInclude.Include.NON_NULL)

@@ -22,6 +22,9 @@ import org.folio.tlib.example.data.Book;
 import org.folio.tlib.example.storage.BookStorage;
 import org.folio.tlib.util.TenantUtil;
 
+/**
+ * Book service.
+ */
 public class BookService implements RouterCreator, TenantInitHooks {
 
   public static final int BODY_LIMIT = 65536; // 64 kb
@@ -50,8 +53,6 @@ public class BookService implements RouterCreator, TenantInitHooks {
 
   /**
    * Set up our handlers.
-   * @param vertx Vert.x
-   * @param routerBuilder OpenAPI router builder
    * <p>
    *   Each handler returns Future. If that is successful, it it assumed that
    *   the handler has returned a HTTP response (including HTTP errors).
@@ -60,6 +61,9 @@ public class BookService implements RouterCreator, TenantInitHooks {
    *   If the handler throws an exception OR if the the OpenAPI validations fails, then
    *   onFailure kicks in and handleContextFailure kicks in.
    * </p>
+   *
+   * @param vertx Vert.x
+   * @param routerBuilder OpenAPI router builder
    */
   private void handlers(Vertx vertx, RouterBuilder routerBuilder) {
     routerBuilder

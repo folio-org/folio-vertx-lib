@@ -4,10 +4,15 @@ import io.vertx.pgclient.PgConnectOptions;
 import org.folio.tlib.postgres.TenantPgPool;
 import org.testcontainers.containers.PostgreSQLContainer;
 
+/**
+ * A {@link org.testcontainers.container.PostgreSQLContainer} that sets
+ * {@link TenantPgPool#setDefaultConnectOptions}.
+ */
 public final class TenantPgPoolContainer {
 
   /**
    * Create PostgreSQL container for TenantPgPool.
+   *
    * @return container.
    */
   public static PostgreSQLContainer<?> create() {
@@ -16,6 +21,7 @@ public final class TenantPgPoolContainer {
 
   /**
    * Create PostgreSQL container for TenantPgPool.
+   *
    * @param image container image name.
    * @return container.
    */
