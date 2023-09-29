@@ -5,7 +5,7 @@ import org.folio.tlib.postgres.TenantPgPool;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 /**
- * A {@link org.testcontainers.container.PostgreSQLContainer} that sets
+ * A {@link PostgreSQLContainer} that sets
  * {@link TenantPgPool#setDefaultConnectOptions}.
  */
 public final class TenantPgPoolContainer {

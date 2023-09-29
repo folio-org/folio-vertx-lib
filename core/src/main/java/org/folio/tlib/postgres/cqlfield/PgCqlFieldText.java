@@ -6,14 +6,13 @@ import org.z3950.zing.cql.CQLTermNode;
 
 /**
  * Create field for searching relations of type TEXT / VARCHAR / CHAR.
- * <p>
- * Use one or more of
- * <ll>
+ *
+ * <p>Use one or more of
+ * <ul>
  *   <li>{@link #withFullText()} to enable full-text searches (masking unsupported).</li>
  *   <li>{@link #withExact()} ()} to enable exact match searches (masking unsupported)</li>
  *   <li>{@link #withLikeOps()} to enable exact match searches with masking operators</li>
- * </ll>
- * </p>
+ * </ul>
  */
 public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
 
@@ -63,8 +62,9 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
 
   /**
    * Allow masking for field.
-   * <p>This is triggered for relations ==, <> when at least one of the masking
-   * operators *, ? in CQL is used and is converted into a <code>SQL LIKE</code> search with %, _.
+   * <p>This is triggered for relations {@code ==}, {@code <>} when at least one of the masking
+   * operators {@code *}, {@code ?} in CQL is used and is converted into a <code>SQL LIKE</code>
+   * search with {@code %}, {@code _}.
    * </p><p>
    * A B-Tree index with operator class <code>text_pattern_ops</code> should be
    * created for the relation.
@@ -79,9 +79,9 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
 
   /**
    * Allow exact searches.
-   * <p>This is triggered for relations ==, <>. It also allows = with
+   * <p>This is triggered for relations {@code ==}, {@code <>}. It also allows {@code =} with
    * empty string which maps to <code>IS NOT NULL</code>.
-   * To search for empty string, operator == must be used.
+   * To search for empty string, operator {@code ==} must be used.
    * </p><p>
    * A B-Tree index should be created for the relation.
    * </p>
