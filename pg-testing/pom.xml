@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.folio</groupId>
     <artifactId>folio-vertx-lib</artifactId>
-    <version>3.1.1-SNAPSHOT</version>
+    <version>3.1.1</version>
   </parent>
   <artifactId>vertx-lib-pg-testing</artifactId>
 
@@ -11,7 +11,7 @@
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>vertx-lib</artifactId>
-      <version>3.1.1-SNAPSHOT</version>
+      <version>3.1.1</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
