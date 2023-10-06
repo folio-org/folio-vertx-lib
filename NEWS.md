@@ -1,3 +1,11 @@
+## 3.1.1 2023-10-06
+
+Release for Poppy with dependency upgrades:
+
+* [VERTXLIB-44](https://issues.folio.org/browse/VERTXLIB-44), [VERTXLIB-46](https://issues.folio.org/browse/VERTXLIB-46) Poppy dependecy upgrades: Vert.x 4.4.5, ...
+* [VERTXLIB-45](https://issues.folio.org/browse/VERTXLIB-45) Update to Java 17
+* [VERTXLIB-47](https://issues.folio.org/browse/VERTXLIB-47) Fix java 17 javadoc errors
+
 ## 3.1.0 2023-04-26
 
 * [VERTXLIB-43](https://issues.folio.org/browse/VERTXLIB-43) Add timestamp field class for date-only and date-time fields w/o offset.
