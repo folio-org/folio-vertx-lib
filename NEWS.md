@@ -1,3 +1,9 @@
+## 3.1.2 2023-13-13
+
+Bug fix:
+
+* [VERTXLIB-49](https://issues.folio.org/browse/VERTXLIB-49) Disable dependency reduced pom, disable mod-example javadoc
+
 ## 3.1.1 2023-10-06
 
 Release for Poppy with dependency upgrades:
