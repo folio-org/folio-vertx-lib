@@ -29,8 +29,8 @@
   </licenses>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <okapi.version>5.0.2</okapi.version>
-    <vertx.version>4.4.5</vertx.version>
+    <okapi.version>5.1.2</okapi.version>
+    <vertx.version>4.4.6</vertx.version>
   </properties>
   <modules>
     <module>core</module>
@@ -103,7 +103,7 @@
       <dependency>
         <groupId>org.testcontainers</groupId>
         <artifactId>testcontainers-bom</artifactId>
-        <version>1.19.0</version>
+        <version>1.19.1</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
