@@ -1,4 +1,10 @@
-## 3.1.2 2023-13-13
+## 3.1.3 2023-11-08
+
+Bug fix:
+
+* [VERTXLIB-50](https://issues.folio.org/browse/VERTXLIB-50) Vert.x 4.4.6, Testcontainers 1.19.1
+
+## 3.1.2 2023-10-13
 
 Bug fix:
 
