@@ -29,7 +29,7 @@
   </licenses>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <okapi.version>5.1.2</okapi.version>
+    <okapi.version>5.3.0-SNAPSHOT</okapi.version>
     <vertx.version>4.5.3</vertx.version>
   </properties>
   <modules>
