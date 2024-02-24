@@ -1,3 +1,10 @@
+## 3.2.0 2024-02-24
+
+Release for Quesnelia with dependency upgrades:
+
+* [VERTXLIB-52](https://folio-org.atlassian.net/browse/VERTXLIB-52) Implement TESTCONTAINERS\_POSTGRES\_IMAGE
+* [VERTXLIB-54](https://folio-org.atlassian.net/browse/VERTXLIB-54) Upgrade dependencies for Quesnelia: Vert.x 4.5.3, log4j 2.23.0, commons-compress 1.26.0, etc.
+
 ## 3.1.3 2023-11-08
 
 Bug fix:
