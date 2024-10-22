@@ -34,8 +34,8 @@ class TenantPgPoolContainerTest {
 
   static Stream<Arguments> postgresImage() {
     return Stream.of(
-        Arguments.of(Map.of(), "postgres:12-alpine"),
-        Arguments.of(Map.of("foo", "bar"), "postgres:12-alpine"),
+        Arguments.of(Map.of(), "postgres:16-alpine"),
+        Arguments.of(Map.of("foo", "bar"), "postgres:16-alpine"),
         Arguments.of(Map.of("foo", "bar", "TESTCONTAINERS_POSTGRES_IMAGE", "x:y-z"), "x:y-z")
         );
   }

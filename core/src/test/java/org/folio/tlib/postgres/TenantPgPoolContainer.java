@@ -6,7 +6,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 public final class TenantPgPoolContainer {
 
   public static PostgreSQLContainer<?> create() {
-    return create("postgres:12-alpine");
+    return create("postgres:16-alpine");
   }
 
   public static PostgreSQLContainer<?> create(String image) {
