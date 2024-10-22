@@ -48,6 +48,6 @@ public final class TenantPgPoolContainer {
    *     DR-000037 - TESTCONTAINERS_POSTGRES_IMAGE</a>
    */
   static String postgresImage(Map<String, String> env) {
-    return env.getOrDefault("TESTCONTAINERS_POSTGRES_IMAGE", "postgres:12-alpine");
+    return env.getOrDefault("TESTCONTAINERS_POSTGRES_IMAGE", "postgres:16-alpine");
   }
 }
