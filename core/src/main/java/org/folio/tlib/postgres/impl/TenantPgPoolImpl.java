@@ -46,6 +46,8 @@ public class TenantPgPoolImpl implements TenantPgPool {
   static String password = System.getenv("DB_PASSWORD");
   static String database = System.getenv("DB_DATABASE");
   static String maxPoolSize = System.getenv("DB_MAXPOOLSIZE");
+  static String reconnectAttempts = System.getenv("DB_RECONNECTATTEMPTS");
+  static String reconnectInterval = System.getenv("DB_RECONNECTINTERVAL");
   static String serverPem = System.getenv("DB_SERVER_PEM");
   static String module;
   static PgConnectOptions pgConnectOptions = new PgConnectOptions();
@@ -127,6 +129,12 @@ public class TenantPgPoolImpl implements TenantPgPool {
     }
     if (database != null) {
       connectOptions.setDatabase(substTenant(database, tenant));
+    }
+    if (reconnectAttempts != null) {
+      connectOptions.setReconnectAttempts(Integer.parseInt(reconnectAttempts));
+    }
+    if (reconnectInterval != null) {
+      connectOptions.setReconnectInterval(Long.parseLong(reconnectInterval));
     }
     if (serverPem != null) {
       connectOptions.setSslMode(SslMode.VERIFY_FULL);
