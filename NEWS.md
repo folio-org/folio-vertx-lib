@@ -1,3 +1,10 @@
+## 3.3.0 2024-10-30
+
+Release for Ramsons.
+
+* [VERTXLIB-56](https://folio-org.atlassian.net/browse/VERTXLIB-56) Upgrade dependencies for Ramsons: Vert.x 4.5.10, Postgres 16, etc.
+* [VERTXLIB-57](https://folio-org.atlassian.net/browse/VERTXLIB-57) Support DB\_RECONNECTATTEMPTS, DB\_RECONNECTINTERVAL env vars
+
 ## 3.2.0 2024-02-24
 
 Release for Quesnelia with dependency upgrades:
