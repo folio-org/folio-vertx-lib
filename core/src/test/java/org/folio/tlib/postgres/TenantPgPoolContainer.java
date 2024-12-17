@@ -4,9 +4,12 @@ import io.vertx.pgclient.PgConnectOptions;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 public final class TenantPgPoolContainer {
+  public static final String DEFAULT_IMAGE_NAME = "postgres:16-alpine";
+  private static final String IMAGE_NAME = System.getenv()
+      .getOrDefault("TESTCONTAINERS_POSTGRES_IMAGE", DEFAULT_IMAGE_NAME);
 
   public static PostgreSQLContainer<?> create() {
-    return create("postgres:16-alpine");
+    return create(IMAGE_NAME);
   }
 
   public static PostgreSQLContainer<?> create(String image) {
