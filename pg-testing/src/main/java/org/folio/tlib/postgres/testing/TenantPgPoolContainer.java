@@ -28,7 +28,8 @@ public final class TenantPgPoolContainer {
    * @return container.
    */
   public static PostgreSQLContainer<?> create(String image) {
-    PostgreSQLContainer<?> container = new PostgreSQLContainer<>(image);
+    PostgreSQLContainer<?> container = new PostgreSQLContainer<>(image)
+        .withStartupAttempts(3);
     container.start();
 
     TenantPgPool.setDefaultConnectOptions(new PgConnectOptions()
