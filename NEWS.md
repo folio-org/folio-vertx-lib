@@ -1,3 +1,11 @@
+## 3.4.0 2025-03-11
+
+Release for Sunflower.
+
+* [VERTXLIB-58](https://folio-org.atlassian.net/browse/VERTXLIB-58) Migrate Java from 17 to 21
+* [VERTXLIB-59](https://folio-org.atlassian.net/browse/VERTXLIB-59) Upgrade dependencies for Sunflower: vertx, okapi-common, etc.
+* [VERTXLIB-60](https://folio-org.atlassian.net/browse/VERTXLIB-60) PostgreSQLContainer withStartupAttempts(3)
+
 ## 3.3.0 2024-10-30
 
 Release for Ramsons.
