@@ -5,6 +5,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 import org.folio.okapi.common.XOkapiHeaders;
+import org.folio.okapi.common.logging.FolioLocal;
 import org.folio.okapi.common.logging.FolioLoggingContext;
 
 /**
@@ -40,13 +41,13 @@ public interface RouterCreator {
     Future<Void> future = Future.succeededFuture();
     Router router = Router.router(vertx);
     router.route().handler(ctx -> {
-      FolioLoggingContext.put(FolioLoggingContext.MODULE_ID_LOGGING_VAR_NAME, module);
+      FolioLoggingContext.put(FolioLocal.MODULE_ID, module);
       MultiMap headers = ctx.request().headers();
-      FolioLoggingContext.put(FolioLoggingContext.TENANT_ID_LOGGING_VAR_NAME,
+      FolioLoggingContext.put(FolioLocal.TENANT_ID,
           headers.get(XOkapiHeaders.TENANT));
-      FolioLoggingContext.put(FolioLoggingContext.REQUEST_ID_LOGGING_VAR_NAME,
+      FolioLoggingContext.put(FolioLocal.REQUEST_ID,
           headers.get(XOkapiHeaders.REQUEST_ID));
-      FolioLoggingContext.put(FolioLoggingContext.USER_ID_LOGGING_VAR_NAME,
+      FolioLoggingContext.put(FolioLocal.USER_ID,
           headers.get(XOkapiHeaders.USER_ID));
       ctx.next();
     });

@@ -8,10 +8,11 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.openapi.RouterBuilder;
+import io.vertx.ext.web.openapi.router.RouterBuilder;
 import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.RequestParameters;
 import io.vertx.ext.web.validation.ValidationHandler;
+import io.vertx.openapi.contract.OpenAPIContract;
 import io.vertx.sqlclient.Tuple;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -187,9 +188,9 @@ public class Tenant2Api implements RouterCreator {
 
   private void handlers(Vertx vertx, RouterBuilder routerBuilder) {
     log.info("setting up tenant handlers ... begin");
-    routerBuilder
-        .operation("postTenant")
-        .handler(ctx -> {
+
+    routerBuilder.getRoute("postTenant")
+        .addHandler(ctx -> {
           RequestParameters params = ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY);
           log.info("postTenant handler {}", params.toJson().encode());
           JsonObject tenantAttributes = ctx.body().asJsonObject();
@@ -218,10 +219,10 @@ public class Tenant2Api implements RouterCreator {
                 failHandler(ctx, 500, e);
               });
         })
-        .failureHandler(ctx -> Tenant2Api.failHandler(ctx, 400, ctx.failure()));
-    routerBuilder
-        .operation("getTenantJob")
-        .handler(ctx -> {
+        .addFailureHandler(ctx -> Tenant2Api.failHandler(ctx, 400, ctx.failure()));
+
+    routerBuilder.getRoute("getTenantJob")
+        .addHandler(ctx -> {
           RequestParameters params = ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY);
           String id = params.pathParameter("id").getString();
           String tenant = params.headerParameter(XOkapiHeaders.TENANT).getString();
@@ -241,10 +242,10 @@ public class Tenant2Api implements RouterCreator {
               })
               .onFailure(e -> failHandler(ctx, 500, e));
         })
-        .failureHandler(ctx -> Tenant2Api.failHandler(ctx, 400, ctx.failure()));
-    routerBuilder
-        .operation("deleteTenantJob")
-        .handler(ctx -> {
+        .addFailureHandler(ctx -> Tenant2Api.failHandler(ctx, 400, ctx.failure()));
+
+    routerBuilder.getRoute("deleteTenantJob")
+        .addHandler(ctx -> {
           RequestParameters params = ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY);
           String id = params.pathParameter("id").getString();
           String tenant = params.headerParameter(XOkapiHeaders.TENANT).getString();
@@ -260,7 +261,8 @@ public class Tenant2Api implements RouterCreator {
               })
               .onFailure(e -> failHandler(ctx, 500, e));
         })
-        .failureHandler(ctx -> Tenant2Api.failHandler(ctx, 400, ctx.failure()));
+        .addFailureHandler(ctx -> Tenant2Api.failHandler(ctx, 400, ctx.failure()));
+
     log.info("setting up tenant handlers ... done");
   }
 
@@ -272,11 +274,11 @@ public class Tenant2Api implements RouterCreator {
    */
   @Override
   public Future<Router> createRouter(Vertx vertx) {
-    return RouterBuilder.create(vertx, "openapi/tenant-2.0.yaml")
-        .map(routerBuilder -> {
+    return OpenAPIContract.from(vertx, "openapi/tenant-2.0.yaml")
+      .map(contract -> {
+          RouterBuilder routerBuilder = RouterBuilder.create(vertx, contract);
           handlers(vertx, routerBuilder);
           return routerBuilder.createRouter();
         });
   }
-
 }
