@@ -6,7 +6,9 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.openapi.RouterBuilder;
+import io.vertx.ext.web.openapi.router.RouterBuilder;
+import io.vertx.openapi.contract.OpenAPIContract;
+
 import org.folio.tlib.RouterCreator;
 
 public class EchoApi implements RouterCreator {
@@ -29,18 +31,19 @@ public class EchoApi implements RouterCreator {
 
   @Override
   public Future<Router> createRouter(Vertx vertx) {
-    return RouterBuilder.create(vertx, "openapi/echo.yaml")
-        .map(routerBuilder -> {
-          // https://vertx.io/docs/vertx-web/java/#_limiting_body_size
-          routerBuilder.rootHandler(BodyHandler.create().setBodyLimit(BODY_LIMIT));
-          routerBuilder
-              .operation("echo") // operationId in spec
-              .handler(ctx -> echo(ctx)
-                  .onFailure(e -> handleError(ctx, 500, e))
-              )
-              .failureHandler(ctx -> handleError(ctx, 400, ctx.failure()));
-          return routerBuilder.createRouter();
-        });
+    return OpenAPIContract.from(vertx, "openapi/echo.yaml")
+      .map(contract -> {
+        RouterBuilder routerBuilder = RouterBuilder.create(vertx, contract);
+        //routerBuilder.map(routerBuilder -> {
+        // https://vertx.io/docs/vertx-web/java/#_limiting_body_size
+        routerBuilder.rootHandler(BodyHandler.create().setBodyLimit(BODY_LIMIT));
+        routerBuilder.getRoute("echo") // operationId in spec
+          .addHandler(ctx -> echo(ctx)
+              .onFailure(e -> handleError(ctx, 500, e))
+          )
+          .addFailureHandler(ctx -> handleError(ctx, 400, ctx.failure()));
+        return routerBuilder.createRouter();
+      });
   }
 
   Future<Void> echo(RoutingContext ctx) {

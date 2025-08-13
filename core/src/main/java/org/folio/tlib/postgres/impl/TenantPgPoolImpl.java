@@ -7,10 +7,11 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.ClientSSLOptions;
 import io.vertx.core.net.OpenSSLEngineOptions;
 import io.vertx.core.net.PemTrustOptions;
+import io.vertx.pgclient.PgBuilder;
 import io.vertx.pgclient.PgConnectOptions;
-import io.vertx.pgclient.PgPool;
 import io.vertx.pgclient.SslMode;
 import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.PoolOptions;
@@ -29,16 +30,15 @@ import java.util.Map;
 import java.util.function.Function;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.tlib.postgres.TenantPgPool;
 
 /**
- * The {@link PgPool} for a tenant.
+ * The {@link Pool} for a tenant.
  */
 public class TenantPgPoolImpl implements TenantPgPool {
 
   private static final Logger log = LogManager.getLogger(TenantPgPoolImpl.class);
-  static Map<PgConnectOptions, PgPool> pgPoolMap = new HashMap<>();
+  static Map<PgConnectOptions, Pool> pgPoolMap = new HashMap<>();
 
   static String host = System.getenv("DB_HOST");
   static String port = System.getenv("DB_PORT");
@@ -53,7 +53,7 @@ public class TenantPgPoolImpl implements TenantPgPool {
   static PgConnectOptions pgConnectOptions = new PgConnectOptions();
 
   final String tenant;
-  PgPool pgPool;
+  Pool pgPool;
   JsonObject config;
 
   final PoolOptions poolOptions;
@@ -99,13 +99,13 @@ public class TenantPgPoolImpl implements TenantPgPool {
   /**
    * Create pool for Tenant.
    *
-   * <p>The returned pool implements PgPool interface so this cab be used like PgPool as usual.
-   * PgPool.setModule *must* be called before the queries are executed, since schema is based
-   * on module name.
+   * <p>The returned pool implements Pool interface so this can be used like Pool as usual.
+   * TenantPgPool.setModule *must* be called before the queries are executed, since schema is
+   * based on module name.
    *
    * @param vertx Vert.x handle
    * @param tenant Tenant
-   * @return pool with PgPool semantics
+   * @return pool with Pool semantics
    */
   public static TenantPgPoolImpl tenantPgPool(Vertx vertx, String tenant) {
     if (module == null) {
@@ -138,11 +138,11 @@ public class TenantPgPoolImpl implements TenantPgPool {
     }
     if (serverPem != null) {
       connectOptions.setSslMode(SslMode.VERIFY_FULL);
-      connectOptions.setHostnameVerificationAlgorithm("HTTPS");
-      connectOptions.setPemTrustOptions(
-          new PemTrustOptions().addCertValue(Buffer.buffer(serverPem)));
-      connectOptions.setEnabledSecureTransportProtocols(Collections.singleton("TLSv1.3"));
-      connectOptions.setOpenSslEngineOptions(new OpenSSLEngineOptions());
+      ClientSSLOptions cso = new ClientSSLOptions();
+      cso.setHostnameVerificationAlgorithm("HTTPS");
+      cso.setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(serverPem)));
+      cso.setEnabledSecureTransportProtocols(Collections.singleton("TLSv1.3"));
+      connectOptions.setSslOptions(cso);
     }
     PoolOptions poolOptions = new PoolOptions();
     if (maxPoolSize != null) {
@@ -150,7 +150,7 @@ public class TenantPgPoolImpl implements TenantPgPool {
     }
     TenantPgPoolImpl tenantPgPool = new TenantPgPoolImpl(vertx, sanitize(tenant), poolOptions);
     tenantPgPool.pgPool = pgPoolMap.computeIfAbsent(connectOptions, key ->
-        PgPool.pool(vertx, connectOptions, poolOptions));
+        PgBuilder.pool().using(vertx).connectingTo(connectOptions).with(poolOptions).build());
     return tenantPgPool;
   }
 
@@ -169,10 +169,6 @@ public class TenantPgPoolImpl implements TenantPgPool {
     return pgPool;
   }
 
-  @Override
-  public void getConnection(Handler<AsyncResult<SqlConnection>> handler) {
-    pgPool.getConnection(handler);
-  }
 
   @Override
   public Future<SqlConnection> getConnection() {
@@ -194,13 +190,6 @@ public class TenantPgPoolImpl implements TenantPgPool {
   public PreparedQuery<RowSet<Row>> preparedQuery(String s, PrepareOptions prepareOptions) {
     log.debug("preparedQuery {}", s);
     return pgPool.preparedQuery(s, prepareOptions);
-  }
-
-  @Override
-  public void close(Handler<AsyncResult<Void>> handler) {
-    // release our pool from the map
-    while (pgPoolMap.values().remove(pgPool)) { }
-    pgPool.close(handler);
   }
 
   @Override
@@ -255,16 +244,6 @@ public class TenantPgPoolImpl implements TenantPgPool {
   }
 
   @Override
-  public PgPool connectHandler(Handler<SqlConnection> handler) {
-    return pgPool.connectHandler(handler);
-  }
-
-  @Override
-  public PgPool connectionProvider(Function<Context, Future<SqlConnection>> function) {
-    return pgPool.connectionProvider(function);
-  }
-
-  @Override
   public int size() {
     return pgPool.size();
   }
@@ -277,7 +256,7 @@ public class TenantPgPoolImpl implements TenantPgPool {
   public static Future<Void> closeAll() {
     List<Future<Void>> futures = new ArrayList<>(pgPoolMap.size());
     pgPoolMap.forEach((a, b) -> futures.add(b.close()));
-    return GenericCompositeFuture.all(futures)
+    return Future.all(futures)
         .onComplete(x -> pgPoolMap.clear())
         .mapEmpty();
   }

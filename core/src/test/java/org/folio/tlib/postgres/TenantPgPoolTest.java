@@ -8,7 +8,6 @@ import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.sqlclient.PrepareOptions;
-import io.vertx.sqlclient.SqlConnection;
 import io.vertx.sqlclient.Tuple;
 import io.vertx.sqlclient.templates.SqlTemplate;
 import java.io.IOException;
@@ -101,7 +100,7 @@ class TenantPgPoolTest {
   private <T> Future<T> withPool(Vertx vertx, Function<TenantPgPool, Future<T>> mapper) {
     TenantPgPool pool = TenantPgPool.pool(vertx, "diku");
     Future<T> future = mapper.apply(pool);
-    return future.eventually(x -> pool.close());
+    return future.onComplete(x -> pool.close());
   }
 
   @Test
@@ -186,7 +185,7 @@ class TenantPgPoolTest {
   @SuppressWarnings("squid:S2699") // "Add at least one assertion" SQ does not know about context.*
   void getConnection2(Vertx vertx, VertxTestContext context) {
     withPool(vertx, pool ->
-        Future.<SqlConnection>future(promise -> pool.getConnection(promise))
+        pool.getConnection()
         .compose(con -> con.query("SELECT count(*) FROM pg_database").execute()))
     .onComplete(context.succeedingThenComplete());
   }
@@ -265,7 +264,7 @@ class TenantPgPoolTest {
   @SuppressWarnings("squid:S2699") // "Add at least one assertion" SQ does not know about context.*
   void close(Vertx vertx, VertxTestContext context) {
     TenantPgPool pool = TenantPgPool.pool(vertx, "diku");
-    pool.close(context.succeedingThenComplete());
+    pool.close().onComplete(context.succeedingThenComplete());
   }
 
   @Test
@@ -275,18 +274,4 @@ class TenantPgPoolTest {
     TenantPgPool.closeAll().onComplete(context.succeedingThenComplete());
   }
 
-  @Test
-  void connectHandler(Vertx vertx, VertxTestContext context) {
-    TenantPgPool pool = TenantPgPool.pool(vertx, "diku");
-    pool.connectHandler(conn ->
-        conn.query("CREATE TEMP TABLE connecthandler()")
-            .execute()
-            .eventually(x -> conn.close())
-    );
-    pool.withConnection(conn -> conn.preparedQuery("SELECT * FROM connecthandler").execute())
-        .onComplete(context.succeeding(rowSet -> {
-          assertThat(rowSet.size(), is(0));
-          context.completeNow();
-        }));
-  }
 }

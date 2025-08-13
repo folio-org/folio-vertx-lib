@@ -15,7 +15,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 import org.folio.tlib.example.data.Book;
-import org.folio.tlib.example.data.BookRowMapper;
 import org.folio.tlib.postgres.PgCqlDefinition;
 import org.folio.tlib.postgres.PgCqlQuery;
 import org.folio.tlib.postgres.TenantPgPool;
@@ -81,7 +80,7 @@ public class BookStorage {
   public Future<Book> getBook(UUID id) {
     return SqlTemplate.forQuery(pool.getPool(), "SELECT * FROM " + getMyTable(pool)
             + " WHERE id=#{id}")
-        .mapTo(BookRowMapper.INSTANCE)
+        .mapTo(Book::fromRow)
         .execute(Collections.singletonMap("id", id))
         .map(rowSet -> {
           RowIterator<Book> iterator = rowSet.iterator();
@@ -141,7 +140,7 @@ public class BookStorage {
   public Future<List<Book>> getBooks(RoutingContext ctx) {
     String sql = createQueryMyTable(ctx, pool);
     return SqlTemplate.forQuery(pool.getPool(), sql)
-        .mapTo(BookRowMapper.INSTANCE)
+        .mapTo(Book::fromRow)
         .execute(Collections.emptyMap())
         .map(rowSet -> {
           List<Book> books = new LinkedList<>();

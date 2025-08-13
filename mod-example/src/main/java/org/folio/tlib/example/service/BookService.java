@@ -12,6 +12,7 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.openapi.router.RouterBuilder;
 import io.vertx.ext.web.validation.RequestParameters;
 import io.vertx.ext.web.validation.ValidationHandler;
+import io.vertx.openapi.contract.OpenAPIContract;
 import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,14 +34,15 @@ public class BookService implements RouterCreator, TenantInitHooks {
 
   @Override
   public Future<Router> createRouter(Vertx vertx) {
-    return RouterBuilder.create(vertx, "openapi/books-1.0.yaml")
-        .map(routerBuilder -> {
-          // https://vertx.io/docs/vertx-web/java/#_limiting_body_size
-          routerBuilder.rootHandler(BodyHandler.create().setBodyLimit(BODY_LIMIT));
-          handlers(vertx, routerBuilder);
-          return routerBuilder.createRouter();
-        })
-        .onSuccess(res -> log.info("OpenAPI parsed OK"));
+    return OpenAPIContract.from(vertx, "openapi/books-1.0.yaml")
+      .map(contract -> {
+        RouterBuilder routerBuilder = RouterBuilder.create(vertx, contract);
+        // https://vertx.io/docs/vertx-web/java/#_limiting_body_size
+        routerBuilder.rootHandler(BodyHandler.create().setBodyLimit(BODY_LIMIT));
+        handlers(vertx, routerBuilder);
+        return routerBuilder.createRouter();
+      })
+      .onSuccess(res -> log.info("OpenAPI parsed OK"));
   }
 
   private void handleContextFailure(RoutingContext ctx) {
@@ -66,24 +68,21 @@ public class BookService implements RouterCreator, TenantInitHooks {
    * @param routerBuilder OpenAPI router builder
    */
   private void handlers(Vertx vertx, RouterBuilder routerBuilder) {
-    routerBuilder
-        .operation("postBook") // operationId in spec
-        .handler(ctx -> postBook(vertx, ctx)
+    routerBuilder.getRoute("postBook") // operationId in spec
+        .addHandler(ctx -> postBook(vertx, ctx)
             .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage()))
         )
-        .failureHandler(this::handleContextFailure);
-    routerBuilder
-        .operation("getBook")
-        .handler(ctx -> getBook(vertx, ctx)
+        .addFailureHandler(this::handleContextFailure);
+    routerBuilder.getRoute("getBook")
+        .addHandler(ctx -> getBook(vertx, ctx)
             .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage()))
         )
-        .failureHandler(this::handleContextFailure);
-    routerBuilder
-        .operation("getBooks")
-        .handler(ctx -> getBooks(vertx, ctx)
+        .addFailureHandler(this::handleContextFailure);
+    routerBuilder.getRoute("getBooks")
+        .addHandler(ctx -> getBooks(vertx, ctx)
             .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage()))
         )
-        .failureHandler(this::handleContextFailure);
+        .addFailureHandler(this::handleContextFailure);
   }
 
   @Override

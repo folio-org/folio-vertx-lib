@@ -5,8 +5,9 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import io.vertx.pgclient.PgBuilder;
 import io.vertx.pgclient.PgConnectOptions;
-import io.vertx.pgclient.PgPool;
+import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.PoolOptions;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -42,7 +43,7 @@ class PgCqlStorageTest {
   @Container
   static final PostgreSQLContainer<?> container = TenantPgPoolContainer.create();
 
-  public static PgPool pgPool;
+  public static Pool pgPool;
 
   static List<Tuple> batch = List.of(
       Tuple.of(UUID.randomUUID(), "On the road with Bob Dylan", "Larry \"Ratso\" Sloman"),
@@ -53,14 +54,16 @@ class PgCqlStorageTest {
 
   @BeforeAll
   static void beforeAll(Vertx vertx, VertxTestContext context) {
-    pgPool = PgPool.pool(vertx,
-        new PgConnectOptions()
+    PgConnectOptions connectOptions = new PgConnectOptions()
             .setPort(container.getFirstMappedPort())
             .setHost(container.getHost())
             .setDatabase(container.getDatabaseName())
             .setUser(container.getUsername())
-            .setPassword(container.getPassword()),
-        new PoolOptions().setMaxSize(2));
+            .setPassword(container.getPassword());
+
+    PoolOptions poolOptions = new PoolOptions().setMaxSize(2);
+    pgPool = PgBuilder.pool().using(vertx).connectingTo(connectOptions).with(poolOptions).build();
+
     pgPool.query("CREATE TABLE entries (id UUID, title TEXT, author TEXT)")
         .execute()
         .compose(x -> insertSample())

@@ -151,6 +151,7 @@
               <groupId>io.vertx</groupId>
               <artifactId>vertx-codegen</artifactId>
               <version>${vertx.version}</version>
+              <classifier>processor</classifier>
             </path>
           </annotationProcessorPaths>
         </configuration>

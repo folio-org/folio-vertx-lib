@@ -3,7 +3,6 @@ package org.folio.tlib.postgres;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.pgclient.PgConnectOptions;
-import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Row;
@@ -14,9 +13,9 @@ import java.util.List;
 import org.folio.tlib.postgres.impl.TenantPgPoolImpl;
 
 /**
- * The {@link PgPool} for a tenant.
+ * The {@link Pool} for a tenant.
  */
-public interface TenantPgPool extends PgPool {
+public interface TenantPgPool extends Pool {
 
   /**
    * create tenant pool for tenant.
