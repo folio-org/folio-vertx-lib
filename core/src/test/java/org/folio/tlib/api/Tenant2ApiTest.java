@@ -134,7 +134,6 @@ class Tenant2ApiTest {
 
   @Test
   void testPostTenantBadTenant2() {
-    String tenant = "test\"lib";
     RestAssured.given()
         .contentType(ContentType.JSON)
         .body("{\"module_to\" : \"mod-eusage-reports-1.0.0\"}")

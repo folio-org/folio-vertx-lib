@@ -1,9 +1,22 @@
 {
-  "description": "List of key/value parameters of an error",
+  "description": "List of key/value parameters",
   "type": "array",
   "items": {
     "type": "object",
-    "$ref": "parameter.json"
+    "properties": {
+      "key": {
+        "description": "The key for this parameter",
+        "type": "string"
+      },
+      "value": {
+        "description": "The value of this parameter",
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "key"
+    ]
   },
   "additionalProperties": false
 }

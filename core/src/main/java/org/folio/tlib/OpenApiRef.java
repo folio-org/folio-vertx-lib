@@ -40,14 +40,18 @@ public class OpenApiRef {
       throw new IOException("Failed to parse OpenAPI: " + result.getMessages());
     }
     ObjectMapper mapper;
-    mapper = new ObjectMapper(new YAMLFactory());
+    if (outputPath.endsWith(".yaml")) {
+      mapper = new ObjectMapper(new YAMLFactory());
+    } else {
+      mapper = new ObjectMapper(); // JSON output
+    }
     mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
     // Convert OpenAPI object to a tree for post-processing
     JsonNode tree = mapper.valueToTree(openApi);
-    // swagger parser produces some properties that Vert.x openapi does not recognize. Omit these.
+    // swagger parser produces some properties that Vert.x OpenApi does not recognize. Omit these.
     removeKeysRecursive(tree,
-        "exampleSetFlag", "extensions", "servers", "style", "types", "valueSetFlag");
+        "exampleSetFlag", "extensions", "jsonSchema", "servers", "style", "types", "valueSetFlag");
 
     mapper.writerWithDefaultPrettyPrinter().writeValue(new File(outputPath), tree);
   }
