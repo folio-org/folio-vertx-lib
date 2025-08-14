@@ -16,8 +16,6 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/tenantAttributes"
-            example:
-              $ref: "examples/tenantAttributes.sample"
         required: true
       responses:
         "204":

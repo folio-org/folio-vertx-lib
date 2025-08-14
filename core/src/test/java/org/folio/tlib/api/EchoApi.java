@@ -9,6 +9,7 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.openapi.router.RouterBuilder;
 import io.vertx.openapi.contract.OpenAPIContract;
 
+import org.folio.tlib.OpenApiRef;
 import org.folio.tlib.RouterCreator;
 
 public class EchoApi implements RouterCreator {
@@ -31,7 +32,13 @@ public class EchoApi implements RouterCreator {
 
   @Override
   public Future<Router> createRouter(Vertx vertx) {
-    return OpenAPIContract.from(vertx, "openapi/echo.yaml")
+    String spec;
+    try {
+      spec = OpenApiRef.fix("openapi/echo.yaml");
+    } catch (Exception e) {
+      return Future.failedFuture(e);
+    }
+    return OpenAPIContract.from(vertx, spec)
       .map(contract -> {
         RouterBuilder routerBuilder = RouterBuilder.create(vertx, contract);
         //routerBuilder.map(routerBuilder -> {
