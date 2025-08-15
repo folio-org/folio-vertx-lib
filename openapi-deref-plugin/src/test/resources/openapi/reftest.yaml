@@ -1,0 +1,42 @@
+openapi: 3.0.0
+info:
+  title: ref test
+  version: v1
+paths:
+  /echo:
+    parameters:
+      - $ref: "#/components/parameters/okapi_tenant"
+      - $ref: headers/okapi-token.yaml
+    get:
+      description: echo request
+      operationId: refTestEcho
+      responses:
+        "200":
+          description: echo ok
+          content:
+            text/plain:
+              schema:
+                type: string
+        "400":
+          $ref: "#/components/responses/trait_400"
+components:
+  responses:
+    trait_400:
+      description: Bad request
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: Invalid JSON in request
+        application/json:
+          schema:
+            type: object
+            example: {"error":"Invalid JSON in request"}
+  parameters:
+    okapi_tenant:
+      name: X-Okapi-Tenant
+      in: header
+      required: true
+      schema:
+        type: string
+        pattern: '^[_a-z][_a-z0-9]*$'

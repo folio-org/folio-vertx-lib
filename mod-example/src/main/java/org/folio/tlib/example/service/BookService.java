@@ -11,12 +11,10 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.openapi.router.RouterBuilder;
 import io.vertx.openapi.contract.OpenAPIContract;
 import io.vertx.openapi.validation.ValidatedRequest;
-import java.io.IOException;
 import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.okapi.common.HttpResponse;
-import org.folio.tlib.OpenApiRef;
 import org.folio.tlib.RouterCreator;
 import org.folio.tlib.TenantInitHooks;
 import org.folio.tlib.example.data.Book;
@@ -32,14 +30,7 @@ public class BookService implements RouterCreator, TenantInitHooks {
 
   @Override
   public Future<Router> createRouter(Vertx vertx) {
-
-    String spec;
-    try {
-      spec = OpenApiRef.fix("openapi/books-1.0.yaml");
-    } catch (IOException e) {
-      return Future.failedFuture(e);
-    }
-    return OpenAPIContract.from(vertx, spec)
+    return OpenAPIContract.from(vertx, "openapi/books-1.0.deref.yaml")
       .map(contract -> {
         RouterBuilder routerBuilder = RouterBuilder.create(vertx, contract);
         handlers(vertx, routerBuilder);

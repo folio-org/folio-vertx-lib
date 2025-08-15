@@ -12,7 +12,6 @@ import io.vertx.ext.web.openapi.router.RouterBuilder;
 import io.vertx.openapi.contract.OpenAPIContract;
 import io.vertx.openapi.validation.ValidatedRequest;
 import io.vertx.sqlclient.Tuple;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,7 +19,6 @@ import java.util.Map;
 import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.tlib.OpenApiRef;
 import org.folio.tlib.RouterCreator;
 import org.folio.tlib.TenantInitHooks;
 import org.folio.tlib.postgres.impl.TenantPgPoolImpl;
@@ -275,13 +273,7 @@ public class Tenant2Api implements RouterCreator {
    */
   @Override
   public Future<Router> createRouter(Vertx vertx) {
-    String spec;
-    try {
-      spec = OpenApiRef.fix("openapi/tenant-2.0.yaml");
-    } catch (IOException e) {
-      return Future.failedFuture(e);
-    }
-    return OpenAPIContract.from(vertx, spec)
+    return OpenAPIContract.from(vertx,  "openapi/tenant-2.0.deref.yaml")
       .map(contract -> {
         RouterBuilder routerBuilder = RouterBuilder.create(vertx, contract);
         handlers(vertx, routerBuilder);

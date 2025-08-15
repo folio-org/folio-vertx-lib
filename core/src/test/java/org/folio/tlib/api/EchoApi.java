@@ -11,7 +11,6 @@ import io.vertx.ext.web.openapi.router.RouterBuilder;
 import io.vertx.openapi.contract.OpenAPIContract;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.tlib.OpenApiRef;
 import org.folio.tlib.RouterCreator;
 
 public class EchoApi implements RouterCreator {
@@ -36,13 +35,7 @@ public class EchoApi implements RouterCreator {
 
   @Override
   public Future<Router> createRouter(Vertx vertx) {
-    String spec;
-    try {
-      spec = OpenApiRef.fix("openapi/echo.yaml");
-    } catch (Exception e) {
-      return Future.failedFuture(e);
-    }
-    return OpenAPIContract.from(vertx, spec)
+    return OpenAPIContract.from(vertx, "target/echo.deref.yaml")
       .map(contract -> {
         RouterBuilder routerBuilder = RouterBuilder.create(vertx, contract);
         //routerBuilder.map(routerBuilder -> {

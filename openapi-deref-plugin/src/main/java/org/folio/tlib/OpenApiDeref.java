@@ -15,22 +15,7 @@ import java.io.IOException;
 /**
  * Class for resolving OpenAPI $ref references.
  */
-public class OpenApiRef {
-  /**
-   * Resolves $ref in OpenAPI, suitable for Vert.x OpenAPI parser.
-   *
-   * @param path local-URI to OpenAPI YAML file
-   * @return resolved file in target
-   * @throws IOException if file could be found or similar
-   */
-  public static String fix(String path) throws IOException {
-    // get filename portion of path
-    String refFilename = new File(path).getName();
-    refFilename = "target/" + refFilename.replace(".yaml", "_ref.yaml");
-    fix(path, refFilename);
-    return refFilename;
-  }
-
+public class OpenApiDeref {
   static void fix(String inputPath, String outputPath) throws IOException {
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setResolve(true);
@@ -53,26 +38,17 @@ public class OpenApiRef {
     removeKeysRecursive(tree,
         "exampleSetFlag", "extensions", "jsonSchema", "servers", "style", "types", "valueSetFlag");
 
+    new File(outputPath).getParentFile().mkdirs();
     mapper.writerWithDefaultPrettyPrinter().writeValue(new File(outputPath), tree);
   }
 
   private static void removeKeysRecursive(JsonNode node, String... keys) {
     if (node.isObject()) {
-      java.util.Iterator<String> fieldNames = node.fieldNames();
-      java.util.List<String> toRemove = new java.util.ArrayList<>();
-      while (fieldNames.hasNext()) {
-        String field = fieldNames.next();
-        for (String k : keys) {
-          if (field.equals(k)) {
-            toRemove.add(field);
-          }
-        }
+      ObjectNode obj = (ObjectNode) node;
+      for (String key : keys) {
+        obj.remove(key);
       }
-      for (String field : toRemove) {
-        ((ObjectNode) node).remove(field);
-      }
-      // Recurse into children
-      node.fields().forEachRemaining(e -> removeKeysRecursive(e.getValue(), keys));
+      obj.fields().forEachRemaining(entry -> removeKeysRecursive(entry.getValue(), keys));
     } else if (node.isArray()) {
       for (JsonNode item : node) {
         removeKeysRecursive(item, keys);

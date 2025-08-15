@@ -33,6 +33,7 @@
     <vertx.version>5.0.2</vertx.version>
   </properties>
   <modules>
+    <module>openapi-deref-plugin</module>
     <module>core</module>
     <module>pg-testing</module>
     <module>mod-example</module>
