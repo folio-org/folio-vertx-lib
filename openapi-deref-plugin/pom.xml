@@ -62,8 +62,6 @@
           <release>21</release>
           <encoding>UTF-8</encoding>
           <!-- Fully clear annotation processor config to override parent -->
-          <!-- <annotationProcessors/>
-          <annotationProcessorPaths/> -->
         </configuration>
       </plugin>
       <plugin>
