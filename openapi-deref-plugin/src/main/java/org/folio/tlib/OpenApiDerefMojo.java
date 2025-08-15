@@ -30,7 +30,7 @@ public class OpenApiDerefMojo extends AbstractMojo {
     getLog().info("Dereferencing OpenAPI: " + input + " -> " + output);
     try {
       // I want to generate all leading directories in output path
-      OpenApiDeref.fix(input, output);
+      new OpenApiDeref(input, output);
       getLog().info("Dereferenced OpenAPI written to: " + output);
     } catch (IOException e) {
       throw new MojoExecutionException("Failed to dereference OpenAPI spec", e);
