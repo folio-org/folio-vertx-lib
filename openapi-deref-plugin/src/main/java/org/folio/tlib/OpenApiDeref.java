@@ -16,6 +16,10 @@ import java.io.IOException;
  * Class for resolving OpenAPI $ref references.
  */
 public class OpenApiDeref {
+  private OpenApiDeref() {
+    throw new IllegalStateException("OpenApiDeref");
+  }
+
   static void fix(String inputPath, String outputPath) throws IOException {
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setResolve(true);
