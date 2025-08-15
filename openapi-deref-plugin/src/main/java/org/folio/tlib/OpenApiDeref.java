@@ -16,7 +16,7 @@ import java.io.IOException;
  * Class for resolving OpenAPI $ref references.
  */
 public class OpenApiDeref {
-  OpenApiDeref(String inputPath, String outputPath) throws IOException {
+  static void fix(String inputPath, String outputPath) throws IOException {
     ParseOptions parseOptions = new ParseOptions();
     parseOptions.setResolve(true);
     SwaggerParseResult result = new OpenAPIV3Parser().readLocation(inputPath, null, parseOptions);

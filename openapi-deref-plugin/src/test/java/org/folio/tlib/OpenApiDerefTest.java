@@ -13,7 +13,7 @@ class OpenApiDerefTest {
   void testDerefYaml() throws Exception {
     String input = "src/test/resources/openapi/reftest.yaml";
     String output = "target/generated-resources/openapi/reftest.deref.yaml";
-    new OpenApiDeref(input, output);
+    OpenApiDeref.fix(input, output);
     // read output file into memory
     String outputContent = new String(Files.readAllBytes(Paths.get(output)), StandardCharsets.UTF_8);
     assertNotNull(outputContent);
@@ -25,7 +25,7 @@ class OpenApiDerefTest {
   void testDerefJson() throws Exception {
     String input = "src/test/resources/openapi/reftest.yaml";
     String output = "target/generated-resources/openapi/reftest.deref.json";
-    new OpenApiDeref(input, output);
+    OpenApiDeref.fix(input, output);
     // read output file into memory
     String outputContent = new String(Files.readAllBytes(Paths.get(output)), StandardCharsets.UTF_8);
     assertNotNull(outputContent);
@@ -38,7 +38,7 @@ class OpenApiDerefTest {
     String input = "src/test/resources/openapi/headers/okapi-token.yaml";
     String output = "target/generated-resources/openapi/okapi-token.deref.json";
     assertThrows(java.io.IOException.class, () -> {
-      new OpenApiDeref(input, output);
+      OpenApiDeref.fix(input, output);
     });
   }
 
@@ -47,7 +47,7 @@ class OpenApiDerefTest {
     String input = "src/test/resources/openapi/headers/no-file-en.yaml";
     String output = "target/generated-resources/openapi/no-file.deref.json";
     assertThrows(java.io.IOException.class, () -> {
-      new OpenApiDeref(input, output);
+      OpenApiDeref.fix(input, output);
     });
   }
 
