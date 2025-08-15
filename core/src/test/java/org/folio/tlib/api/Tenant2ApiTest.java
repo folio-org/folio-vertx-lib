@@ -129,7 +129,7 @@ class Tenant2ApiTest {
         .post("/_/tenant")
         .then().statusCode(400)
         .contentType(ContentType.TEXT)
-        .body(containsString("X-Okapi-Tenant in location HEADER: provided string should respect pattern"));
+        .body(containsString("The value of header parameter X-Okapi-Tenant is invalid. Reason: String does not match pattern"));
   }
 
   @Test
@@ -140,7 +140,7 @@ class Tenant2ApiTest {
         .post("/_/tenant")
         .then().statusCode(400)
         .contentType(ContentType.TEXT)
-        .body(containsString("Missing parameter X-Okapi-Tenant in HEADER"));
+        .body(containsString("The related request / response does not contain the required header parameter X-Okapi-Tenant"));
   }
 
   @Test
@@ -415,7 +415,7 @@ class Tenant2ApiTest {
         .get("/_/tenant/" + id)
         .then().statusCode(400)
         .contentType(ContentType.TEXT)
-        .body(containsString("Validation error for parameter id in location"));
+        .body(containsString("he value of path parameter id is invalid. Reason: String does not match format \"uuid\""));
   }
 
   @Test
@@ -435,7 +435,7 @@ class Tenant2ApiTest {
         .delete("/_/tenant/" + id)
         .then().statusCode(400)
         .contentType(ContentType.TEXT)
-        .body(containsString("Validation error for parameter id in location"));
+        .body(containsString("The value of path parameter id is invalid. Reason: String does not match format \"uuid\""));
   }
 
   @Test

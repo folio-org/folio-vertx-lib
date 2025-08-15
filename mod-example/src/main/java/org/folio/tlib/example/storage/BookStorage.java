@@ -5,9 +5,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.validation.RequestParameter;
-import io.vertx.ext.web.validation.RequestParameters;
-import io.vertx.ext.web.validation.ValidationHandler;
 import io.vertx.sqlclient.RowIterator;
 import io.vertx.sqlclient.templates.SqlTemplate;
 import java.util.Collections;
@@ -115,9 +112,8 @@ public class BookStorage {
     pgCqlDefinition.addField("id", new PgCqlFieldUuid());
     pgCqlDefinition.addField("title", new PgCqlFieldText().withFullText());
 
-    RequestParameters params = ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY);
-    RequestParameter query = params.queryParameter("query");
-    PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(query == null ? null : query.getString());
+    List<String> query = ctx.queryParam("query");
+    PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(query.isEmpty() ? null : query.get(0));
     String sql = "SELECT * FROM " + getMyTable(pool);
     String where = pgCqlQuery.getWhereClause();
     if (where != null) {

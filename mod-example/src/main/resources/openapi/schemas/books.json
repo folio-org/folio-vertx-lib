@@ -7,7 +7,25 @@
       "type": "array",
       "items": {
         "type": "object",
-        "$ref": "book.json"
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Title identifier",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title text"
+          },
+          "indexTitle": {
+            "type": "string",
+            "description": "Indexed title"
+          }
+        },
+        "required": [
+          "id", "title"
+        ],
+        "additionalProperties": false
       }
     }
   },

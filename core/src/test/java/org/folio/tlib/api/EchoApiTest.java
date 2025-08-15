@@ -62,7 +62,20 @@ class EchoApiTest {
   }
 
   @Test
-  void testEcho200() {
+  void testEcho200_1() {
+    String request = "x".repeat(5);
+    RestAssured.given()
+        .header("X-Okapi-Tenant", "tenant")
+        .contentType(ContentType.TEXT)
+        .body(request)
+        .post("/echo")
+        .then().statusCode(200)
+        .contentType(ContentType.TEXT)
+        .body(is(request));
+  }
+
+  @Test
+  void testEcho200_2() {
     String request = "x".repeat(BODY_LIMIT);
     RestAssured.given()
         .header("X-Okapi-Tenant", "tenant")

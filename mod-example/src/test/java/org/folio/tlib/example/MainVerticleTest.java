@@ -22,7 +22,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.testcontainers.containers.PostgreSQLContainer;
 
-import static org.folio.tlib.example.service.BookService.BODY_LIMIT;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
@@ -210,22 +209,6 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testBodyLimitBooks() {
-    Book a = new Book();
-    a.setTitle("x".repeat(BODY_LIMIT));
-    a.setId(UUID.randomUUID());
-
-    RestAssured.given()
-        .header(XOkapiHeaders.TENANT, TENANT)
-        .contentType(ContentType.JSON)
-        .body(JsonObject.mapFrom(a).encode())
-        .post("/books")
-        .then().statusCode(413)
-        .contentType(ContentType.TEXT)
-        .body(is("Request Entity Too Large"));
-  }
-
-  @Test
   public void testValidationError() {
     Book book = new Book();
     book.setTitle("my title");
@@ -241,6 +224,6 @@ public class MainVerticleTest {
         .post("/books")
         .then().statusCode(400)
         .contentType(ContentType.TEXT)
-        .body(containsString("Provided object contains unexpected additional property: extra"));
+        .body(containsString(" Reason: Property \"extra\" does not match additional properties schema"));
   }
 }

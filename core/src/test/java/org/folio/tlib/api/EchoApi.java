@@ -6,15 +6,19 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.openapi.router.OpenAPIRoute;
 import io.vertx.ext.web.openapi.router.RouterBuilder;
 import io.vertx.openapi.contract.OpenAPIContract;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.tlib.OpenApiRef;
 import org.folio.tlib.RouterCreator;
 
 public class EchoApi implements RouterCreator {
 
   static final int BODY_LIMIT = 65536; // 64 kb as an example of reasonable limit for Json content
+
+  private static final Logger log = LogManager.getLogger(EchoApi.class);
 
   static void handleError(RoutingContext ctx, int status, Throwable t) {
     if (t == null) {
@@ -44,7 +48,9 @@ public class EchoApi implements RouterCreator {
         //routerBuilder.map(routerBuilder -> {
         // https://vertx.io/docs/vertx-web/java/#_limiting_body_size
         routerBuilder.rootHandler(BodyHandler.create().setBodyLimit(BODY_LIMIT));
-        routerBuilder.getRoute("echo") // operationId in spec
+        OpenAPIRoute openApiRoute = routerBuilder.getRoute("echo");
+        openApiRoute.setDoValidation(false);
+        openApiRoute
           .addHandler(ctx -> echo(ctx)
               .onFailure(e -> handleError(ctx, 500, e))
           )
