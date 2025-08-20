@@ -3,20 +3,7 @@
   "type": "array",
   "items": {
     "type": "object",
-    "properties": {
-      "key": {
-        "description": "The key for this parameter",
-        "type": "string"
-      },
-      "value": {
-        "description": "The value of this parameter",
-        "type": "string"
-      }
-    },
-    "additionalProperties": false,
-    "required": [
-      "key"
-    ]
+    "$ref": "parameter.json"
   },
   "additionalProperties": false
 }

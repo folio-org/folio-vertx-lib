@@ -94,7 +94,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/errors"
+            $ref: schemas/errors.json
           examples:
             response:
               value: examples/errors.sample

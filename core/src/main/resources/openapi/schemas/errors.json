@@ -7,24 +7,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "properties": {
-          "message": {
-            "type": "string",
-            "description": "Error message text"
-          },
-          "type": {
-            "type": "string",
-            "description": "Error message type"
-          },
-          "code": {
-            "type": "string",
-            "description": "Error message code"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "message"
-        ]
+        "$ref": "error.json"
       }
     },
     "total_records": {
