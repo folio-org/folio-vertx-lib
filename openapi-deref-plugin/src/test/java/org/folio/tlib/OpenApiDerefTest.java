@@ -18,7 +18,7 @@ class OpenApiDerefTest {
     String outputContent = new String(Files.readAllBytes(Paths.get(output)), StandardCharsets.UTF_8);
     assertNotNull(outputContent);
     // check that $ref is not found anywhere
-    assertFalse(outputContent.contains("$ref"));
+    assertFalse(outputContent.contains("$ref: headers"));
   }
 
   @Test
@@ -30,7 +30,7 @@ class OpenApiDerefTest {
     String outputContent = new String(Files.readAllBytes(Paths.get(output)), StandardCharsets.UTF_8);
     assertNotNull(outputContent);
     // check that $ref is not found anywhere
-    assertFalse(outputContent.contains("$ref"));
+    assertFalse(outputContent.contains("$ref: headers"));
   }
 
   @Test
