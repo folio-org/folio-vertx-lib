@@ -125,15 +125,6 @@
     </dependency>
   </dependencies>
   <build>
-    <resources>
-      <resource>
-        <directory>${project.build.directory}/generated-resources</directory>
-        <includes>
-          <include>**/*</include>
-        </includes>
-      </resource>
-      <!-- ...other resources... -->
-    </resources>
     <plugins>
       <plugin>
         <groupId>org.folio</groupId>
@@ -146,10 +137,6 @@
               <goal>dereference</goal>
             </goals>
             <phase>generate-resources</phase>
-            <configuration>
-              <input>${project.basedir}/src/main/resources/openapi/books-1.0.yaml</input>
-              <output>${project.build.directory}/generated-resources/openapi/books-1.0.deref.yaml</output>
-            </configuration>
           </execution>
         </executions>
       </plugin>

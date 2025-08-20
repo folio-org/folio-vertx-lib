@@ -273,7 +273,7 @@ public class Tenant2Api implements RouterCreator {
    */
   @Override
   public Future<Router> createRouter(Vertx vertx) {
-    return OpenAPIContract.from(vertx,  "openapi/tenant-2.0.deref.yaml")
+    return OpenAPIContract.from(vertx,  "openapi/tenant-2.0.yaml")
       .map(contract -> {
         RouterBuilder routerBuilder = RouterBuilder.create(vertx, contract);
         handlers(vertx, routerBuilder);

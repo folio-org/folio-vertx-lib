@@ -11,6 +11,11 @@ import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class for resolving OpenAPI $ref references.
@@ -18,6 +23,30 @@ import java.io.IOException;
 public class OpenApiDeref {
   private OpenApiDeref() {
     throw new IllegalStateException("OpenApiDeref");
+  }
+
+  static List<String> mapFilesWithPattern(String inputPattern, String outputPath)
+      throws IOException {
+    File inputDir = new File(inputPattern).getParentFile();
+    if (inputDir == null) {
+      throw new IOException("no path in " + inputPattern);
+    }
+    Path dirPath = inputDir.toPath();
+    DirectoryStream.Filter<java.nio.file.Path> filter = entry ->
+        java.nio.file.FileSystems.getDefault()
+          .getPathMatcher("glob:" + new File(inputPattern).getName())
+          .matches(entry.getFileName());
+
+    List<String> files = new ArrayList<>();
+    try (DirectoryStream<Path> stream = Files.newDirectoryStream(dirPath, filter)) {
+      for (Path entry : stream) {
+        String inputFile = entry.toFile().getAbsolutePath();
+        files.add(inputFile);
+        String outputFile = inputFile.replace(inputDir.getAbsolutePath(), outputPath);
+        files.add(outputFile);
+      }
+    }
+    return files;
   }
 
   static void fix(String inputPath, String outputPath) throws IOException {

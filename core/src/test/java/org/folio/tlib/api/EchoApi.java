@@ -31,7 +31,7 @@ public class EchoApi implements RouterCreator {
 
   @Override
   public Future<Router> createRouter(Vertx vertx) {
-    return OpenAPIContract.from(vertx, "target/echo.deref.yaml")
+    return OpenAPIContract.from(vertx, "openapi/echo.yaml")
       .map(contract -> {
         RouterBuilder routerBuilder = RouterBuilder.create(vertx, contract);
         // https://vertx.io/docs/vertx-web/java/#_limiting_body_size

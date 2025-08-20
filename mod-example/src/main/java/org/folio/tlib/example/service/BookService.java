@@ -30,7 +30,7 @@ public class BookService implements RouterCreator, TenantInitHooks {
 
   @Override
   public Future<Router> createRouter(Vertx vertx) {
-    return OpenAPIContract.from(vertx, "openapi/books-1.0.deref.yaml")
+    return OpenAPIContract.from(vertx, "openapi/books-1.0.yaml")
       .map(contract -> {
         RouterBuilder routerBuilder = RouterBuilder.create(vertx, contract);
         handlers(vertx, routerBuilder);
