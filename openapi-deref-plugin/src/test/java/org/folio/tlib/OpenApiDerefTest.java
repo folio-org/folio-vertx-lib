@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +26,7 @@ class OpenApiDerefTest {
   }
 
   @Test
-  void testMapFilesWithPattern3() throws Exception {
+  void testMapFilesWithPattern3() {
     assertThrows(IOException.class, () -> {
       OpenApiDeref.mapFilesWithPattern("src1/test1/1.nope", "target/generated-resources/openapi");
     });
