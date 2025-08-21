@@ -17,21 +17,7 @@ paths:
             text/plain:
               schema:
                 type: string
-        "400":
-          $ref: "#/components/responses/trait_400"
 components:
-  responses:
-    trait_400:
-      description: Bad request
-      content:
-        text/plain:
-          schema:
-            type: string
-            example: Invalid JSON in request
-        application/json:
-          schema:
-            type: object
-            example: {"error":"Invalid JSON in request"}
   parameters:
     okapi_tenant:
       name: X-Okapi-Tenant

@@ -44,11 +44,9 @@ class OpenApiDerefTest {
     String input = "src/test/resources/openapi/reftest.yaml";
     String output = "target/generated-resources/openapi/reftest.deref.yaml";
     OpenApiDeref.fix(input, output);
-    // read output file into memory
     String outputContent = new String(Files.readAllBytes(Paths.get(output)), StandardCharsets.UTF_8);
     assertNotNull(outputContent);
-    // check that $ref is not found anywhere
-    assertFalse(outputContent.contains("$ref: headers"));
+    assertFalse(outputContent.contains("$ref"));
   }
 
   @Test
@@ -56,11 +54,9 @@ class OpenApiDerefTest {
     String input = "src/test/resources/openapi/reftest.yaml";
     String output = "target/generated-resources/openapi/reftest.deref.json";
     OpenApiDeref.fix(input, output);
-    // read output file into memory
     String outputContent = new String(Files.readAllBytes(Paths.get(output)), StandardCharsets.UTF_8);
     assertNotNull(outputContent);
-    // check that $ref is not found anywhere
-    assertFalse(outputContent.contains("$ref: headers"));
+    assertFalse(outputContent.contains("$ref"));
   }
 
   @Test
