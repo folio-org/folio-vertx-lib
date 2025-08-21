@@ -1,0 +1,28 @@
+openapi: 3.0.0
+info:
+  title: ref test
+  version: v1
+paths:
+  /echo:
+    parameters:
+      - $ref: "#/components/parameters/okapi_tenant"
+      - $ref: headers/okapi-token.yaml
+    get:
+      description: echo request
+      operationId: refTestEcho
+      responses:
+        "200":
+          description: echo ok
+          content:
+            text/plain:
+              schema:
+                type: string
+components:
+  parameters:
+    okapi_tenant:
+      name: X-Okapi-Tenant
+      in: header
+      required: true
+      schema:
+        type: string
+        pattern: '^[_a-z][_a-z0-9]*$'

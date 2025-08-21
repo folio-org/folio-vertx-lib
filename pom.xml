@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.folio</groupId>
   <artifactId>folio-vertx-lib</artifactId>
-  <version>3.5.0-SNAPSHOT</version>
+  <version>4.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>FOLIO Vert.x library</name>
   <description>
@@ -29,10 +29,11 @@
   </licenses>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <okapi.version>6.2.0</okapi.version>
-    <vertx.version>4.5.13</vertx.version>
+    <okapi.version>7.0.0</okapi.version>
+    <vertx.version>5.0.3</vertx.version>
   </properties>
   <modules>
+    <module>openapi-deref-plugin</module>
     <module>core</module>
     <module>pg-testing</module>
     <module>mod-example</module>
@@ -42,7 +43,7 @@
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-bom</artifactId>
-        <version>2.24.1</version>
+        <version>2.24.3</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -146,6 +147,14 @@
           <annotationProcessors>
             <annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>
           </annotationProcessors>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>io.vertx</groupId>
+              <artifactId>vertx-codegen</artifactId>
+              <version>${vertx.version}</version>
+              <classifier>processor</classifier>
+            </path>
+          </annotationProcessorPaths>
         </configuration>
       </plugin>
       <plugin>
@@ -247,7 +256,6 @@
         <version>3.5.0</version>
         <configuration>
           <configLocation>google_checks.xml</configLocation>
-          <encoding>UTF-8</encoding>
           <violationSeverity>warning</violationSeverity>
           <consoleOutput>false</consoleOutput>
           <failsOnError>true</failsOnError>

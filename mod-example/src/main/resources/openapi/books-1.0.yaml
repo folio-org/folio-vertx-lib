@@ -15,7 +15,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/book"
+              $ref: schemas/book.json
         required: true
       responses:
         "204":
@@ -42,7 +42,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/books"
+                $ref: schemas/books.json
         "400":
           $ref: "#/components/responses/trait_400"
         "500":
@@ -68,7 +68,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/book"
+                $ref: schemas/book.json
         "400":
           $ref: "#/components/responses/trait_400"
         "404":
@@ -110,8 +110,4 @@ components:
           schema:
             type: string
             example: Internal server error, contact administrator
-  schemas:
-    books:
-      $ref: schemas/books.json
-    book:
-      $ref: schemas/book.json
+

@@ -8,10 +8,9 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.openapi.RouterBuilder;
-import io.vertx.ext.web.validation.RequestParameters;
-import io.vertx.ext.web.validation.ValidationHandler;
+import io.vertx.ext.web.openapi.router.RouterBuilder;
+import io.vertx.openapi.contract.OpenAPIContract;
+import io.vertx.openapi.validation.ValidatedRequest;
 import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,26 +26,29 @@ import org.folio.tlib.util.TenantUtil;
  */
 public class BookService implements RouterCreator, TenantInitHooks {
 
-  public static final int BODY_LIMIT = 65536; // 64 kb
-
   private final Logger log = LogManager.getLogger(BookService.class);
 
   @Override
   public Future<Router> createRouter(Vertx vertx) {
-    return RouterBuilder.create(vertx, "openapi/books-1.0.yaml")
-        .map(routerBuilder -> {
-          // https://vertx.io/docs/vertx-web/java/#_limiting_body_size
-          routerBuilder.rootHandler(BodyHandler.create().setBodyLimit(BODY_LIMIT));
-          handlers(vertx, routerBuilder);
-          return routerBuilder.createRouter();
-        })
-        .onSuccess(res -> log.info("OpenAPI parsed OK"));
+    return OpenAPIContract.from(vertx, "openapi/books-1.0.yaml")
+      .map(contract -> {
+        RouterBuilder routerBuilder = RouterBuilder.create(vertx, contract);
+        handlers(vertx, routerBuilder);
+        return routerBuilder.createRouter();
+      })
+      .onSuccess(res -> log.info("OpenAPI parsed OK"));
   }
 
   private void handleContextFailure(RoutingContext ctx) {
     ctx.response().setStatusCode(ctx.statusCode());
-    String msg = ctx.failure() != null ? ctx.failure().getMessage()
-        : HttpResponseStatus.valueOf(ctx.statusCode()).reasonPhrase();
+    String msg;
+    if (ctx.failure() == null) {
+      msg = HttpResponseStatus.valueOf(ctx.statusCode()).reasonPhrase();
+    } else if (ctx.failure().getCause() == null) {
+      msg = ctx.failure().getMessage();
+    } else {
+      msg = ctx.failure().getCause().getMessage();
+    }
     ctx.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/plain");
     ctx.response().end(msg);
   }
@@ -66,24 +68,21 @@ public class BookService implements RouterCreator, TenantInitHooks {
    * @param routerBuilder OpenAPI router builder
    */
   private void handlers(Vertx vertx, RouterBuilder routerBuilder) {
-    routerBuilder
-        .operation("postBook") // operationId in spec
-        .handler(ctx -> postBook(vertx, ctx)
+    routerBuilder.getRoute("postBook") // operationId in spec
+        .addHandler(ctx -> postBook(vertx, ctx)
             .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage()))
         )
-        .failureHandler(this::handleContextFailure);
-    routerBuilder
-        .operation("getBook")
-        .handler(ctx -> getBook(vertx, ctx)
+        .addFailureHandler(this::handleContextFailure);
+    routerBuilder.getRoute("getBook")
+        .addHandler(ctx -> getBook(vertx, ctx)
             .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage()))
         )
-        .failureHandler(this::handleContextFailure);
-    routerBuilder
-        .operation("getBooks")
-        .handler(ctx -> getBooks(vertx, ctx)
+        .addFailureHandler(this::handleContextFailure);
+    routerBuilder.getRoute("getBooks")
+        .addHandler(ctx -> getBooks(vertx, ctx)
             .onFailure(cause -> HttpResponse.responseError(ctx, 500, cause.getMessage()))
         )
-        .failureHandler(this::handleContextFailure);
+        .addFailureHandler(this::handleContextFailure);
   }
 
   @Override
@@ -109,9 +108,7 @@ public class BookService implements RouterCreator, TenantInitHooks {
 
   private Future<Void> getBook(Vertx vertx, RoutingContext ctx) {
     String tenant = TenantUtil.tenant(ctx);
-
-    RequestParameters params = ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY);
-    UUID id = UUID.fromString(params.pathParameter("id").getString());
+    UUID id = UUID.fromString(ctx.pathParam("id"));
     BookStorage storage = new BookStorage(vertx, tenant);
     return storage.getBook(id)
         .map(book -> {
@@ -126,8 +123,10 @@ public class BookService implements RouterCreator, TenantInitHooks {
 
   private Future<Void> postBook(Vertx vertx, RoutingContext ctx) {
     String tenant = TenantUtil.tenant(ctx);
+    ValidatedRequest validatedRequest =
+        ctx.get(RouterBuilder.KEY_META_DATA_VALIDATED_REQUEST);
+    Book book = JsonObject.mapFrom(validatedRequest.getBody().getJsonObject()).mapTo(Book.class);
     BookStorage storage = new BookStorage(vertx, tenant);
-    Book book = ctx.body().asPojo(Book.class);
     return storage.postBook(book)
         .map(res -> {
           ctx.response().setStatusCode(204).end();

@@ -8,10 +8,9 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.openapi.RouterBuilder;
-import io.vertx.ext.web.validation.RequestParameter;
-import io.vertx.ext.web.validation.RequestParameters;
-import io.vertx.ext.web.validation.ValidationHandler;
+import io.vertx.ext.web.openapi.router.RouterBuilder;
+import io.vertx.openapi.contract.OpenAPIContract;
+import io.vertx.openapi.validation.ValidatedRequest;
 import io.vertx.sqlclient.Tuple;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -20,7 +19,6 @@ import java.util.Map;
 import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.tlib.RouterCreator;
 import org.folio.tlib.TenantInitHooks;
 import org.folio.tlib.postgres.impl.TenantPgPoolImpl;
@@ -62,8 +60,12 @@ public class Tenant2Api implements RouterCreator {
       failHandler(ctx, ctx.statusCode(),
           HttpResponseStatus.valueOf(ctx.statusCode()).reasonPhrase());
     } else {
-      log.error("{}", e.getMessage());
-      failHandler(ctx, code, e.getMessage());
+      Throwable t = e.getCause();
+      if (t == null) {
+        t = e;
+      }
+      log.error("{}", e.getMessage(), e);
+      failHandler(ctx, code, t.getMessage());
     }
   }
 
@@ -187,12 +189,13 @@ public class Tenant2Api implements RouterCreator {
 
   private void handlers(Vertx vertx, RouterBuilder routerBuilder) {
     log.info("setting up tenant handlers ... begin");
-    routerBuilder
-        .operation("postTenant")
-        .handler(ctx -> {
-          RequestParameters params = ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY);
-          log.info("postTenant handler {}", params.toJson().encode());
-          JsonObject tenantAttributes = ctx.body().asJsonObject();
+
+    routerBuilder.getRoute("postTenant")
+        .addHandler(ctx -> {
+          ValidatedRequest validatedRequest =
+              ctx.get(RouterBuilder.KEY_META_DATA_VALIDATED_REQUEST);
+          JsonObject tenantAttributes = validatedRequest.getBody().getJsonObject();
+          log.info("postTenant handler {}", tenantAttributes.encode());
           String tenant = TenantUtil.tenant(ctx);
 
           createJob(vertx, tenant, tenantAttributes)
@@ -218,17 +221,15 @@ public class Tenant2Api implements RouterCreator {
                 failHandler(ctx, 500, e);
               });
         })
-        .failureHandler(ctx -> Tenant2Api.failHandler(ctx, 400, ctx.failure()));
-    routerBuilder
-        .operation("getTenantJob")
-        .handler(ctx -> {
-          RequestParameters params = ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY);
-          String id = params.pathParameter("id").getString();
-          String tenant = params.headerParameter(XOkapiHeaders.TENANT).getString();
-          RequestParameter waitParameter = params.queryParameter("wait");
-          int wait = waitParameter != null ? waitParameter.getInteger() : 0;
-          log.info("getTenantJob handler id={} wait={}", id,
-              waitParameter != null ? waitParameter.getInteger() : "null");
+        .addFailureHandler(ctx -> Tenant2Api.failHandler(ctx, 400, ctx.failure()));
+
+    routerBuilder.getRoute("getTenantJob")
+        .addHandler(ctx -> {
+          String id = ctx.pathParam("id");
+          String tenant = TenantUtil.tenant(ctx);
+          List<String> waitParameter = ctx.queryParam("wait");
+          int wait = waitParameter.isEmpty() ? 0 : Integer.parseInt(waitParameter.get(0));
+          log.info("getTenantJob handler id={} wait={}", id, wait);
           getJob(vertx, tenant, UUID.fromString(id), wait)
               .onSuccess(res -> {
                 if (res == null) {
@@ -241,13 +242,12 @@ public class Tenant2Api implements RouterCreator {
               })
               .onFailure(e -> failHandler(ctx, 500, e));
         })
-        .failureHandler(ctx -> Tenant2Api.failHandler(ctx, 400, ctx.failure()));
-    routerBuilder
-        .operation("deleteTenantJob")
-        .handler(ctx -> {
-          RequestParameters params = ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY);
-          String id = params.pathParameter("id").getString();
-          String tenant = params.headerParameter(XOkapiHeaders.TENANT).getString();
+        .addFailureHandler(ctx -> Tenant2Api.failHandler(ctx, 400, ctx.failure()));
+
+    routerBuilder.getRoute("deleteTenantJob")
+        .addHandler(ctx -> {
+          String id = ctx.pathParam("id");
+          String tenant = TenantUtil.tenant(ctx);
           log.info("deleteTenantJob handler id={}", id);
           deleteJob(vertx, tenant, UUID.fromString(id))
               .onSuccess(res -> {
@@ -260,7 +260,8 @@ public class Tenant2Api implements RouterCreator {
               })
               .onFailure(e -> failHandler(ctx, 500, e));
         })
-        .failureHandler(ctx -> Tenant2Api.failHandler(ctx, 400, ctx.failure()));
+        .addFailureHandler(ctx -> Tenant2Api.failHandler(ctx, 400, ctx.failure()));
+
     log.info("setting up tenant handlers ... done");
   }
 
@@ -272,11 +273,11 @@ public class Tenant2Api implements RouterCreator {
    */
   @Override
   public Future<Router> createRouter(Vertx vertx) {
-    return RouterBuilder.create(vertx, "openapi/tenant-2.0.yaml")
-        .map(routerBuilder -> {
-          handlers(vertx, routerBuilder);
-          return routerBuilder.createRouter();
-        });
+    return OpenAPIContract.from(vertx,  "openapi/tenant-2.0.yaml")
+      .map(contract -> {
+        RouterBuilder routerBuilder = RouterBuilder.create(vertx, contract);
+        handlers(vertx, routerBuilder);
+        return routerBuilder.createRouter();
+      });
   }
-
 }

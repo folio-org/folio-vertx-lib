@@ -16,8 +16,6 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/tenantAttributes"
-            example:
-              $ref: "examples/tenantAttributes.sample"
         required: true
       responses:
         "204":
@@ -96,7 +94,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/errors"
+            $ref: schemas/errors.json
           examples:
             response:
               value: examples/errors.sample
@@ -132,3 +130,5 @@ components:
       $ref: schemas/tenantJob.json
     errors:
       $ref: schemas/errors.json
+    parameters:
+      $ref: schemas/parameters.json
