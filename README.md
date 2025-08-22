@@ -250,10 +250,9 @@ This definition can then be used in a handler to get books:
 
 ```
  private Future<Void> getBooks(Vertx vertx, RoutingContext ctx) {
-    RequestParameters params = ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY);
-    String tenant = params.headerParameter(XOkapiHeaders.TENANT).getString();
-    RequestParameter query = params.queryParameter("query");
-    PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(query == null ? null : query.getString());
+    String tenant = TenantUtil.tenant(ctx);
+    List<String> query = ctx.queryParam("query");
+    PgCqlQuery pgCqlQuery = pgCqlDefinition.parse(query.isEmpty() ? null : query.get(0));
 
     TenantPgPool pool = TenantPgPool.pool(vertx, tenant);
     String sql = "SELECT * FROM " + pool.getSchema() + ".mytable";
