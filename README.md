@@ -142,7 +142,7 @@ specification. The result is one YAML file with all resources embedded. If there
 only references to components inside the OpenAPI YAML file from the beginning, it is not
 necessary to use this plugin.
 
-If the OpenAPI specification is located in `resources/openapi` (recommened), then
+If the OpenAPI specification is located in `resources/openapi` (recommended), then
 the minimal way to use the plugin is to use:
 
 ```
@@ -185,11 +185,29 @@ As an example if there are OpenAPI specs in test resources, the `extensions` lis
 
 ## PostgreSQL
 
-The PostgreSQL support is minimal. There's just enough to perform tenant
-separation and most
-[`DB_` environment variables that are also recognized by RMB](https://github.com/folio-org/raml-module-builder#environment-variables)
-such as `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`,
-`DB_MAXPOOLSIZE`, `DB_RECONNECTATTEMPTS`, `DB_RECONNECTINTERVAL`, `DB_SERVER_PEM`.
+The PostgreSQL support is minimal.
+There's just enough to perform tenant and module separation.
+
+The following environment variables are supported:
+
+- `DB_HOST`
+- `DB_PORT`
+- `DB_USERNAME`
+- `DB_PASSWORD`
+- `DB_DATABASE`
+- `DB_MAXPOOLSIZE`
+- `DB_MAX_LIFETIME`
+- `DB_RECONNECTATTEMPTS`
+- `DB_RECONNECTINTERVAL`
+- `DB_SERVER_PEM`
+
+Most of these are also recognized by by
+[RMB](https://github.com/folio-org/raml-module-builder#environment-variables).
+
+Support for `DB_MAX_LIFETIME` specifies the maximum lifetime, in seconds, that a
+database connection can remain in the pool before being closed and replaced with a
+new one.
+By default, or if the value is `0`, the pool's default maximum lifetime is used.
 
 The class [TenantPgPool](core/src/main/java/org/folio/tlib/postgres/TenantPgPool.java) is
 a small extension to the PgPool interface. The key method is `TenantPgPool.pool`
