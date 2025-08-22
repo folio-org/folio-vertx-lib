@@ -40,8 +40,9 @@ class TenantPgPoolImplTest {
     Assertions.assertNull(TenantPgPoolImpl.module);
     TenantPgPoolImpl.setModule("a-b.c");
     Assertions.assertEquals("a_b_c", TenantPgPoolImpl.module);
-    TenantPgPoolImpl tenantPgPool = TenantPgPoolImpl.tenantPgPool(vertx, "diku");
-    Assertions.assertEquals("diku_a_b_c", tenantPgPool.getSchema());
+    TenantPgPoolImpl pool = TenantPgPoolImpl.tenantPgPool(vertx, "diku");
+    Assertions.assertEquals("diku_a_b_c", pool.getSchema());
+    Assertions.assertEquals(30000, pool.poolOptions.getMaxLifetime());
     context.completeNow();
   }
 

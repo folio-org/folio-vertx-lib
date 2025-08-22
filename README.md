@@ -201,16 +201,13 @@ The following environment variables are supported:
 - `DB_RECONNECTINTERVAL`
 - `DB_SERVER_PEM`
 
-Most of these are also recognized by by
-[RMB](https://github.com/folio-org/raml-module-builder#environment-variables).
-
-Support for `DB_MAX_LIFETIME` specifies the maximum lifetime, in seconds, that a
-database connection can remain in the pool before being closed and replaced with a
-new one.
-By default, or if the value is `0`, the pool's default maximum lifetime is used.
+These are also recognized by by RMB. Refer to the
+[Environment Variables](https://github.com/folio-org/raml-module-builder#environment-variables)
+section of RMB.
 
 The class [TenantPgPool](core/src/main/java/org/folio/tlib/postgres/TenantPgPool.java) is
-a small extension to the PgPool interface. The key method is `TenantPgPool.pool`
+a small extension to the [Pool](https://vertx.io/docs/apidocs/io/vertx/sqlclient/Pool.html)
+interface. The key method is `TenantPgPool.pool`
 for constructing a pool for the current tenant. From that point, rest is plain
 Vert.x pg client. However, the schema should be used when referring to tables, etc.
 Use the `getSchema` method for that.

@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.tlib.postgres.TenantPgPool;
@@ -144,8 +145,11 @@ public class TenantPgPoolImpl implements TenantPgPool {
     if (maxPoolSize != null) {
       poolOptions.setMaxSize(Integer.parseInt(maxPoolSize));
     }
+    poolOptions.setMaxLifetimeUnit(TimeUnit.MILLISECONDS);
     if (maxLifetime != null) {
       poolOptions.setMaxLifetime(Integer.parseInt(maxLifetime));
+    } else {
+      poolOptions.setMaxLifetime(30000); // 30 seconds
     }
     TenantPgPoolImpl tenantPgPool = new TenantPgPoolImpl(vertx, sanitize(tenant), poolOptions);
     tenantPgPool.pgPool = pgPoolMap.computeIfAbsent(connectOptions, key ->
