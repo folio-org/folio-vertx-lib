@@ -23,6 +23,7 @@ class TenantPgPoolImplTest {
     TenantPgPoolImpl.maxPoolSize = null;
     TenantPgPoolImpl.reconnectAttempts = null;
     TenantPgPoolImpl.reconnectInterval = null;
+    TenantPgPoolImpl.maxLifetime = null;
     TenantPgPoolImpl.serverPem = null;
     TenantPgPoolImpl.setModule("mod-a");
   }
@@ -39,8 +40,9 @@ class TenantPgPoolImplTest {
     Assertions.assertNull(TenantPgPoolImpl.module);
     TenantPgPoolImpl.setModule("a-b.c");
     Assertions.assertEquals("a_b_c", TenantPgPoolImpl.module);
-    TenantPgPoolImpl tenantPgPool = TenantPgPoolImpl.tenantPgPool(vertx, "diku");
-    Assertions.assertEquals("diku_a_b_c", tenantPgPool.getSchema());
+    TenantPgPoolImpl pool = TenantPgPoolImpl.tenantPgPool(vertx, "diku");
+    Assertions.assertEquals("diku_a_b_c", pool.getSchema());
+    Assertions.assertEquals(1800000, pool.poolOptions.getMaxLifetime());
     context.completeNow();
   }
 
@@ -55,6 +57,7 @@ class TenantPgPoolImplTest {
     TenantPgPoolImpl.user = "user_val";
     TenantPgPoolImpl.password = "password_val";
     TenantPgPoolImpl.maxPoolSize = "5";
+    TenantPgPoolImpl.maxLifetime = "6";
     TenantPgPoolImpl.reconnectAttempts = "3";
     TenantPgPoolImpl.reconnectInterval = "2";
     TenantPgPoolImpl pool = TenantPgPoolImpl.tenantPgPool(vertx, "diku");
@@ -65,6 +68,7 @@ class TenantPgPoolImplTest {
     Assertions.assertEquals("user_val", options.getUser());
     Assertions.assertEquals("password_val", options.getPassword());
     Assertions.assertEquals(5, pool.poolOptions.getMaxSize());
+    Assertions.assertEquals(6, pool.poolOptions.getMaxLifetime());
     Assertions.assertEquals(3, options.getReconnectAttempts());
     Assertions.assertEquals(2, options.getReconnectInterval());
     context.completeNow();
