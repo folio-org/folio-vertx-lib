@@ -1,3 +1,27 @@
+## 4.0.0 2025-08-25
+
+* [VERTXLIB-63](https://folio-org.atlassian.net/browse/VERTXLIB-63) Do not bundle log4j2 configuration
+* [VERTXLIB-62](https://folio-org.atlassian.net/browse/VERTXLIB-62) Upgrade to Vert.x 5
+* [VERTXLIB-61](https://folio-org.atlassian.net/browse/VERTXLIB-61) `DB_MAX_LIFETIME`
+
+Most important API changes due to Vert.x 5 upgrade:
+
+* If OpenAPI spec has external references, including to local files, it must be preprocessed
+by `openapi-deref-plugin` which is part of folio-vertx-lib.
+* Parameters for a request are no longer available through `ctx.get(ValidationHandler.REQUEST_CONTEXT_KEY)`.
+Use methods such as `ctx.queryParam`, `ctx.pathParam` instead.
+* Creating router from spec has changed and is now something like:
+```
+  public Future<Router> createRouter(Vertx vertx) {
+    return OpenAPIContract.from(vertx, "openapi/myapi-1.0.yaml")
+      .map(contract -> {
+        RouterBuilder routerBuilder = RouterBuilder.create(vertx, contract);
+        handlers(vertx, routerBuilder);
+        return routerBuilder.createRouter();
+      });
+  }
+```
+
 ## 3.4.0 2025-03-11
 
 Release for Sunflower.
