@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.folio</groupId>
     <artifactId>folio-vertx-lib</artifactId>
-    <version>4.0.0-SNAPSHOT</version>
+    <version>4.1.0-SNAPSHOT</version>
   </parent>
   <artifactId>vertx-lib</artifactId>
 
@@ -155,7 +155,7 @@
       <plugin>
         <groupId>org.folio</groupId>
         <artifactId>openapi-deref-plugin</artifactId>
-        <version>4.0.0-SNAPSHOT</version>
+        <version>4.1.0-SNAPSHOT</version>
         <executions>
           <execution>
             <id>dereference-tenant</id>
