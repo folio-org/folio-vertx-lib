@@ -149,7 +149,7 @@ public class TenantPgPoolImpl implements TenantPgPool {
     if (maxLifetime != null) {
       poolOptions.setMaxLifetime(Integer.parseInt(maxLifetime));
     } else {
-      poolOptions.setMaxLifetime(30000); // 30 seconds
+      poolOptions.setMaxLifetime(1800000); // 30 minutes
     }
     TenantPgPoolImpl tenantPgPool = new TenantPgPoolImpl(vertx, sanitize(tenant), poolOptions);
     tenantPgPool.pgPool = pgPoolMap.computeIfAbsent(connectOptions, key ->
