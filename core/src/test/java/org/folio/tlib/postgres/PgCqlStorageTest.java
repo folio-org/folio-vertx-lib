@@ -166,12 +166,12 @@ class PgCqlStorageTest {
         Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"\\^\"", "x", false),
         Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"\\?\"", "?", true),
         Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"\\?\"", "x", false),
-        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"\\_\"", "_", true),
-        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"\\_\"", "x", false),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"_\"", "_", true),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"_\"", "x", false),
         Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"\\*\"", "*", true),
         Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"\\*\"", "x", false),
-        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"\\%\"", "%", true),
-        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"\\%\"", "x", false)
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"%\"", "%", true),
+        Arguments.of(new PgCqlFieldText().withLikeOps(), "= \"%\"", "x", false)
     );
   }
 

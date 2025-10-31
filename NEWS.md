@@ -1,4 +1,13 @@
+## 4.0.1 2025-10-14
+
+* [VERTXLIB-67](https://folio-org.atlassian.net/browse/VERTXLIB-67) Fix invalid log4j2.properties for mod-example
+* [#103](https://github.com/folio-org/folio-vertx-lib/pull/103) Remove unused dependency vertx-web-validation
+* [VERTXLIB-68](https://folio-org.atlassian.net/browse/VERTXLIB-68) Remove unused scram client 2.1
+* [#105](https://github.com/folio-org/folio-vertx-lib/pull/105) Update test to not include invalid CQL escape sequences
+
 ## 4.0.0 2025-08-25
+
+Release for Trillium.
 
 * [VERTXLIB-63](https://folio-org.atlassian.net/browse/VERTXLIB-63) Do not bundle log4j2 configuration
 * [VERTXLIB-62](https://folio-org.atlassian.net/browse/VERTXLIB-62) Upgrade to Vert.x 5
