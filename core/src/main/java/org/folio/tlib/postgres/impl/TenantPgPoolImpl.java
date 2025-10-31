@@ -44,6 +44,7 @@ public class TenantPgPoolImpl implements TenantPgPool {
   static String maxPoolSize = System.getenv("DB_MAXPOOLSIZE");
   static String reconnectAttempts = System.getenv("DB_RECONNECTATTEMPTS");
   static String reconnectInterval = System.getenv("DB_RECONNECTINTERVAL");
+  static String connectionReleaseDelay = System.getenv("DB_CONNECTIONRELEASEDELAY");
   static String serverPem = System.getenv("DB_SERVER_PEM");
   static String maxLifetime = System.getenv("DB_MAX_LIFETIME");
   static String module;
@@ -150,6 +151,12 @@ public class TenantPgPoolImpl implements TenantPgPool {
       poolOptions.setMaxLifetime(Integer.parseInt(maxLifetime));
     } else {
       poolOptions.setMaxLifetime(1800000); // 30 minutes
+    }
+    poolOptions.setIdleTimeoutUnit(TimeUnit.MILLISECONDS);
+    if (connectionReleaseDelay != null) {
+      poolOptions.setIdleTimeout(Integer.parseInt(connectionReleaseDelay));
+    } else {
+      poolOptions.setIdleTimeout(60000);  // one minute
     }
     TenantPgPoolImpl tenantPgPool = new TenantPgPoolImpl(vertx, sanitize(tenant), poolOptions);
     tenantPgPool.pgPool = pgPoolMap.computeIfAbsent(connectOptions, key ->
