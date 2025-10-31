@@ -4,6 +4,9 @@ import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.pgclient.PgConnectOptions;
+
+import java.util.concurrent.TimeUnit;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +28,7 @@ class TenantPgPoolImplTest {
     TenantPgPoolImpl.reconnectInterval = null;
     TenantPgPoolImpl.maxLifetime = null;
     TenantPgPoolImpl.serverPem = null;
+    TenantPgPoolImpl.connectionReleaseDelay = null;
     TenantPgPoolImpl.setModule("mod-a");
   }
 
@@ -43,6 +47,8 @@ class TenantPgPoolImplTest {
     TenantPgPoolImpl pool = TenantPgPoolImpl.tenantPgPool(vertx, "diku");
     Assertions.assertEquals("diku_a_b_c", pool.getSchema());
     Assertions.assertEquals(1800000, pool.poolOptions.getMaxLifetime());
+    Assertions.assertEquals(60000, pool.poolOptions.getIdleTimeout());
+    Assertions.assertEquals(TimeUnit.MILLISECONDS, pool.poolOptions.getIdleTimeoutUnit());
     context.completeNow();
   }
 
@@ -60,6 +66,7 @@ class TenantPgPoolImplTest {
     TenantPgPoolImpl.maxLifetime = "6";
     TenantPgPoolImpl.reconnectAttempts = "3";
     TenantPgPoolImpl.reconnectInterval = "2";
+    TenantPgPoolImpl.connectionReleaseDelay = "4";
     TenantPgPoolImpl pool = TenantPgPoolImpl.tenantPgPool(vertx, "diku");
     Assertions.assertEquals("diku_mod_a", pool.getSchema());
     Assertions.assertEquals("host_val", options.getHost());
@@ -71,6 +78,8 @@ class TenantPgPoolImplTest {
     Assertions.assertEquals(6, pool.poolOptions.getMaxLifetime());
     Assertions.assertEquals(3, options.getReconnectAttempts());
     Assertions.assertEquals(2, options.getReconnectInterval());
+    Assertions.assertEquals(4, pool.poolOptions.getIdleTimeout());
+    Assertions.assertEquals(TimeUnit.MILLISECONDS, pool.poolOptions.getIdleTimeoutUnit());
     context.completeNow();
   }
 
