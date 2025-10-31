@@ -28,6 +28,7 @@ class TenantPgPoolImplTest {
     TenantPgPoolImpl.reconnectInterval = null;
     TenantPgPoolImpl.maxLifetime = null;
     TenantPgPoolImpl.serverPem = null;
+    TenantPgPoolImpl.connectionReleaseDelay = null;
     TenantPgPoolImpl.setModule("mod-a");
   }
 
@@ -46,6 +47,8 @@ class TenantPgPoolImplTest {
     TenantPgPoolImpl pool = TenantPgPoolImpl.tenantPgPool(vertx, "diku");
     Assertions.assertEquals("diku_a_b_c", pool.getSchema());
     Assertions.assertEquals(1800000, pool.poolOptions.getMaxLifetime());
+    Assertions.assertEquals(60000, pool.poolOptions.getIdleTimeout());
+    Assertions.assertEquals(TimeUnit.MILLISECONDS, pool.poolOptions.getIdleTimeoutUnit());
     context.completeNow();
   }
 
