@@ -154,6 +154,9 @@ public class TenantPgPoolImpl implements TenantPgPool {
     } else {
       poolOptions.setMaxLifetime(1800000); // 30 minutes
     }
+    if (!poolKey.isEmpty()) {
+      poolOptions.setName(poolKey);
+    }
     poolOptions.setIdleTimeoutUnit(TimeUnit.MILLISECONDS);
     if (connectionReleaseDelay != null) {
       poolOptions.setIdleTimeout(Integer.parseInt(connectionReleaseDelay));
