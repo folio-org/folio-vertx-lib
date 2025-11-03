@@ -18,17 +18,29 @@ import org.folio.tlib.postgres.impl.TenantPgPoolImpl;
 public interface TenantPgPool extends Pool {
 
   /**
-   * create tenant pool for tenant.
+   * create shared tenant pool for tenant.
    *
    * @param vertx vert.x instance
    * @param tenant tenant name.
    * @return pool.
    */
   static TenantPgPool pool(Vertx vertx, @NotNull String tenant) {
+    return pool(vertx, tenant, ""); // pool is shared for tenants
+  }
+
+  /**
+   * create key-identified pool for tenant.
+   *
+   * @param vertx vert.x instance
+   * @param tenant tenant name.
+   * @param poolKey pool key.
+   * @return pool.
+   */
+  static TenantPgPool pool(Vertx vertx, @NotNull String tenant, @NotNull String poolKey) {
     if (tenant == null) {
       throw new IllegalArgumentException("Tenant must not be null");
     }
-    return TenantPgPoolImpl.tenantPgPool(vertx, tenant);
+    return TenantPgPoolImpl.tenantPgPool(vertx, tenant, poolKey);
   }
 
   Future<Void> execute(List<String> queries);

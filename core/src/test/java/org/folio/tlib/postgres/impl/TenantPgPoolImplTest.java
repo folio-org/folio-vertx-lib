@@ -44,7 +44,7 @@ class TenantPgPoolImplTest {
     Assertions.assertNull(TenantPgPoolImpl.module);
     TenantPgPoolImpl.setModule("a-b.c");
     Assertions.assertEquals("a_b_c", TenantPgPoolImpl.module);
-    TenantPgPoolImpl pool = TenantPgPoolImpl.tenantPgPool(vertx, "diku");
+    TenantPgPoolImpl pool = TenantPgPoolImpl.tenantPgPool(vertx, "diku", "");
     Assertions.assertEquals("diku_a_b_c", pool.getSchema());
     Assertions.assertEquals(1800000, pool.poolOptions.getMaxLifetime());
     Assertions.assertEquals(60000, pool.poolOptions.getIdleTimeout());
@@ -67,7 +67,7 @@ class TenantPgPoolImplTest {
     TenantPgPoolImpl.reconnectAttempts = "3";
     TenantPgPoolImpl.reconnectInterval = "2";
     TenantPgPoolImpl.connectionReleaseDelay = "4";
-    TenantPgPoolImpl pool = TenantPgPoolImpl.tenantPgPool(vertx, "diku");
+    TenantPgPoolImpl pool = TenantPgPoolImpl.tenantPgPool(vertx, "diku", "");
     Assertions.assertEquals("diku_mod_a", pool.getSchema());
     Assertions.assertEquals("host_val", options.getHost());
     Assertions.assertEquals(9765, options.getPort());
@@ -97,13 +97,24 @@ class TenantPgPoolImplTest {
   }
 
   @Test
-  void testPoolReuse(Vertx vertx, VertxTestContext context) {
-    TenantPgPoolImpl pool1 = TenantPgPoolImpl.tenantPgPool(vertx, "diku1");
+  void testPoolShared(Vertx vertx, VertxTestContext context) {
+    TenantPgPoolImpl pool1 = TenantPgPoolImpl.tenantPgPool(vertx, "diku1", "");
     Assertions.assertEquals("diku1_mod_a", pool1.getSchema());
-    TenantPgPoolImpl pool2 = TenantPgPoolImpl.tenantPgPool(vertx, "diku2");
+    TenantPgPoolImpl pool2 = TenantPgPoolImpl.tenantPgPool(vertx, "diku2", "");
     Assertions.assertEquals("diku2_mod_a", pool2.getSchema());
     Assertions.assertNotEquals(pool1, pool2);
     Assertions.assertEquals(pool1.pgPool, pool2.pgPool);
+    context.completeNow();
+  }
+
+  @Test
+  void testPoolSplit(Vertx vertx, VertxTestContext context) {
+    TenantPgPoolImpl pool1 = TenantPgPoolImpl.tenantPgPool(vertx, "diku1", "diku1");
+    Assertions.assertEquals("diku1_mod_a", pool1.getSchema());
+    TenantPgPoolImpl pool2 = TenantPgPoolImpl.tenantPgPool(vertx, "diku2", "diku2");
+    Assertions.assertEquals("diku2_mod_a", pool2.getSchema());
+    Assertions.assertNotEquals(pool1, pool2);
+    Assertions.assertNotEquals(pool1.pgPool, pool2.pgPool);
     context.completeNow();
   }
 
