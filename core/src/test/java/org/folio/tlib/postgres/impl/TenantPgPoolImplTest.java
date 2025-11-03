@@ -4,6 +4,8 @@ import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.pgclient.PgConnectOptions;
+import io.vertx.sqlclient.PoolOptions;
+import jakarta.validation.constraints.AssertTrue;
 
 import java.util.concurrent.TimeUnit;
 
@@ -100,8 +102,10 @@ class TenantPgPoolImplTest {
   void testPoolShared(Vertx vertx, VertxTestContext context) {
     TenantPgPoolImpl pool1 = TenantPgPoolImpl.tenantPgPool(vertx, "diku1", "");
     Assertions.assertEquals("diku1_mod_a", pool1.getSchema());
+    Assertions.assertEquals(PoolOptions.DEFAULT_NAME, pool1.poolOptions.getName());
     TenantPgPoolImpl pool2 = TenantPgPoolImpl.tenantPgPool(vertx, "diku2", "");
     Assertions.assertEquals("diku2_mod_a", pool2.getSchema());
+    Assertions.assertEquals(PoolOptions.DEFAULT_NAME, pool2.poolOptions.getName());
     Assertions.assertNotEquals(pool1, pool2);
     Assertions.assertEquals(pool1.pgPool, pool2.pgPool);
     context.completeNow();
@@ -111,8 +115,10 @@ class TenantPgPoolImplTest {
   void testPoolSplit(Vertx vertx, VertxTestContext context) {
     TenantPgPoolImpl pool1 = TenantPgPoolImpl.tenantPgPool(vertx, "diku1", "diku1");
     Assertions.assertEquals("diku1_mod_a", pool1.getSchema());
+    Assertions.assertEquals("diku1", pool1.poolOptions.getName());
     TenantPgPoolImpl pool2 = TenantPgPoolImpl.tenantPgPool(vertx, "diku2", "diku2");
     Assertions.assertEquals("diku2_mod_a", pool2.getSchema());
+    Assertions.assertEquals("diku2", pool2.poolOptions.getName());
     Assertions.assertNotEquals(pool1, pool2);
     Assertions.assertNotEquals(pool1.pgPool, pool2.pgPool);
     context.completeNow();
