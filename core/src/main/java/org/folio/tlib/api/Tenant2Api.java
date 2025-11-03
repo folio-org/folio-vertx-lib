@@ -21,7 +21,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.tlib.RouterCreator;
 import org.folio.tlib.TenantInitHooks;
-import org.folio.tlib.postgres.impl.TenantPgPoolImpl;
+import org.folio.tlib.postgres.TenantPgPool;
 import org.folio.tlib.util.TenantUtil;
 
 /**
@@ -97,7 +97,7 @@ public class Tenant2Api implements RouterCreator {
   private Future<JsonObject> createJob(Vertx vertx, String tenant,
                                        JsonObject tenantAttributes) {
     log.info("postTenant got {}", tenantAttributes.encode());
-    TenantPgPoolImpl tenantPgPool = TenantPgPoolImpl.tenantPgPool(vertx, tenant);
+    TenantPgPool tenantPgPool = TenantPgPool.pool(vertx, tenant);
     String schema = tenantPgPool.getSchema();
     return hooks.preInit(vertx, tenant, tenantAttributes)
         .compose(res -> {
@@ -141,7 +141,7 @@ public class Tenant2Api implements RouterCreator {
   }
 
   private Future<JsonObject> getJob(Vertx vertx, String tenant, UUID jobId, int secondsToWait) {
-    TenantPgPoolImpl tenantPgPool = TenantPgPoolImpl.tenantPgPool(vertx, tenant);
+    TenantPgPool tenantPgPool = TenantPgPool.pool(vertx, tenant);
     return tenantPgPool.preparedQuery("SELECT jsonb FROM "
             + tenantPgPool.getSchema() + ".job WHERE ID = $1")
         .execute(Tuple.of(jobId))
@@ -162,7 +162,7 @@ public class Tenant2Api implements RouterCreator {
   }
 
   private static Future<Boolean> deleteJob(Vertx vertx, String tenant, UUID jobId) {
-    TenantPgPoolImpl tenantPgPool = TenantPgPoolImpl.tenantPgPool(vertx, tenant);
+    TenantPgPool tenantPgPool = TenantPgPool.pool(vertx, tenant);
     String schema = tenantPgPool.getSchema();
     return tenantPgPool.preparedQuery("DELETE FROM " + schema + ".job WHERE ID = $1")
         .execute(Tuple.of(jobId))
@@ -172,7 +172,7 @@ public class Tenant2Api implements RouterCreator {
   private static Future<Void> updateJob(Vertx vertx, JsonObject tenantJob) {
     String tenant = tenantJob.getString("tenant");
     UUID jobId = UUID.fromString(tenantJob.getString("id"));
-    TenantPgPoolImpl tenantPgPool = TenantPgPoolImpl.tenantPgPool(vertx, tenant);
+    TenantPgPool tenantPgPool = TenantPgPool.pool(vertx, tenant);
     String schema = tenantPgPool.getSchema();
     return tenantPgPool.preparedQuery("UPDATE " + schema + ".job SET jsonb = $2 WHERE id = $1")
         .execute(Tuple.of(jobId, tenantJob)).mapEmpty();
@@ -181,7 +181,7 @@ public class Tenant2Api implements RouterCreator {
   private static Future<Void> saveJob(Vertx vertx, JsonObject tenantJob) {
     String tenant = tenantJob.getString("tenant");
     UUID jobId = UUID.fromString(tenantJob.getString("id"));
-    TenantPgPoolImpl tenantPgPool = TenantPgPoolImpl.tenantPgPool(vertx, tenant);
+    TenantPgPool tenantPgPool = TenantPgPool.pool(vertx, tenant);
     String schema = tenantPgPool.getSchema();
     return tenantPgPool.preparedQuery("INSERT INTO " + schema + ".job VALUES ($1, $2)")
         .execute(Tuple.of(jobId, tenantJob)).mapEmpty();

@@ -111,7 +111,7 @@ class TenantPgPoolTest {
   @Test
   void testNoSetModule(Vertx vertx, VertxTestContext context) {
     TenantPgPoolImpl.setModule(null);
-    Assertions.assertThrows(IllegalStateException.class, () -> TenantPgPoolImpl.tenantPgPool(vertx, "diku"));
+    Assertions.assertThrows(IllegalStateException.class, () -> TenantPgPoolImpl.tenantPgPool(vertx, "diku", ""));
     context.completeNow();
   }
 

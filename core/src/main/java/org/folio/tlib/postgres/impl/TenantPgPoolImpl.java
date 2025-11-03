@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.tlib.postgres.TenantPgPool;
@@ -34,7 +35,7 @@ import org.folio.tlib.postgres.TenantPgPool;
 public class TenantPgPoolImpl implements TenantPgPool {
 
   private static final Logger log = LogManager.getLogger(TenantPgPoolImpl.class);
-  static Map<PgConnectOptions, Pool> pgPoolMap = new HashMap<>();
+  static Map<Pair<String, PgConnectOptions>, Pool> pgPoolMap = new HashMap<>();
 
   static String host = System.getenv("DB_HOST");
   static String port = System.getenv("DB_PORT");
@@ -103,9 +104,10 @@ public class TenantPgPoolImpl implements TenantPgPool {
    *
    * @param vertx Vert.x handle
    * @param tenant Tenant
+   * @param poolKey pool
    * @return pool with Pool semantics
    */
-  public static TenantPgPoolImpl tenantPgPool(Vertx vertx, String tenant) {
+  public static TenantPgPoolImpl tenantPgPool(Vertx vertx, String tenant, String poolKey) {
     if (module == null) {
       throw new IllegalStateException("TenantPgPool.setModule must be called");
     }
@@ -159,7 +161,7 @@ public class TenantPgPoolImpl implements TenantPgPool {
       poolOptions.setIdleTimeout(60000);  // one minute
     }
     TenantPgPoolImpl tenantPgPool = new TenantPgPoolImpl(vertx, sanitize(tenant), poolOptions);
-    tenantPgPool.pgPool = pgPoolMap.computeIfAbsent(connectOptions, key ->
+    tenantPgPool.pgPool = pgPoolMap.computeIfAbsent(Pair.of(poolKey, connectOptions), key ->
         PgBuilder.pool().using(vertx).connectingTo(connectOptions).with(poolOptions).build());
     return tenantPgPool;
   }
