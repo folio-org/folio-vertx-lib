@@ -122,22 +122,22 @@ class TenantPgPoolImplTest {
   }
 
   @Test
-  void testPoolKey(Vertx vertx, VertxTestContext context) {
+  void testConnectKey(Vertx vertx, VertxTestContext context) {
     var a = new TenantPgPoolImpl.ConnectKey(new PgConnectOptions());
-    Assertions.assertTrue(a.equals(a));
-    Assertions.assertFalse(a.equals(1L));
+    Assertions.assertEquals(a, a);
+    Assertions.assertNotEquals(a, 1L);
     var b = new TenantPgPoolImpl.ConnectKey(new PgConnectOptions());
-    Assertions.assertTrue(a.equals(a));
+    Assertions.assertEquals(a, b);
     b = new TenantPgPoolImpl.ConnectKey(new PgConnectOptions().setDatabase("db2"));
-    Assertions.assertFalse(a.equals(b));
+    Assertions.assertNotEquals(a, b);
     b = new TenantPgPoolImpl.ConnectKey(new PgConnectOptions().setHost("h1"));
-    Assertions.assertFalse(a.equals(b));
+    Assertions.assertNotEquals(a, b);
     b = new TenantPgPoolImpl.ConnectKey(new PgConnectOptions().setPort(5));
-    Assertions.assertFalse(a.equals(b));
+    Assertions.assertNotEquals(a, b);
     PgConnectOptions options = new PgConnectOptions();
     options.setMetricsName("name");
     b = new TenantPgPoolImpl.ConnectKey(options);
-    Assertions.assertFalse(a.equals(b));
+    Assertions.assertNotEquals(a, b);
     context.completeNow();
   }
 
