@@ -124,7 +124,7 @@ class TenantPgPoolImplTest {
   @Test
   void testConnectKey(Vertx vertx, VertxTestContext context) {
     var a = new TenantPgPoolImpl.ConnectKey(new PgConnectOptions());
-    Assertions.assertEquals(a, a);
+    Assertions.assertTrue(a.equals(a));
     Assertions.assertNotEquals(a, 1L);
     var b = new TenantPgPoolImpl.ConnectKey(new PgConnectOptions());
     Assertions.assertEquals(a, b);
