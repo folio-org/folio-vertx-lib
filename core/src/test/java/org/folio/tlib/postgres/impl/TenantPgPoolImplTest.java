@@ -53,8 +53,7 @@ class TenantPgPoolImplTest {
 
   @Test
   void testAll(Vertx vertx, VertxTestContext context) {
-    PgConnectOptions options = new PgConnectOptions();
-    TenantPgPoolImpl.setDefaultConnectOptions(options);
+    TenantPgPoolImpl.setDefaultConnectOptions(new PgConnectOptions());
     TenantPgPoolImpl.setModule("mod-a");
     TenantPgPoolImpl.host = "host_val";
     TenantPgPoolImpl.port = "9765";
@@ -68,15 +67,15 @@ class TenantPgPoolImplTest {
     TenantPgPoolImpl.connectionReleaseDelay = "4";
     TenantPgPoolImpl pool = TenantPgPoolImpl.tenantPgPool(vertx, "diku", "");
     Assertions.assertEquals("diku_mod_a", pool.getSchema());
-    Assertions.assertEquals("host_val", options.getHost());
-    Assertions.assertEquals(9765, options.getPort());
-    Assertions.assertEquals("database_val", options.getDatabase());
-    Assertions.assertEquals("user_val", options.getUser());
-    Assertions.assertEquals("password_val", options.getPassword());
+    Assertions.assertEquals("host_val", pool.connectOptions.getHost());
+    Assertions.assertEquals(9765, pool.connectOptions.getPort());
+    Assertions.assertEquals("database_val", pool.connectOptions.getDatabase());
+    Assertions.assertEquals("user_val", pool.connectOptions.getUser());
+    Assertions.assertEquals("password_val", pool.connectOptions.getPassword());
     Assertions.assertEquals(5, pool.poolOptions.getMaxSize());
     Assertions.assertEquals(6, pool.poolOptions.getMaxLifetime());
-    Assertions.assertEquals(3, options.getReconnectAttempts());
-    Assertions.assertEquals(2, options.getReconnectInterval());
+    Assertions.assertEquals(3, pool.connectOptions.getReconnectAttempts());
+    Assertions.assertEquals(2, pool.connectOptions.getReconnectInterval());
     Assertions.assertEquals(4, pool.poolOptions.getIdleTimeout());
     Assertions.assertEquals(TimeUnit.MILLISECONDS, pool.poolOptions.getIdleTimeoutUnit());
     context.completeNow();
@@ -87,11 +86,11 @@ class TenantPgPoolImplTest {
     PgConnectOptions userDefined = new PgConnectOptions();
     userDefined.setHost("localhost2");
     TenantPgPoolImpl.setDefaultConnectOptions(userDefined);
-    Assertions.assertEquals(userDefined, TenantPgPoolImpl.pgConnectOptions);
+    Assertions.assertEquals(userDefined, TenantPgPoolImpl.defaultConnectOptions);
     Assertions.assertEquals("localhost2", userDefined.getHost());
     userDefined = new PgConnectOptions();
     TenantPgPoolImpl.setDefaultConnectOptions(userDefined);
-    Assertions.assertEquals(userDefined, TenantPgPoolImpl.pgConnectOptions);
+    Assertions.assertEquals(userDefined, TenantPgPoolImpl.defaultConnectOptions);
     Assertions.assertNotEquals("localhost2", userDefined.getHost());
   }
 

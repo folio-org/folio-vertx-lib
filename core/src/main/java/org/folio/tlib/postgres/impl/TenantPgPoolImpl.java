@@ -85,13 +85,14 @@ public class TenantPgPoolImpl implements TenantPgPool {
   static String serverPem = System.getenv("DB_SERVER_PEM");
   static String maxLifetime = System.getenv("DB_MAX_LIFETIME");
   static String module;
-  static PgConnectOptions pgConnectOptions = new PgConnectOptions();
+  static PgConnectOptions defaultConnectOptions = new PgConnectOptions();
 
   final String tenant;
+  final PoolOptions poolOptions;
+  final PgConnectOptions connectOptions;
   Pool pgPool;
   JsonObject config;
 
-  final PoolOptions poolOptions;
 
   static String substTenant(String v, String tenant) {
     return v.replace("{tenant}", tenant);
@@ -105,11 +106,11 @@ public class TenantPgPoolImpl implements TenantPgPool {
   }
 
   public static PgConnectOptions getDefaultConnectOptions() {
-    return TenantPgPoolImpl.pgConnectOptions;
+    return TenantPgPoolImpl.defaultConnectOptions;
   }
 
   public static void setDefaultConnectOptions(PgConnectOptions connectOptions) {
-    TenantPgPoolImpl.pgConnectOptions = connectOptions;
+    TenantPgPoolImpl.defaultConnectOptions = connectOptions;
   }
 
   public static void setModule(String module) {
@@ -117,7 +118,7 @@ public class TenantPgPoolImpl implements TenantPgPool {
   }
 
   public static void setServerPem(String serverPem) {
-    pgConnectOptions.setSslMode(SslMode.DISABLE);
+    defaultConnectOptions.setSslMode(SslMode.DISABLE);
     TenantPgPoolImpl.serverPem = serverPem;
   }
 
@@ -125,10 +126,12 @@ public class TenantPgPoolImpl implements TenantPgPool {
     TenantPgPoolImpl.maxPoolSize = maxPoolSize;
   }
 
-  private TenantPgPoolImpl(Vertx vertx, String tenant, PoolOptions poolOptions) {
+  private TenantPgPoolImpl(Vertx vertx, String tenant, PoolOptions poolOptions,
+      PgConnectOptions connectOptions) {
     config = vertx.getOrCreateContext().config();
     this.tenant = tenant;
     this.poolOptions = poolOptions;
+    this.connectOptions = connectOptions;
   }
 
   /**
@@ -147,7 +150,7 @@ public class TenantPgPoolImpl implements TenantPgPool {
     if (module == null) {
       throw new IllegalStateException("TenantPgPool.setModule must be called");
     }
-    PgConnectOptions connectOptions = pgConnectOptions;
+    PgConnectOptions connectOptions = new PgConnectOptions(defaultConnectOptions);
     // overwrite default "vertx-pg-client" shown in pg_stat_activity
     // https://www.postgresql.org/docs/current/runtime-config-logging.html#GUC-APPLICATION-NAME
     connectOptions.getProperties().put("application_name", module);
@@ -200,12 +203,13 @@ public class TenantPgPoolImpl implements TenantPgPool {
     } else {
       poolOptions.setIdleTimeout(60000);  // one minute
     }
-    TenantPgPoolImpl tenantPgPool = new TenantPgPoolImpl(vertx, sanitize(tenant), poolOptions);
+    TenantPgPoolImpl tenantPgPool =
+        new TenantPgPoolImpl(vertx, sanitize(tenant), poolOptions, connectOptions);
     tenantPgPool.pgPool = pgPoolMap.computeIfAbsent(new ConnectKey(connectOptions), key ->
         PgBuilder
           .pool()
           .using(vertx)
-          .connectingTo(new PgConnectOptions(connectOptions))
+          .connectingTo(connectOptions)
           .with(poolOptions)
           .build());
     return tenantPgPool;
