@@ -23,8 +23,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.tlib.postgres.TenantPgPool;
@@ -33,9 +33,41 @@ import org.folio.tlib.postgres.TenantPgPool;
  * The {@link Pool} for a tenant.
  */
 public class TenantPgPoolImpl implements TenantPgPool {
+  static class ConnectKey {
+    private final PgConnectOptions options;
+
+    ConnectKey(PgConnectOptions options) {
+      this.options = options;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(
+        options.getDatabase(),
+        options.getHost(),
+        options.getPort(),
+        options.getMetricsName());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (!(obj instanceof ConnectKey)) {
+        return false;
+      }
+      ConnectKey that = (ConnectKey) obj;
+      return Objects.equals(this.options.getDatabase(), that.options.getDatabase())
+          && Objects.equals(this.options.getHost(), that.options.getHost())
+          && this.options.getPort() == that.options.getPort()
+          && Objects.equals(this.options.getMetricsName(), that.options.getMetricsName());
+    }
+  }
+
 
   private static final Logger log = LogManager.getLogger(TenantPgPoolImpl.class);
-  static Map<Pair<String, PgConnectOptions>, Pool> pgPoolMap = new HashMap<>();
+  static Map<ConnectKey, Pool> pgPoolMap = new HashMap<>();
 
   static String host = System.getenv("DB_HOST");
   static String port = System.getenv("DB_PORT");
@@ -156,6 +188,7 @@ public class TenantPgPoolImpl implements TenantPgPool {
     }
     if (!poolKey.isEmpty()) {
       poolOptions.setName(poolKey);
+      connectOptions.setMetricsName(poolKey);
     }
     poolOptions.setIdleTimeoutUnit(TimeUnit.MILLISECONDS);
     if (connectionReleaseDelay != null) {
@@ -164,8 +197,13 @@ public class TenantPgPoolImpl implements TenantPgPool {
       poolOptions.setIdleTimeout(60000);  // one minute
     }
     TenantPgPoolImpl tenantPgPool = new TenantPgPoolImpl(vertx, sanitize(tenant), poolOptions);
-    tenantPgPool.pgPool = pgPoolMap.computeIfAbsent(Pair.of(poolKey, connectOptions), key ->
-        PgBuilder.pool().using(vertx).connectingTo(connectOptions).with(poolOptions).build());
+    tenantPgPool.pgPool = pgPoolMap.computeIfAbsent(new ConnectKey(connectOptions), key ->
+        PgBuilder
+          .pool()
+          .using(vertx)
+          .connectingTo(new PgConnectOptions(connectOptions))
+          .with(poolOptions)
+          .build());
     return tenantPgPool;
   }
 
