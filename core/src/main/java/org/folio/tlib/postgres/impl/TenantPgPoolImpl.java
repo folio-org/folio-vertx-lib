@@ -43,6 +43,8 @@ public class TenantPgPoolImpl implements TenantPgPool {
     @Override
     public int hashCode() {
       return Objects.hash(
+        options.getUser(),
+        options.getPassword(),
         options.getDatabase(),
         options.getHost(),
         options.getPort(),
@@ -58,7 +60,9 @@ public class TenantPgPoolImpl implements TenantPgPool {
         return false;
       }
       ConnectKey that = (ConnectKey) obj;
-      return Objects.equals(this.options.getDatabase(), that.options.getDatabase())
+      return Objects.equals(this.options.getUser(), that.options.getUser())
+          && Objects.equals(this.options.getPassword(), that.options.getPassword())
+          && Objects.equals(this.options.getDatabase(), that.options.getDatabase())
           && Objects.equals(this.options.getHost(), that.options.getHost())
           && this.options.getPort() == that.options.getPort()
           && Objects.equals(this.options.getMetricsName(), that.options.getMetricsName());

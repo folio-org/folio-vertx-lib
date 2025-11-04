@@ -128,6 +128,10 @@ class TenantPgPoolImplTest {
     Assertions.assertNotEquals(a, 1L);
     var b = new TenantPgPoolImpl.ConnectKey(new PgConnectOptions());
     Assertions.assertEquals(a, b);
+    b = new TenantPgPoolImpl.ConnectKey(new PgConnectOptions().setUser("user2"));
+    Assertions.assertNotEquals(a, b);
+    b = new TenantPgPoolImpl.ConnectKey(new PgConnectOptions().setPassword("pass2"));
+    Assertions.assertNotEquals(a, b);
     b = new TenantPgPoolImpl.ConnectKey(new PgConnectOptions().setDatabase("db2"));
     Assertions.assertNotEquals(a, b);
     b = new TenantPgPoolImpl.ConnectKey(new PgConnectOptions().setHost("h1"));
