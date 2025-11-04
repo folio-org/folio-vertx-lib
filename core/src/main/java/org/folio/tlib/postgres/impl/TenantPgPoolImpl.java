@@ -64,15 +64,18 @@ public class TenantPgPoolImpl implements TenantPgPool {
           && Objects.equals(this.options.getPassword(), that.options.getPassword())
           && Objects.equals(this.options.getDatabase(), that.options.getDatabase())
           && Objects.equals(this.options.getHost(), that.options.getHost())
-          && this.options.getPort() == that.options.getPort()
+          && Objects.equals(this.options.getPort(), that.options.getPort())
           && Objects.equals(this.options.getMetricsName(), that.options.getMetricsName());
     }
   }
 
 
   private static final Logger log = LogManager.getLogger(TenantPgPoolImpl.class);
-  static Map<ConnectKey, Pool> pgPoolMap = new HashMap<>();
+  final String tenant;
+  final PoolOptions poolOptions;
+  final PgConnectOptions connectOptions;
 
+  static Map<ConnectKey, Pool> pgPoolMap = new HashMap<>();
   static String host = System.getenv("DB_HOST");
   static String port = System.getenv("DB_PORT");
   static String user = System.getenv("DB_USERNAME");
@@ -87,12 +90,8 @@ public class TenantPgPoolImpl implements TenantPgPool {
   static String module;
   static PgConnectOptions defaultConnectOptions = new PgConnectOptions();
 
-  final String tenant;
-  final PoolOptions poolOptions;
-  final PgConnectOptions connectOptions;
   Pool pgPool;
   JsonObject config;
-
 
   static String substTenant(String v, String tenant) {
     return v.replace("{tenant}", tenant);

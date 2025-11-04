@@ -123,7 +123,7 @@ class TenantPgPoolImplTest {
   // Use assertNotEquals | assertEquals instead
   @SuppressWarnings({"java:S5785"})
   @Test
-  void testConnectKey(Vertx vertx, VertxTestContext context) {
+  void testConnectKey() {
     var a = new TenantPgPoolImpl.ConnectKey(new PgConnectOptions());
     // if using assertEquals on ConnectKey, it gives "Using Object.equals() or Object.hashCode() to compare instances of the same class"
     Assertions.assertTrue(a.equals(a));
@@ -144,7 +144,5 @@ class TenantPgPoolImplTest {
     options.setMetricsName("name");
     b = new TenantPgPoolImpl.ConnectKey(options);
     Assertions.assertNotEquals(a, b);
-    context.completeNow();
   }
-
 }
