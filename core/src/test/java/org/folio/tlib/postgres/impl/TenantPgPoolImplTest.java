@@ -53,8 +53,7 @@ class TenantPgPoolImplTest {
 
   @Test
   void testAll(Vertx vertx, VertxTestContext context) {
-    PgConnectOptions options = new PgConnectOptions();
-    TenantPgPoolImpl.setDefaultConnectOptions(options);
+    TenantPgPoolImpl.setDefaultConnectOptions(new PgConnectOptions());
     TenantPgPoolImpl.setModule("mod-a");
     TenantPgPoolImpl.host = "host_val";
     TenantPgPoolImpl.port = "9765";
@@ -68,15 +67,15 @@ class TenantPgPoolImplTest {
     TenantPgPoolImpl.connectionReleaseDelay = "4";
     TenantPgPoolImpl pool = TenantPgPoolImpl.tenantPgPool(vertx, "diku", "");
     Assertions.assertEquals("diku_mod_a", pool.getSchema());
-    Assertions.assertEquals("host_val", options.getHost());
-    Assertions.assertEquals(9765, options.getPort());
-    Assertions.assertEquals("database_val", options.getDatabase());
-    Assertions.assertEquals("user_val", options.getUser());
-    Assertions.assertEquals("password_val", options.getPassword());
+    Assertions.assertEquals("host_val", pool.connectOptions.getHost());
+    Assertions.assertEquals(9765, pool.connectOptions.getPort());
+    Assertions.assertEquals("database_val", pool.connectOptions.getDatabase());
+    Assertions.assertEquals("user_val", pool.connectOptions.getUser());
+    Assertions.assertEquals("password_val", pool.connectOptions.getPassword());
     Assertions.assertEquals(5, pool.poolOptions.getMaxSize());
     Assertions.assertEquals(6, pool.poolOptions.getMaxLifetime());
-    Assertions.assertEquals(3, options.getReconnectAttempts());
-    Assertions.assertEquals(2, options.getReconnectInterval());
+    Assertions.assertEquals(3, pool.connectOptions.getReconnectAttempts());
+    Assertions.assertEquals(2, pool.connectOptions.getReconnectInterval());
     Assertions.assertEquals(4, pool.poolOptions.getIdleTimeout());
     Assertions.assertEquals(TimeUnit.MILLISECONDS, pool.poolOptions.getIdleTimeoutUnit());
     context.completeNow();
@@ -87,11 +86,11 @@ class TenantPgPoolImplTest {
     PgConnectOptions userDefined = new PgConnectOptions();
     userDefined.setHost("localhost2");
     TenantPgPoolImpl.setDefaultConnectOptions(userDefined);
-    Assertions.assertEquals(userDefined, TenantPgPoolImpl.pgConnectOptions);
+    Assertions.assertEquals(userDefined, TenantPgPoolImpl.defaultConnectOptions);
     Assertions.assertEquals("localhost2", userDefined.getHost());
     userDefined = new PgConnectOptions();
     TenantPgPoolImpl.setDefaultConnectOptions(userDefined);
-    Assertions.assertEquals(userDefined, TenantPgPoolImpl.pgConnectOptions);
+    Assertions.assertEquals(userDefined, TenantPgPoolImpl.defaultConnectOptions);
     Assertions.assertNotEquals("localhost2", userDefined.getHost());
   }
 
@@ -121,4 +120,29 @@ class TenantPgPoolImplTest {
     context.completeNow();
   }
 
+  // Use assertNotEquals | assertEquals instead
+  @SuppressWarnings({"java:S5785"})
+  @Test
+  void testConnectKey() {
+    var a = new TenantPgPoolImpl.ConnectKey(new PgConnectOptions());
+    // if using assertEquals on ConnectKey, it gives "Using Object.equals() or Object.hashCode() to compare instances of the same class"
+    Assertions.assertTrue(a.equals(a));
+    Assertions.assertFalse(a.equals(null));
+    var b = new TenantPgPoolImpl.ConnectKey(new PgConnectOptions());
+    Assertions.assertEquals(a, b);
+    b = new TenantPgPoolImpl.ConnectKey(new PgConnectOptions().setUser("user2"));
+    Assertions.assertNotEquals(a, b);
+    b = new TenantPgPoolImpl.ConnectKey(new PgConnectOptions().setPassword("pass2"));
+    Assertions.assertNotEquals(a, b);
+    b = new TenantPgPoolImpl.ConnectKey(new PgConnectOptions().setDatabase("db2"));
+    Assertions.assertNotEquals(a, b);
+    b = new TenantPgPoolImpl.ConnectKey(new PgConnectOptions().setHost("h1"));
+    Assertions.assertNotEquals(a, b);
+    b = new TenantPgPoolImpl.ConnectKey(new PgConnectOptions().setPort(5));
+    Assertions.assertNotEquals(a, b);
+    PgConnectOptions options = new PgConnectOptions();
+    options.setMetricsName("name");
+    b = new TenantPgPoolImpl.ConnectKey(options);
+    Assertions.assertNotEquals(a, b);
+  }
 }
