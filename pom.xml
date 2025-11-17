@@ -29,8 +29,8 @@
   </licenses>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <okapi.version>7.0.0</okapi.version>
-    <vertx.version>5.0.3</vertx.version>
+    <okapi.version>7.0.1</okapi.version>
+    <vertx.version>5.0.5</vertx.version>
   </properties>
   <modules>
     <module>openapi-deref-plugin</module>
