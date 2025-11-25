@@ -1,8 +1,8 @@
 package org.folio.tlib.example;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Promise;
+import io.vertx.core.Future;
 import io.vertx.core.Verticle;
+import io.vertx.core.VerticleBase;
 import io.vertx.core.http.HttpServerOptions;
 import org.folio.okapi.common.Config;
 import org.folio.tlib.RouterCreator;
@@ -14,12 +14,12 @@ import org.folio.tlib.postgres.TenantPgPool;
 /**
  * This {@link Verticle} is the start point of the module.
  */
-public class MainVerticle extends AbstractVerticle {
+public class MainVerticle extends VerticleBase {
 
   static final String MODULE = "mod-example";
 
   @Override
-  public void start(Promise<Void> promise) {
+  public Future<?> start() {
     TenantPgPool.setModule(MODULE); // Postgres - schema separation
 
     // listening port
@@ -35,13 +35,10 @@ public class MainVerticle extends AbstractVerticle {
     HttpServerOptions so = new HttpServerOptions()
         .setHandle100ContinueAutomatically(true);
     // combine all routes and start server
-    RouterCreator.mountAll(vertx, routerCreators, MODULE)
-        .compose(router ->
-            vertx.createHttpServer(so)
-                .requestHandler(router)
-                .listen(port).mapEmpty())
-        .<Void>mapEmpty()
-        .onComplete(promise);
+    return RouterCreator.mountAll(vertx, routerCreators, MODULE)
+        .compose(router -> vertx.createHttpServer(so)
+            .requestHandler(router)
+            .listen(port));
   }
 }
 
