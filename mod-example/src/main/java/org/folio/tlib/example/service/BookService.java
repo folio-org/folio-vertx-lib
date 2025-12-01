@@ -16,6 +16,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.okapi.common.HttpResponse;
 import org.folio.tlib.RouterCreator;
+import org.folio.tlib.TenantInitConf;
 import org.folio.tlib.TenantInitHooks;
 import org.folio.tlib.example.data.Book;
 import org.folio.tlib.example.storage.BookStorage;
@@ -86,9 +87,9 @@ public class BookService implements RouterCreator, TenantInitHooks {
   }
 
   @Override
-  public Future<Void> postInit(Vertx vertx, String tenant, JsonObject tenantAttributes) {
-    BookStorage storage = new BookStorage(vertx, tenant);
-    return storage.init(tenantAttributes);
+  public Future<Void> postInit(TenantInitConf tenantInitConf) {
+    BookStorage storage = new BookStorage(tenantInitConf.vertx(), tenantInitConf.tenant());
+    return storage.init(tenantInitConf.tenantAttributes());
   }
 
   private Future<Void> getBooks(Vertx vertx, RoutingContext ctx) {

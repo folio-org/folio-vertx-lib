@@ -19,7 +19,9 @@ import java.util.Map;
 import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.tlib.RouterCreator;
+import org.folio.tlib.TenantInitConf;
 import org.folio.tlib.TenantInitHooks;
 import org.folio.tlib.postgres.TenantPgPool;
 import org.folio.tlib.util.TenantUtil;
@@ -69,10 +71,9 @@ public class Tenant2Api implements RouterCreator {
     }
   }
 
-  private void runAsync(Vertx vertx, JsonObject tenantJob) {
+  private void runAsync(TenantInitConf tenantInitConf, JsonObject tenantJob) {
     UUID jobId = UUID.fromString(tenantJob.getString("id"));
-    hooks.postInit(vertx, tenantJob.getString("tenant"),
-        tenantJob.getJsonObject("tenantAttributes"))
+    hooks.postInit(tenantInitConf)
         .onComplete(x -> {
           tenantJob.put("complete", true);
           if (x.failed()) {
@@ -82,7 +83,7 @@ public class Tenant2Api implements RouterCreator {
             }
             tenantJob.put("error", msg);
           }
-          updateJob(vertx, tenantJob)
+          updateJob(tenantInitConf.vertx(), tenantJob)
               .onComplete(y -> {
                 List<Promise<Void>> promises = waiters.remove(jobId);
                 if (promises != null) {
@@ -94,12 +95,14 @@ public class Tenant2Api implements RouterCreator {
         });
   }
 
-  private Future<JsonObject> createJob(Vertx vertx, String tenant,
-                                       JsonObject tenantAttributes) {
+  private Future<JsonObject> createJob(TenantInitConf tenantInitConf) {
+    var vertx = tenantInitConf.vertx();
+    var tenant = tenantInitConf.tenant();
+    var tenantAttributes = tenantInitConf.tenantAttributes();
     log.info("postTenant got {}", tenantAttributes.encode());
     TenantPgPool tenantPgPool = TenantPgPool.pool(vertx, tenant);
     String schema = tenantPgPool.getSchema();
-    return hooks.preInit(vertx, tenant, tenantAttributes)
+    return hooks.preInit(tenantInitConf)
         .compose(res -> {
           if (Boolean.TRUE.equals(tenantAttributes.getBoolean("purge"))) {
             return tenantPgPool.execute(List.of(
@@ -134,7 +137,7 @@ public class Tenant2Api implements RouterCreator {
                 tenantJob.put("tenant", tenant);
                 tenantJob.put("tenantAttributes", tenantAttributes);
                 return saveJob(vertx, tenantJob)
-                    .onSuccess(x -> runAsync(vertx, tenantJob))
+                    .onSuccess(x -> runAsync(tenantInitConf, tenantJob))
                     .map(tenantJob);
               });
         });
@@ -196,9 +199,9 @@ public class Tenant2Api implements RouterCreator {
               ctx.get(RouterBuilder.KEY_META_DATA_VALIDATED_REQUEST);
           JsonObject tenantAttributes = validatedRequest.getBody().getJsonObject();
           log.info("postTenant handler {}", tenantAttributes.encode());
-          String tenant = TenantUtil.tenant(ctx);
+          var tenantInitConf = new TenantInitConf(vertx, ctx.request().headers(), tenantAttributes);
 
-          createJob(vertx, tenant, tenantAttributes)
+          createJob(tenantInitConf)
               .onSuccess(tenantJob -> {
                 if (tenantJob == null) {
                   ctx.response().setStatusCode(204);

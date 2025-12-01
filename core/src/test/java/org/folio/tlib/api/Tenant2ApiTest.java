@@ -15,6 +15,7 @@ import io.restassured.response.Response;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.Timeout;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.UUID;
 import org.folio.tlib.RouterCreator;
+import org.folio.tlib.TenantInitConf;
 import org.folio.tlib.postgres.TenantPgPool;
 import org.folio.tlib.postgres.TenantPgPoolContainer;
 import org.junit.jupiter.api.AfterAll;
@@ -50,7 +52,6 @@ class Tenant2ApiTest {
       return serverSocket.getLocalPort();
     }
   }
-
 
   @Container
   static PostgreSQLContainer<?> postgresSQLContainer = TenantPgPoolContainer.create();
@@ -78,6 +79,27 @@ class Tenant2ApiTest {
   }
 
   static TestInitHooks hooks = new TestInitHooks();
+
+  static class TestInitHooks2 implements org.folio.tlib.TenantInitHooks {
+
+    TenantInitConf preInitConf;
+    TenantInitConf postInitConf;
+
+    @Override
+    public Future<Void> preInit(TenantInitConf tenantInitConf) {
+      preInitConf = tenantInitConf;
+      return Future.succeededFuture();
+    }
+
+    @Override
+    public Future<Void> postInit(TenantInitConf tenantInitConf) {
+      postInitConf = tenantInitConf;
+      return Future.succeededFuture();
+    }
+  }
+
+  static TestInitHooks2 hooks2 = new TestInitHooks2();
+
   private static PgConnectOptions initialPgConnectOptions;
 
   @BeforeAll
@@ -103,7 +125,7 @@ class Tenant2ApiTest {
   }
 
   @AfterAll
-  static void afterAll(Vertx vertx, VertxTestContext context) {
+  static void afterAll(VertxTestContext context) {
     TenantPgPool.closeAll()
         .onComplete(context.succeedingThenComplete());
   }
@@ -465,4 +487,38 @@ class Tenant2ApiTest {
         .then().statusCode(400);
   }
 
+  @Test
+  void testInitHooks2(Vertx vertx, VertxTestContext vtc) {
+    hooks2.preInitConf = null;
+    hooks2.postInitConf = null;
+    var tenant2Api = new Tenant2Api(hooks2);
+    tenant2Api.createRouter(vertx)
+    .compose(router -> vertx.createHttpServer().requestHandler(router).listen(0))
+    .compose(httpServer -> {
+      return vertx.createHttpClient()
+          .request(HttpMethod.POST, httpServer.actualPort(), "localhost", "/_/tenant");
+    })
+    .compose(httpClientRequest -> {
+      return httpClientRequest
+          .putHeader("x-okapi-tenant", "foo")
+          .putHeader("x-okapi-url", "https://example.com")
+          .putHeader("X-OKAPI-TOKEN", "Rumpelstiltskin")
+          .putHeader("Content-Type", "application/json")
+          .send("""
+                { "module_to": "mod-x-1.0.0",
+                  "parameters": [ { "key": "x", "value": "y" } ]
+                }
+                """);
+    })
+    .onComplete(vtc.succeeding(httpClientResponse -> {
+      assertThat(httpClientResponse.statusCode(), is(201));
+      assertThat(hooks2.preInitConf, is(hooks2.postInitConf));
+      assertThat(hooks2.postInitConf.tenant(), is("foo"));
+      assertThat(hooks2.postInitConf.token(), is("Rumpelstiltskin"));
+      assertThat(hooks2.postInitConf.okapiUrl(), is("https://example.com"));
+      assertThat(hooks2.postInitConf.tenantAttributes()
+          .getJsonArray("parameters").getJsonObject(0).getString("key"), is("x"));
+      vtc.completeNow();
+    }));
+  }
 }

@@ -1,5 +1,6 @@
 package org.folio.tlib.util;
 
+import io.vertx.core.MultiMap;
 import io.vertx.ext.web.RoutingContext;
 import java.util.regex.Pattern;
 import org.folio.okapi.common.XOkapiHeaders;
@@ -21,7 +22,16 @@ public final class TenantUtil {
    * @throws IllegalArgumentException if header is missing or is invalid
    */
   public static String tenant(RoutingContext ctx) {
-    String tenant = ctx.request().getHeader(XOkapiHeaders.TENANT);
+    return tenant(ctx.request().headers());
+  }
+
+  /**
+   * Return X-Okapi-Tenant header.
+   *
+   * @throws IllegalArgumentException if header is missing or is invalid
+   */
+  public static String tenant(MultiMap headers) {
+    String tenant = headers.get(XOkapiHeaders.TENANT);
     if (tenant == null) {
       throw new IllegalArgumentException(XOkapiHeaders.TENANT + " header is missing");
     }
