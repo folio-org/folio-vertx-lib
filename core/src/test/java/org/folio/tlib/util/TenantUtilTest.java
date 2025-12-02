@@ -22,7 +22,7 @@ class TenantUtilTest {
 
   private String tenant(String tenant) {
     RoutingContext ctx = mock(RoutingContext.class, RETURNS_DEEP_STUBS);
-    when(ctx.request().getHeader("X-Okapi-Tenant")).thenReturn(tenant);
+    when(ctx.request().headers().get("X-Okapi-Tenant")).thenReturn(tenant);
     return TenantUtil.tenant(ctx);
   }
 

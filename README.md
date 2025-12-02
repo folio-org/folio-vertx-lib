@@ -119,18 +119,10 @@ public MyApi implements RouterCreator, TenantInitHooks {
 }
 ```
 
-To support tenant init, your module should implement `preInit` and `postInit`.
-
-These methods takes tenant ID and
-[tenant attributes object](core/src/main/resources/openapi/schemas/tenantAttributes.json).
-
-The `preInit` job should be "fast" and is a way for the module to check if the
-operation can be started.. ("pre-check"). The postInit should perform the
-actual migration.
-
-The Tenant2Api implementation deals with purge (removes schema with cascade).
-Your implementation should only consider upgrade/downgrade. On purge,
-`preInit` is called, but `postInit` is not.
+To support tenant init, your module should implement `preInit` and `postInit`, for details
+see the [TenantInitHooks](core/src/main/java/org/folio/tlib/TenantInitHooks.java) javadoc
+and the [BookService](mod-example/src/main/java/org/folio/tlib/example/service/BookService.java)
+example.
 
 ## Plugin openapi-deref-plugin
 
