@@ -59,7 +59,7 @@ class TenantInitConfTest {
 
   @ParameterizedTest
   @CsvSource(textBlock = """
-             '{}, 0
+             '{}', 0
              '{"parameters":[{},{}]}', 2
              """)
   void parameters(String json, int arraySize) {
