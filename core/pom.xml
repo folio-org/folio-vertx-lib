@@ -158,14 +158,14 @@
             <goals>
               <goal>dereference</goal>
             </goals>
-            <phase>generate-resources</phase>
+            <phase>process-resources</phase>
           </execution>
           <execution>
             <id>dereference-echo</id>
             <goals>
               <goal>dereference</goal>
             </goals>
-            <phase>generate-resources</phase>
+            <phase>process-test-resources</phase>
             <configuration>
               <input>${project.basedir}/src/test/resources/openapi/*.yaml</input>
               <output>${project.build.directory}/test-classes/openapi</output>

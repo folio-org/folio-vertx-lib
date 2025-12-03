@@ -145,7 +145,7 @@ the minimal way to use the plugin is to use:
         <goals>
           <goal>dereference</goal>
         </goals>
-        <phase>generate-resources</phase>
+        <phase>process-resources</phase>
       </execution>
     </executions>
   </plugin>
@@ -164,7 +164,7 @@ As an example if there are OpenAPI specs in test resources, the `extensions` lis
     <goals>
       <goal>dereference</goal>
     </goals>
-    <phase>generate-resources</phase>
+    <phase>processe-test-resources</phase>
     <configuration>
       <input>${project.basedir}/src/test/resources/openapi/*.yaml</input>
       <output>${project.build.directory}/test-classes/openapi</output>
