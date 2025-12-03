@@ -1,3 +1,15 @@
+## 4.1.0 2025-12-03
+
+Release for Trillium.
+
+* [VERTXLIB-69](https://folio-org.atlassian.net/browse/VERTXLIB-69) Honor DB\_CONNECTIONRELEASEDELAY (same as in RMB)
+* [VERTXLIB-70](https://folio-org.atlassian.net/browse/VERTXLIB-70) Allow key for TenantPgPool to be non-shared
+* [VERTXLIB-71](https://folio-org.atlassian.net/browse/VERTXLIB-71) Set Pool name if key is set (non-empty)
+* [#110](https://github.com/folio-org/folio-vertx-lib/pull/110) Set PgConnectOptions metrics name; pool key fix
+* [#111](https://github.com/folio-org/folio-vertx-lib/pull/111) Bump Vert.x from 5.0.3 to 5.0.5 and okapi-common from 7.0.0 to 7.0.1
+* [VERTXLIB-72](https://folio-org.atlassian.net/browse/VERTXLIB-72) Migrate from AbstractVerticle to VerticleBase
+* [VERTXLIB-73](https://folio-org.atlassian.net/browse/VERTXLIB-73) Pass token and okapiUrl to postInit/preInit
+
 ## 4.0.1 2025-10-14
 
 * [VERTXLIB-67](https://folio-org.atlassian.net/browse/VERTXLIB-67) Fix invalid log4j2.properties for mod-example
@@ -6,8 +18,6 @@
 * [#105](https://github.com/folio-org/folio-vertx-lib/pull/105) Update test to not include invalid CQL escape sequences
 
 ## 4.0.0 2025-08-25
-
-Release for Trillium.
 
 * [VERTXLIB-63](https://folio-org.atlassian.net/browse/VERTXLIB-63) Do not bundle log4j2 configuration
 * [VERTXLIB-62](https://folio-org.atlassian.net/browse/VERTXLIB-62) Upgrade to Vert.x 5
