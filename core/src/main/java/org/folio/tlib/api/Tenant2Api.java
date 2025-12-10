@@ -142,7 +142,7 @@ public class Tenant2Api implements RouterCreator {
         });
   }
 
-  private Future<JsonObject> getJob(Vertx vertx, String tenant, UUID jobId, int secondsToWait) {
+  private Future<JsonObject> getJob(Vertx vertx, String tenant, UUID jobId, long msToWait) {
     TenantPgPool tenantPgPool = TenantPgPool.pool(vertx, tenant);
     return tenantPgPool.preparedQuery("SELECT jsonb FROM "
             + tenantPgPool.getSchema() + ".job WHERE ID = $1")
@@ -152,11 +152,11 @@ public class Tenant2Api implements RouterCreator {
             return Future.succeededFuture(null);
           }
           JsonObject tenantJob = res.iterator().next().getJsonObject(0);
-          if (secondsToWait > 0 && !Boolean.TRUE.equals(tenantJob.getBoolean("complete"))) {
+          if (msToWait > 0 && !Boolean.TRUE.equals(tenantJob.getBoolean("complete"))) {
             Promise<Void> promise = Promise.promise();
             waiters.putIfAbsent(jobId, new LinkedList<>());
             waiters.get(jobId).add(promise);
-            vertx.setTimer(secondsToWait * 1000L, res1 -> promise.tryComplete());
+            vertx.setTimer(msToWait, res1 -> promise.tryComplete());
             return promise.future().compose(res1 -> getJob(vertx, tenant, jobId, 0));
           }
           return Future.succeededFuture(tenantJob);
@@ -230,7 +230,7 @@ public class Tenant2Api implements RouterCreator {
           String id = ctx.pathParam("id");
           String tenant = TenantUtil.tenant(ctx);
           List<String> waitParameter = ctx.queryParam("wait");
-          int wait = waitParameter.isEmpty() ? 0 : Integer.parseInt(waitParameter.get(0));
+          long wait = waitParameter.isEmpty() ? 0 : Long.parseLong(waitParameter.get(0));
           log.info("getTenantJob handler id={} wait={}", id, wait);
           getJob(vertx, tenant, UUID.fromString(id), wait)
               .onSuccess(res -> {
