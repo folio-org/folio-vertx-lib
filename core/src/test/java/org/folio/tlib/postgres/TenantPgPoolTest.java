@@ -77,7 +77,7 @@ class TenantPgPoolTest {
     MountableFile serverCrtFile = MountableFile.forClasspathResource("server.crt");
     postgresSQLContainer.copyFileToContainer(serverKeyFile, KEY_PATH);
     postgresSQLContainer.copyFileToContainer(serverCrtFile, CRT_PATH);
-    exec("chown", "postgres.postgres", KEY_PATH, CRT_PATH);
+    exec("chown", "postgres:postgres", KEY_PATH, CRT_PATH);
     exec("chmod", "400", KEY_PATH, CRT_PATH);
     exec("cp", "-p", CONF_PATH, CONF_BAK_PATH);
   }
