@@ -1,3 +1,7 @@
+## 3.4.1 2025-12-18
+
+* [VERTXLIB-77](https://folio-org.atlassian.net/browse/VERTXLIB-77) Vert.x 4.5.23 fixing CVE-2025-67735 Netty CRLF injection request smuggling
+
 ## 3.4.0 2025-03-11
 
 Release for Sunflower.
