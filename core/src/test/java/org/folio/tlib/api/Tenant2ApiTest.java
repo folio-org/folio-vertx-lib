@@ -280,7 +280,7 @@ class Tenant2ApiTest {
 
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
-        .get(location + "?wait=1")  // wait for up to 1 second
+        .get(location + "?wait=1000")  // wait for up to 1000 milliseconds
     .then()
         .statusCode(200)
         .body("complete", is(false))
@@ -292,7 +292,7 @@ class Tenant2ApiTest {
 
     RestAssured.given()
         .header("X-Okapi-Tenant", tenant)
-        .get(location + "?wait=5")
+        .get(location + "?wait=5000")
     .then()
         .statusCode(200)
         .body("complete", is(true))
