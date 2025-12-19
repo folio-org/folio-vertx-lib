@@ -1,3 +1,10 @@
+## 3.4.1 2025-10-18
+
+Bug fixes:
+
+* [VERTXLIB-77](https://folio-org.atlassian.net/browse/VERTXLIB-77) Vert.x 4.5.23 fixing CVE-2025-67735 Netty CRLF injection request smuggling
+* [VERTXLIB-79](https://folio-org.atlassian.net/browse/VERTXLIB-79) wait is milliseconds, not seconds, for GET /\_/tenant/{job\_id}?wait=…
+
 ## 3.4.0 2025-03-11
 
 Release for Sunflower.
