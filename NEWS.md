@@ -1,3 +1,17 @@
+## 3.3.1 2025-12-19
+
+Bug fixes:
+
+* [VERTXLIB-78](https://folio-org.atlassian.net/browse/VERTXLIB-78) Vert.x 4.5.23 fixing CVE-2025-67735 Netty CRLF injection request smuggling
+* [VERTXLIB-80](https://folio-org.atlassian.net/browse/VERTXLIB-80) wait is milliseconds, not seconds, for GET /\_/tenant/{job\_id}?wait=…
+
+### Compatible Vertx versions
+
+Restrictions when using folio-vertx-lib's or Vert.x' Postgres client:
+
+* folio-vertx-lib >= 3.3.1 requires Vert.x >= 4.5.23.
+* folio-vertx-lib 3.3.0 requires Vert.x <= 4.5.22.
+
 ## 3.3.0 2024-10-30
 
 Release for Ramsons.
