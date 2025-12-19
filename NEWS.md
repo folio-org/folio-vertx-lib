@@ -1,3 +1,10 @@
+## 4.1.1 2025-12-19
+
+Bug fixes:
+
+* [VERTXLIB-76](https://folio-org.atlassian.net/browse/VERTXLIB-76) Vert.x 5.0.6 fixing CVE-2025-67735 Netty CRLF injection request smuggling
+* [VERTXLIB-75](https://folio-org.atlassian.net/browse/VERTXLIB-75) wait is milliseconds, not seconds, for GET /\_/tenant/{job\_id}?wait=…
+
 ## 4.1.0 2025-12-03
 
 Release for Trillium.
