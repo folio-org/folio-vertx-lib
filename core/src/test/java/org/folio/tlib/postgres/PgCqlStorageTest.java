@@ -26,7 +26,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.junit.jupiter.Container;
@@ -41,7 +41,7 @@ import static org.hamcrest.Matchers.is;
 class PgCqlStorageTest {
 
   @Container
-  static final PostgreSQLContainer<?> container = TenantPgPoolContainer.create();
+  static final PostgreSQLContainer container = TenantPgPoolContainer.create();
 
   public static Pool pgPool;
 

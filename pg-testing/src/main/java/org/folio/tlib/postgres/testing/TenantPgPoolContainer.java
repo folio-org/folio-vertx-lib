@@ -3,7 +3,7 @@ package org.folio.tlib.postgres.testing;
 import io.vertx.pgclient.PgConnectOptions;
 import java.util.Map;
 import org.folio.tlib.postgres.TenantPgPool;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 /**
  * A {@link PostgreSQLContainer} that sets
@@ -17,7 +17,7 @@ public final class TenantPgPoolContainer {
    *
    * @return container.
    */
-  public static PostgreSQLContainer<?> create() {
+  public static PostgreSQLContainer create() {
     return create(POSTGRES_IMAGE);
   }
 
@@ -27,8 +27,8 @@ public final class TenantPgPoolContainer {
    * @param image container image name.
    * @return container.
    */
-  public static PostgreSQLContainer<?> create(String image) {
-    PostgreSQLContainer<?> container = new PostgreSQLContainer<>(image);
+  public static PostgreSQLContainer create(String image) {
+    PostgreSQLContainer container = new PostgreSQLContainer(image);
     container.withStartupAttempts(3);
     container.start();
 

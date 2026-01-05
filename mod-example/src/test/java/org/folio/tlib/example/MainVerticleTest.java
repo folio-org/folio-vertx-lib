@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -37,7 +37,7 @@ class MainVerticleTest {
   static final String TENANT = "testlib";
 
   @Container
-  static PostgreSQLContainer<?> postgresSQLContainer = TenantPgPoolContainer.create();
+  static PostgreSQLContainer postgresSQLContainer = TenantPgPoolContainer.create();
 
   @BeforeAll
   static void beforeAll(VertxTestContext context) {
