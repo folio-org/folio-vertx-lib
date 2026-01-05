@@ -49,8 +49,8 @@ class MainVerticleTest {
 
     DeploymentOptions deploymentOptions = new DeploymentOptions();
     deploymentOptions.setConfig(new JsonObject().put("port", Integer.toString(port)));
-        vertx.deployVerticle(new MainVerticle(), deploymentOptions)
-                .onComplete(context.succeedingThenComplete());
+    vertx.deployVerticle(new MainVerticle(), deploymentOptions)
+        .onComplete(context.succeedingThenComplete());
   }
 
   @AfterAll
