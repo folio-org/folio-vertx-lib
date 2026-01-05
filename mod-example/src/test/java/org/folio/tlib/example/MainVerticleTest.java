@@ -9,17 +9,18 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 import java.util.UUID;
 import org.folio.okapi.common.XOkapiHeaders;
 import org.folio.tlib.example.data.Book;
 import org.folio.tlib.postgres.testing.TenantPgPoolContainer;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -27,18 +28,19 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
-@RunWith(VertxUnitRunner.class)
-public class MainVerticleTest {
+@Testcontainers
+@ExtendWith(VertxExtension.class)
+class MainVerticleTest {
   static Vertx vertx;
   static int port;
 
   static final String TENANT = "testlib";
 
-  @ClassRule
-  public static PostgreSQLContainer<?> postgresSQLContainer = TenantPgPoolContainer.create();
+  @Container
+  static PostgreSQLContainer<?> postgresSQLContainer = TenantPgPoolContainer.create();
 
-  @BeforeClass
-  public static void beforeClass(TestContext context) {
+  @BeforeAll
+  static void beforeAll(VertxTestContext context) {
     port = 9230;
     vertx = Vertx.vertx();
     RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
@@ -47,14 +49,13 @@ public class MainVerticleTest {
 
     DeploymentOptions deploymentOptions = new DeploymentOptions();
     deploymentOptions.setConfig(new JsonObject().put("port", Integer.toString(port)));
-    vertx.deployVerticle(new MainVerticle(), deploymentOptions)
-        .onComplete(context.asyncAssertSuccess());
-
+        vertx.deployVerticle(new MainVerticle(), deploymentOptions)
+                .onComplete(context.succeedingThenComplete());
   }
 
-  @AfterClass
-  public static void afterClass(TestContext context) {
-    vertx.close().onComplete(context.asyncAssertSuccess());
+  @AfterAll
+  static void afterAll(VertxTestContext context) {
+    vertx.close().onComplete(context.succeedingThenComplete());
   }
 
   void tenantOp(String tenant, JsonObject tenantAttributes, String expectedError) {
@@ -88,7 +89,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testPostBook() {
+  void testPostBook() {
     Book a = new Book();
     a.setTitle("art of computer");
     a.setId(UUID.randomUUID());
@@ -151,7 +152,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testGetBooks() {
+  void testGetBooks() {
     RestAssured.given()
         .header(XOkapiHeaders.TENANT, TENANT)
         .get("/books")
@@ -209,7 +210,7 @@ public class MainVerticleTest {
   }
 
   @Test
-  public void testValidationError() {
+  void testValidationError() {
     Book book = new Book();
     book.setTitle("my title");
     book.setId(UUID.randomUUID());
