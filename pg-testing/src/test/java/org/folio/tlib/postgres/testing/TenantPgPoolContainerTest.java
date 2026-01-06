@@ -16,7 +16,7 @@ class TenantPgPoolContainerTest {
 
   /**
    * Assert
-   * <a href="https://github.com/testcontainers/testcontainers-java/blob/main/modules/postgresql/src/main/java/org/testcontainers/postgresql/PostgreSQLContainer.java"
+   * <a href="https://github.com/testcontainers/testcontainers-java/blob/main/modules/postgresql/src/main/java/org/testcontainers/postgresql/PostgreSQLContainer.java">
    * PostgreSQLContainer.java</a> default.
    */
   @Test
