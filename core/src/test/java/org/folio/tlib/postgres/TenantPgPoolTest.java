@@ -25,7 +25,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.MountableFile;
@@ -36,7 +36,7 @@ class TenantPgPoolTest {
   private final static Logger log = LogManager.getLogger(TenantPgPoolTest.class);
 
   @Container
-  public static PostgreSQLContainer<?> postgresSQLContainer = TenantPgPoolContainer.create();
+  public static PostgreSQLContainer postgresSQLContainer = TenantPgPoolContainer.create();
 
   static final String KEY_PATH = "/var/lib/postgresql/data/server.key";
   static final String CRT_PATH = "/var/lib/postgresql/data/server.crt";

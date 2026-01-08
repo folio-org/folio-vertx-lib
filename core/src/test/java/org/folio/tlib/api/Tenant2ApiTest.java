@@ -36,7 +36,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -54,7 +54,7 @@ class Tenant2ApiTest {
   }
 
   @Container
-  static PostgreSQLContainer<?> postgresSQLContainer = TenantPgPoolContainer.create();
+  static PostgreSQLContainer postgresSQLContainer = TenantPgPoolContainer.create();
 
   static class TestInitHooks implements org.folio.tlib.TenantInitHooks {
 
