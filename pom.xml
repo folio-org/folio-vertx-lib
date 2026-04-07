@@ -29,8 +29,8 @@
   </licenses>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <okapi.version>7.0.1</okapi.version>
-    <vertx.version>5.0.6</vertx.version>
+    <okapi.version>7.0.3</okapi.version>
+    <vertx.version>5.0.10</vertx.version>
   </properties>
   <modules>
     <module>openapi-deref-plugin</module>
@@ -43,7 +43,7 @@
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-bom</artifactId>
-        <version>2.25.1</version>
+        <version>2.25.4</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -77,24 +77,24 @@
       <dependency>
         <groupId>io.rest-assured</groupId>
         <artifactId>rest-assured</artifactId>
-        <version>5.5.6</version>
+        <version>5.5.7</version>
       </dependency>
       <dependency>
         <groupId>org.junit</groupId>
         <artifactId>junit-bom</artifactId>
-        <version>5.12.0</version>
+        <version>6.0.3</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>5.19.0</version>
+        <version>5.23.0</version>
       </dependency>
       <dependency>
         <groupId>org.testcontainers</groupId>
         <artifactId>testcontainers-bom</artifactId>
-        <version>2.0.3</version>
+        <version>2.0.4</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -106,19 +106,19 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
-          <version>3.4.2</version>
+          <version>3.5.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-resources-plugin</artifactId>
-          <version>3.4.0</version>
+          <version>3.5.0</version>
         </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.14.0</version>
+        <version>3.15.0</version>
         <configuration>
           <release>21</release>
           <encoding>UTF-8</encoding>
@@ -153,12 +153,12 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.5.2</version>
+        <version>3.5.5</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <version>3.5.2</version>
+        <version>3.5.5</version>
         <executions>
           <execution>
             <goals>
@@ -171,7 +171,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.6.0</version>
+        <version>3.6.2</version>
         <configuration>
           <createDependencyReducedPom>false</createDependencyReducedPom>
         </configuration>
@@ -179,7 +179,7 @@
       <plugin>
         <!-- *-source.jar for https://repository.folio.org -->
         <artifactId>maven-source-plugin</artifactId>
-        <version>3.3.1</version>
+        <version>3.4.0</version>
         <executions>
           <execution>
             <id>attach-sources</id>
@@ -193,7 +193,7 @@
       <plugin>
         <!-- *-javadoc.jar for https://repository.folio.org -->
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.11.2</version>
+        <version>3.12.0</version>
         <executions>
           <execution>
             <id>attach-javadocs</id>
@@ -231,7 +231,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>3.5.0</version>
+        <version>3.6.0</version>
         <configuration>
           <configLocation>google_checks.xml</configLocation>
           <violationSeverity>warning</violationSeverity>
