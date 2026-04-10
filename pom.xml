@@ -54,6 +54,12 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <!-- remove org.folio:vertx-openapi when using vertx.version >= 5.1.0 -->
+      <dependency>
+        <groupId>org.folio</groupId>
+        <artifactId>vertx-openapi</artifactId>
+        <version>5.0.990</version>
+      </dependency>
       <dependency>
         <groupId>org.folio.okapi</groupId>
         <artifactId>okapi-common</artifactId>

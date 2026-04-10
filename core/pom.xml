@@ -21,12 +21,18 @@
       <artifactId>vertx-web-client</artifactId>
     </dependency>
     <dependency>
-      <groupId>io.vertx</groupId>
+      <groupId>org.folio</groupId>
       <artifactId>vertx-openapi</artifactId>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web-openapi-router</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>io.vertx</groupId>
+          <artifactId>vertx-openapi</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
