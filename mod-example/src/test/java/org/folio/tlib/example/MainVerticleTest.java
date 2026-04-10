@@ -195,9 +195,10 @@ class MainVerticleTest {
         .body("books[0].title", is("Second title"))
         .body("books[1].title", is("First title"));
 
+    // query string with double quotes https://folio-org.atlassian.net/browse/VERTXLIB-84
     RestAssured.given()
         .header(XOkapiHeaders.TENANT, TENANT)
-        .queryParam("query", "title=first")
+        .queryParam("query", "title=\"first\"")
         .get("/books")
         .then().statusCode(200)
         .contentType(ContentType.JSON)
