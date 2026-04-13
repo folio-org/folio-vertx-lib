@@ -1,3 +1,13 @@
+## 4.1.2 2026-04-10
+
+Bug fix release for Trillium:
+
+* [VERTXLIB-81](https://folio-org.atlassian.net/browse/VERTXLIB-81) testcontainers 2.0.3, junit5
+* [VERTXLIB-82](https://folio-org.atlassian.net/browse/VERTXLIB-82) org.testcontainers.postgresql.PostgreSQLContainer
+* [VERTXLIB-83](https://folio-org.atlassian.net/browse/VERTXLIB-83) Use central GitHub Workflows for Maven, delete Jenkinsfile
+* [VERTXLIB-84](https://folio-org.atlassian.net/browse/VERTXLIB-84) OpenAPI validation rejects parameters of type string with double-quotes - org.folio:vertx-openapi:5.0.990
+* [VERTXLIB-85](https://folio-org.atlassian.net/browse/VERTXLIB-85) Bump dependencies (Vertx 5.0.10, log4j 2.25.4, swagger-parser 2.1.39, …)
+
 ## 4.1.1 2025-12-19
 
 Bug fixes:
