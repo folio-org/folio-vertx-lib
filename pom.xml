@@ -30,7 +30,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <okapi.version>7.0.4</okapi.version>
-    <vertx.version>5.1.0</vertx.version>
+    <vertx.version>5.1.5</vertx.version>
   </properties>
   <modules>
     <module>openapi-deref-plugin</module>
@@ -54,7 +54,6 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
-      <!-- remove org.folio:vertx-openapi when using vertx.version >= 5.1.0 -->
       <dependency>
         <groupId>org.folio.okapi</groupId>
         <artifactId>okapi-common</artifactId>
@@ -286,6 +285,6 @@
   </distributionManagement>
   <issueManagement>
     <system>JIRA</system>
-    <url>https://issues.folio.org/browse/VERTXLIB</url>
+    <url>https://folio-org.atlassian.net/jira/software/c/projects/VERTXLIB/list</url>
   </issueManagement>
 </project>
