@@ -11,9 +11,9 @@ import io.vertx.sqlclient.PrepareOptions;
 import io.vertx.sqlclient.Tuple;
 import io.vertx.sqlclient.templates.SqlTemplate;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -129,7 +129,7 @@ class TenantPgPoolTest {
   void useSqlTemplate(Vertx vertx, VertxTestContext context) {
     withPool(vertx, pool ->
         SqlTemplate.forQuery(pool.getPool(), "SELECT count(*) FROM pg_database")
-            .execute(Collections.emptyMap()))
+            .execute(Map.of()))
         .onComplete(context.succeedingThenComplete());
   }
 

@@ -7,9 +7,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.sqlclient.RowIterator;
 import io.vertx.sqlclient.templates.SqlTemplate;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.folio.tlib.example.data.Book;
 import org.folio.tlib.postgres.PgCqlDefinition;
@@ -78,7 +77,7 @@ public class BookStorage {
     return SqlTemplate.forQuery(pool.getPool(), "SELECT * FROM " + getMyTable(pool)
             + " WHERE id=#{id}")
         .mapTo(Book::fromRow)
-        .execute(Collections.singletonMap("id", id))
+        .execute(Map.of("id", id))
         .map(rowSet -> {
           RowIterator<Book> iterator = rowSet.iterator();
           return iterator.hasNext() ? iterator.next() : null;
@@ -135,14 +134,8 @@ public class BookStorage {
    */
   public Future<List<Book>> getBooks(RoutingContext ctx) {
     String sql = createQueryMyTable(ctx, pool);
-    return SqlTemplate.forQuery(pool.getPool(), sql)
-        .mapTo(Book::fromRow)
-        .execute(Collections.emptyMap())
-        .map(rowSet -> {
-          List<Book> books = new LinkedList<>();
-          rowSet.forEach(books::add);
-          return books;
-        });
+    return pool.getPool().query(sql).execute()
+        .map(rowSet -> rowSet.stream().map(Book::fromRow).toList());
   }
 
 }
