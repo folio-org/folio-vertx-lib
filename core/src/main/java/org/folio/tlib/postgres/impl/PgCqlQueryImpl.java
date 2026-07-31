@@ -78,47 +78,49 @@ public class PgCqlQueryImpl implements PgCqlQuery {
     if (node == null) {
       return null;
     }
-    if (node instanceof CQLBooleanNode booleanNode) {
-      String left = handleWhere(booleanNode.getLeftOperand());
-      String right = handleWhere(booleanNode.getRightOperand());
-      switch (booleanNode.getOperator()) {
-        case OR:
-          if (right != null && left != null) {
-            return "(" + left + " OR " + right + ")";
-          }
-          return null;
-        case AND:
-          if (right != null && left != null) {
-            return "(" + left + " AND " + right + ")";
-          } else if (right != null) {
-            return right;
-          } else {
-            return left;
-          }
-        case NOT:
-          if (right != null && left != null) {
-            return "(" + left + " AND NOT " + right + ")";
-          } else if (right != null) {
-            return "NOT (" + right + ")";
-          }
-          return "FALSE";
-        default:
-          throw new PgCqlException("Unsupported operator "
-              + booleanNode.getOperator().name());
+    return switch (node) {
+      case CQLBooleanNode booleanNode -> handle(booleanNode);
+      case CQLTermNode termNode -> {
+        PgCqlFieldType type = pgCqlDefinition.getFieldType(termNode.getIndex());
+        if (type == null) {
+          throw new PgCqlException("Unsupported CQL index: " + termNode.getIndex());
+        }
+        yield type.handleTermNode(termNode);
       }
-    } else if (node instanceof CQLTermNode termNode) {
-      PgCqlFieldType type = pgCqlDefinition.getFieldType(termNode.getIndex());
-      if (type == null) {
-        throw new PgCqlException("Unsupported CQL index: " + termNode.getIndex());
-      }
-      return type.handleTermNode(termNode);
-    } else if (node instanceof CQLSortNode sortNode) {
-      return handleWhere(sortNode.getSubtree());
-    } else if (node instanceof CQLPrefixNode prefixNode) {
-      return handleWhere(prefixNode.getSubtree());
+      case CQLSortNode sortNode -> handleWhere(sortNode.getSubtree());
+      case CQLPrefixNode prefixNode -> handleWhere(prefixNode.getSubtree());
+      default -> throw new PgCqlException("Unsupported CQL construct: " + node.toCQL());
+    };
+  }
+
+  private String handle(CQLBooleanNode booleanNode) {
+    String left = handleWhere(booleanNode.getLeftOperand());
+    String right = handleWhere(booleanNode.getRightOperand());
+    switch (booleanNode.getOperator()) {
+      case OR:
+        if (right != null && left != null) {
+          return "(" + left + " OR " + right + ")";
+        }
+        return null;
+      case AND:
+        if (right != null && left != null) {
+          return "(" + left + " AND " + right + ")";
+        } else if (right != null) {
+          return right;
+        } else {
+          return left;
+        }
+      case NOT:
+        if (right != null && left != null) {
+          return "(" + left + " AND NOT " + right + ")";
+        } else if (right != null) {
+          return "NOT (" + right + ")";
+        }
+        return "FALSE";
+      default:
+        throw new PgCqlException("Unsupported operator "
+            + booleanNode.getOperator().name());
     }
-    // other node types unsupported, for example proximity
-    throw new PgCqlException("Unsupported CQL construct: " + node.toCQL());
   }
 
   String handleOrderBy(CQLNode node, boolean includeOps) {
