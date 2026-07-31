@@ -1,5 +1,7 @@
 package org.folio.tlib.api;
 
+import static org.folio.tlib.util.BooleanUtils.isTrue;
+
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -98,12 +100,12 @@ public class Tenant2Api implements RouterCreator {
     var vertx = tenantInitConf.vertx();
     var tenant = tenantInitConf.tenant();
     var tenantAttributes = tenantInitConf.tenantAttributes();
-    log.info("postTenant got {}", tenantAttributes.encode());
+    log.info("postTenant got {}", tenantAttributes::encode);
     TenantPgPool tenantPgPool = TenantPgPool.pool(vertx, tenant);
     String schema = tenantPgPool.getSchema();
     return hooks.preInit(tenantInitConf)
         .compose(res -> {
-          if (Boolean.TRUE.equals(tenantAttributes.getBoolean("purge"))) {
+          if (isTrue(tenantAttributes.getBoolean("purge"))) {
             return tenantPgPool.execute(List.of(
                 "DROP SCHEMA IF EXISTS " + schema + " CASCADE",
                 "DROP ROLE IF EXISTS " + schema
@@ -114,7 +116,7 @@ public class Tenant2Api implements RouterCreator {
               .execute()
               .map(rowSet -> rowSet.iterator().next().getBoolean(0))
               .compose(exists -> {
-                if (exists) {
+                if (isTrue(exists)) {
                   return Future.succeededFuture();
                 }
                 return tenantPgPool.execute(List.of(

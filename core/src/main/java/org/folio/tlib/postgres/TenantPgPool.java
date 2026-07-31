@@ -36,6 +36,7 @@ public interface TenantPgPool extends Pool {
    * @param poolKey pool key.
    * @return pool.
    */
+  @SuppressWarnings("java:S2583")  // public API needs both @NotNull and "tenant == null" check
   static TenantPgPool pool(Vertx vertx, @NotNull String tenant, @NotNull String poolKey) {
     if (tenant == null) {
       throw new IllegalArgumentException("Tenant must not be null");

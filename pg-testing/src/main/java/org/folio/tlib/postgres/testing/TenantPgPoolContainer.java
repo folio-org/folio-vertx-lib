@@ -12,6 +12,9 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 public final class TenantPgPoolContainer {
   private static final String POSTGRES_IMAGE = postgresImage(System.getenv());
 
+  private TenantPgPoolContainer() {
+  }
+
   /**
    * Create PostgreSQL container for TenantPgPool.
    *

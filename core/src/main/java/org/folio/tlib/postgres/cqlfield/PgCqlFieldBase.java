@@ -48,8 +48,7 @@ public abstract class PgCqlFieldBase implements PgCqlFieldType {
     switch (base) {
       case "==":
         return "=";
-      case "=":
-      case "<>":
+      case "=", "<>":
         return base;
       default:
         throw new PgCqlException("Unsupported operator", termNode);
@@ -68,12 +67,7 @@ public abstract class PgCqlFieldBase implements PgCqlFieldType {
     switch (base) {
       case "==":
         return "=";
-      case "=":
-      case "<>":
-      case ">":
-      case "<":
-      case "<=":
-      case ">=":
+      case "=", "<>", ">", "<", "<=", ">=":
         return base;
       default:
         throw new PgCqlException("Unsupported operator", termNode);
