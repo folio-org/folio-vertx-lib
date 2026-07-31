@@ -1,3 +1,12 @@
+## 4.1.3 2026-07-30
+
+Bug fix release for Trillium:
+
+* [VERTXLIB-86](https://folio-org.atlassian.net/browse/VERTXLIB-86) Vert.x 5.1.0, okapi-common 7.0.4
+* [VERTXLIB-87](https://folio-org.atlassian.net/browse/VERTXLIB-87) Vertx 5.0.5, Netty 4.2.16, Jackson 2.21.5/3.1.5
+* [#135](https://github.com/folio-org/folio-vertx-lib/pull/135) Avoid SqlTemplate; replace Collections.* with Map.of
+* [VERTXLIB-88](https://folio-org.atlassian.net/browse/VERTXLIB-88) swagger-parser 2.1.45, rhino 1.7.15.1
+
 ## 4.1.2 2026-04-10
 
 Bug fix release for Trillium:
