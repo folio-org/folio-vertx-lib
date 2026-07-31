@@ -113,11 +113,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
       char c = cqlTerm.charAt(i);
       if (backslash) {
         switch (c) {
-          case '*':
-          case '\"':
-          case '?':
-          case '^':
-          case '\\':
+          case '*', '\"', '?', '^', '\\':
             pgTerm.append(c);
             break;
           default:
@@ -170,10 +166,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
       char c = cqlTerm.charAt(i);
       if (backslash) {
         switch (c) {
-          case '*':
-          case '?':
-          case '^':
-          case '\"':
+          case '*', '?', '^', '\"':
             pgTerm.append(c);
             break;
           case '\\':
@@ -198,8 +191,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
             throw new PgCqlException("Anchor op ^ unsupported", termNode);
           case '\\':
             break;
-          case '%':
-          case '_':
+          case '%', '_':
             pgTerm.append('\\');
             pgTerm.append(c);
             break;

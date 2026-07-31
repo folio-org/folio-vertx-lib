@@ -2,6 +2,7 @@ package org.folio.tlib.postgres;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -33,7 +34,7 @@ import org.testcontainers.utility.MountableFile;
 @Testcontainers
 @ExtendWith({VertxExtension.class})
 class TenantPgPoolTest {
-  private final static Logger log = LogManager.getLogger(TenantPgPoolTest.class);
+  private static final Logger log = LogManager.getLogger(TenantPgPoolTest.class);
 
   @Container
   public static PostgreSQLContainer postgresSQLContainer = TenantPgPoolContainer.create();
@@ -113,6 +114,12 @@ class TenantPgPoolTest {
     TenantPgPoolImpl.setModule(null);
     Assertions.assertThrows(IllegalStateException.class, () -> TenantPgPoolImpl.tenantPgPool(vertx, "diku", ""));
     context.completeNow();
+  }
+
+  @Test
+  void nullTenant(Vertx vertx) {
+    var e = assertThrows(IllegalArgumentException.class, () -> TenantPgPool.pool(vertx, null, "key"));
+    assertThat(e.getMessage(), is("Tenant must not be null"));
   }
 
   @Test

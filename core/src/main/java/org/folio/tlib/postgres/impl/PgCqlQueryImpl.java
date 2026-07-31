@@ -43,8 +43,7 @@ public class PgCqlQueryImpl implements PgCqlQuery {
         // get rid of sortby as it can't be combined and we don't
         // it for sorting anyway.
         CQLNode node = parser.parse(query);
-        if (node instanceof CQLSortNode) {
-          CQLSortNode cqlSortNode = (CQLSortNode) node;
+        if (node instanceof CQLSortNode cqlSortNode) {
           node = cqlSortNode.getSubtree();
         }
         resultingQuery = "(" + node.toCQL() + ") AND (" + q2 + ")";
@@ -79,8 +78,7 @@ public class PgCqlQueryImpl implements PgCqlQuery {
     if (node == null) {
       return null;
     }
-    if (node instanceof CQLBooleanNode) {
-      CQLBooleanNode booleanNode = (CQLBooleanNode) node;
+    if (node instanceof CQLBooleanNode booleanNode) {
       String left = handleWhere(booleanNode.getLeftOperand());
       String right = handleWhere(booleanNode.getRightOperand());
       switch (booleanNode.getOperator()) {
@@ -108,18 +106,15 @@ public class PgCqlQueryImpl implements PgCqlQuery {
           throw new PgCqlException("Unsupported operator "
               + booleanNode.getOperator().name());
       }
-    } else if (node instanceof CQLTermNode) {
-      CQLTermNode termNode = (CQLTermNode) node;
+    } else if (node instanceof CQLTermNode termNode) {
       PgCqlFieldType type = pgCqlDefinition.getFieldType(termNode.getIndex());
       if (type == null) {
         throw new PgCqlException("Unsupported CQL index: " + termNode.getIndex());
       }
       return type.handleTermNode(termNode);
-    } else if (node instanceof CQLSortNode) {
-      CQLSortNode sortNode = (CQLSortNode) node;
+    } else if (node instanceof CQLSortNode sortNode) {
       return handleWhere(sortNode.getSubtree());
-    } else if (node instanceof CQLPrefixNode) {
-      CQLPrefixNode prefixNode = (CQLPrefixNode) node;
+    } else if (node instanceof CQLPrefixNode prefixNode) {
       return handleWhere(prefixNode.getSubtree());
     }
     // other node types unsupported, for example proximity
@@ -130,11 +125,10 @@ public class PgCqlQueryImpl implements PgCqlQuery {
     if (node == null) {
       return null;
     }
-    if (node instanceof CQLSortNode) {
+    if (node instanceof CQLSortNode sortNode) {
       StringBuilder res = new StringBuilder();
-      CQLSortNode sortNode = (CQLSortNode) node;
       for (ModifierSet modifierSet : sortNode.getSortIndexes()) {
-        if (res.length() > 0) {
+        if (!res.isEmpty()) {
           res.append(", ");
         }
         PgCqlFieldType type = pgCqlDefinition.getFieldType(modifierSet.getBase());
@@ -161,8 +155,7 @@ public class PgCqlQueryImpl implements PgCqlQuery {
         }
       }
       return res.toString();
-    } else if (node instanceof CQLPrefixNode) {
-      CQLPrefixNode prefixNode = (CQLPrefixNode) node;
+    } else if (node instanceof CQLPrefixNode prefixNode) {
       return handleOrderBy(prefixNode.getSubtree(), includeOps);
     } else {
       return null;

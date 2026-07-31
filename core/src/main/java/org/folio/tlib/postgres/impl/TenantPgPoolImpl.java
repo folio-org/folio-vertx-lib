@@ -255,7 +255,9 @@ public class TenantPgPoolImpl implements TenantPgPool {
   @Override
   public Future<Void> close() {
     // release our pool from the map
-    while (pgPoolMap.values().remove(pgPool)) { }
+    while (pgPoolMap.values().remove(pgPool)) {
+      // continue
+    }
     return pgPool.close();
   }
 
