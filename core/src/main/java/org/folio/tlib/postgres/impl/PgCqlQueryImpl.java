@@ -125,40 +125,40 @@ public class PgCqlQueryImpl implements PgCqlQuery {
     if (node == null) {
       return null;
     }
-    if (node instanceof CQLSortNode sortNode) {
-      StringBuilder res = new StringBuilder();
-      for (ModifierSet modifierSet : sortNode.getSortIndexes()) {
-        if (!res.isEmpty()) {
-          res.append(", ");
-        }
-        PgCqlFieldType type = pgCqlDefinition.getFieldType(modifierSet.getBase());
-        if (type == null) {
-          throw new PgCqlException("Unsupported CQL index: " + modifierSet.getBase());
-        }
-        res.append(type.getColumn());
-        if (includeOps) {
-          res.append(" ");
-          String desc = "ASC";
-          for (Modifier modifier : modifierSet.getModifiers()) {
-            switch (modifier.getType()) {
-              case "sort.ascending":
-                break;
-              case "sort.descending":
-                desc = "DESC";
-                break;
-              default:
-                throw new PgCqlException("Unsupported sort modifier: "
-                    + modifier.getType());
-            }
+    return switch (node) {
+      case CQLSortNode sortNode -> {
+        StringBuilder res = new StringBuilder();
+        for (ModifierSet modifierSet : sortNode.getSortIndexes()) {
+          if (!res.isEmpty()) {
+            res.append(", ");
           }
-          res.append(desc);
+          PgCqlFieldType type = pgCqlDefinition.getFieldType(modifierSet.getBase());
+          if (type == null) {
+            throw new PgCqlException("Unsupported CQL index: " + modifierSet.getBase());
+          }
+          res.append(type.getColumn());
+          if (includeOps) {
+            res.append(" ");
+            String desc = "ASC";
+            for (Modifier modifier : modifierSet.getModifiers()) {
+              switch (modifier.getType()) {
+                case "sort.ascending":
+                  break;
+                case "sort.descending":
+                  desc = "DESC";
+                  break;
+                default:
+                  throw new PgCqlException("Unsupported sort modifier: "
+                      + modifier.getType());
+              }
+            }
+            res.append(desc);
+          }
         }
+        yield res.toString();
       }
-      return res.toString();
-    } else if (node instanceof CQLPrefixNode prefixNode) {
-      return handleOrderBy(prefixNode.getSubtree(), includeOps);
-    } else {
-      return null;
-    }
+      case CQLPrefixNode prefixNode -> handleOrderBy(prefixNode.getSubtree(), includeOps);
+      default -> null;
+    };
   }
 }
