@@ -44,9 +44,47 @@ public interface TenantPgPool extends Pool {
     return TenantPgPoolImpl.tenantPgPool(vertx, tenant, poolKey);
   }
 
+  /**
+   * Execute an SQL query.
+   *
+   * @param sql the SQL statement
+   * @return async result from database
+   */
+  Future<RowSet<Row>> execute(String sql);
+
+  /**
+   * Execute an SQL query and return the first Row.
+   *
+   * @param sql the SQL statement
+   * @return async first Row from the database, or null if none
+   */
+  Future<Row> executeSingle(String sql);
+
+  /**
+   * Execute a list of queries.
+   *
+   * @param queries executed in order; processing is stopped if any queries fail.
+   * @return async result.
+   */
   Future<Void> execute(List<String> queries);
 
+  /**
+   * Execute prepared query.
+   *
+   * @param sql query
+   * @param tuple tuple
+   * @return async result rowset
+   */
   Future<RowSet<Row>> execute(String sql, Tuple tuple);
+
+  /**
+   * Execute prepared query and return the first Row.
+   *
+   * @param sql query
+   * @param tuple tuple
+   * @return async first Row from the database, or null if none
+   */
+  Future<Row> executeSingle(String sql, Tuple tuple);
 
   Pool getPool();
 

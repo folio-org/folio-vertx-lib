@@ -261,12 +261,20 @@ public class TenantPgPoolImpl implements TenantPgPool {
     return pgPool.close();
   }
 
-  /**
-   * Execute a list of queries.
-   *
-   * @param queries executed in order; processing is stopped if any queries fail.
-   * @return async result.
-   */
+  @Override
+  public Future<RowSet<Row>> execute(String sql) {
+    return query(sql).execute();
+  }
+
+  @Override
+  public Future<Row> executeSingle(String sql) {
+    return query(sql).execute()
+        .map(rowSet -> {
+          var iterator = rowSet.iterator();
+          return iterator.hasNext() ? iterator.next() : null;
+        });
+  }
+
   @Override
   public Future<Void> execute(List<String> queries) {
     Future<RowSet<Row>> future = Future.succeededFuture();
@@ -277,13 +285,6 @@ public class TenantPgPoolImpl implements TenantPgPool {
     return future.mapEmpty();
   }
 
-  /**
-   * Execute prepared query.
-   *
-   * @param sql query
-   * @param tuple tuple
-   * @return async result rowset
-   */
   @Override
   public Future<RowSet<Row>> execute(String sql, Tuple tuple) {
     Future<Void> future = Future.succeededFuture();
@@ -291,6 +292,15 @@ public class TenantPgPoolImpl implements TenantPgPool {
       future = explainAnalyze(sql, tuple);
     }
     return future.compose(x -> preparedQuery(sql).execute(tuple));
+  }
+
+  @Override
+  public Future<Row> executeSingle(String sql, Tuple tuple) {
+    return execute(sql, tuple)
+        .map(rowSet -> {
+          var iterator = rowSet.iterator();
+          return iterator.hasNext() ? iterator.next() : null;
+        });
   }
 
   Future<Void> explainAnalyze(String sql, Tuple tuple) {
