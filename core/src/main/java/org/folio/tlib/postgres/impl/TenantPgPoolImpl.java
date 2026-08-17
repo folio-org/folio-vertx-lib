@@ -267,15 +267,6 @@ public class TenantPgPoolImpl implements TenantPgPool {
   }
 
   @Override
-  public Future<Row> executeSingle(String sql) {
-    return query(sql).execute()
-        .map(rowSet -> {
-          var iterator = rowSet.iterator();
-          return iterator.hasNext() ? iterator.next() : null;
-        });
-  }
-
-  @Override
   public Future<Void> execute(List<String> queries) {
     Future<RowSet<Row>> future = Future.succeededFuture();
     for (String cmd : queries) {
@@ -292,6 +283,15 @@ public class TenantPgPoolImpl implements TenantPgPool {
       future = explainAnalyze(sql, tuple);
     }
     return future.compose(x -> preparedQuery(sql).execute(tuple));
+  }
+
+  @Override
+  public Future<Row> executeSingle(String sql) {
+    return query(sql).execute()
+        .map(rowSet -> {
+          var iterator = rowSet.iterator();
+          return iterator.hasNext() ? iterator.next() : null;
+        });
   }
 
   @Override

@@ -53,14 +53,6 @@ public interface TenantPgPool extends Pool {
   Future<RowSet<Row>> execute(String sql);
 
   /**
-   * Execute an SQL query and return the first Row.
-   *
-   * @param sql the SQL statement
-   * @return async first Row from the database, or null if none
-   */
-  Future<Row> executeSingle(String sql);
-
-  /**
    * Execute a list of queries.
    *
    * @param queries executed in order; processing is stopped if any queries fail.
@@ -76,6 +68,14 @@ public interface TenantPgPool extends Pool {
    * @return async result rowset
    */
   Future<RowSet<Row>> execute(String sql, Tuple tuple);
+
+  /**
+   * Execute an SQL query and return the first Row.
+   *
+   * @param sql the SQL statement
+   * @return async first Row from the database, or null if none
+   */
+  Future<Row> executeSingle(String sql);
 
   /**
    * Execute prepared query and return the first Row.
