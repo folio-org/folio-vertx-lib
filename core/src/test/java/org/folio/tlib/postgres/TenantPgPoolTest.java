@@ -2,13 +2,18 @@ package org.folio.tlib.postgres;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.sqlclient.PrepareOptions;
+import io.vertx.sqlclient.Row;
+import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.Tuple;
 import io.vertx.sqlclient.templates.SqlTemplate;
 import java.io.IOException;
@@ -181,20 +186,54 @@ class TenantPgPoolTest {
   }
 
   @Test
-  @SuppressWarnings("squid:S2699") // "Add at least one assertion" SQ does not know about context.*
-  void getConnection1(Vertx vertx, VertxTestContext context) {
+  void getConnection1(Vertx vertx, VertxTestContext vtc) {
     withPool(vertx, pool -> pool.withConnection(con ->
-        con.query("SELECT count(*) FROM pg_database").execute()))
-    .onComplete(context.succeedingThenComplete());
+        con.query("SELECT 5").execute()))
+    .onComplete(assertRowSetIntThenComplete(vtc, 5));
   }
 
   @Test
-  @SuppressWarnings("squid:S2699") // "Add at least one assertion" SQ does not know about context.*
-  void getConnection2(Vertx vertx, VertxTestContext context) {
+  void getConnection2(Vertx vertx, VertxTestContext vtc) {
     withPool(vertx, pool ->
         pool.getConnection()
-        .compose(con -> con.query("SELECT count(*) FROM pg_database").execute()))
-    .onComplete(context.succeedingThenComplete());
+        .compose(con -> con.query("SELECT 6").execute()))
+    .onComplete(assertRowSetIntThenComplete(vtc, 6));
+  }
+
+  @Test
+  void execute(Vertx vertx, VertxTestContext vtc) {
+    withPool(vertx, pool -> pool.execute("SELECT 7"))
+    .onComplete(assertRowSetIntThenComplete(vtc, 7));
+  }
+
+  @Test
+  void executeSingle(Vertx vertx, VertxTestContext vtc) {
+    withPool(vertx, pool -> pool.executeSingle("SELECT 8"))
+    .onComplete(assertIntThenComplete(vtc, 8));
+  }
+
+  @Test
+  void executeSingleNull(Vertx vertx, VertxTestContext vtc) {
+    withPool(vertx, pool -> pool.executeSingle("SELECT 9 WHERE FALSE"))
+    .onComplete(vtc.succeeding(row -> {
+      assertThat(row, is(nullValue()));
+      vtc.completeNow();
+    }));
+  }
+
+  @Test
+  void executeSingleTuple(Vertx vertx, VertxTestContext vtc) {
+    withPool(vertx, pool -> pool.executeSingle("SELECT $1::int", Tuple.of(10)))
+    .onComplete(assertIntThenComplete(vtc, 10));
+  }
+
+  @Test
+  void executeSingleTupleNull(Vertx vertx, VertxTestContext vtc) {
+    withPool(vertx, pool -> pool.executeSingle("SELECT $1::int WHERE FALSE", Tuple.of(11)))
+    .onComplete(vtc.succeeding(row -> {
+      assertThat(row, is(nullValue()));
+      vtc.completeNow();
+    }));
   }
 
   @Test
@@ -281,4 +320,17 @@ class TenantPgPoolTest {
     TenantPgPool.closeAll().onComplete(context.succeedingThenComplete());
   }
 
+  Handler<AsyncResult<Row>> assertIntThenComplete(VertxTestContext vtc, int expected) {
+    return vtc.succeeding(row -> {
+      assertThat(row.getInteger(0), is(expected));
+      vtc.completeNow();
+    });
+  }
+
+  Handler<AsyncResult<RowSet<Row>>> assertRowSetIntThenComplete(VertxTestContext vtc, int expected) {
+    return vtc.succeeding(rowSet -> {
+      assertThat(rowSet.iterator().next().getInteger(0), is(expected));
+      vtc.completeNow();
+    });
+  }
 }
