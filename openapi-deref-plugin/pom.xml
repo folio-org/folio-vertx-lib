@@ -70,6 +70,8 @@
         <executions>
           <execution>
             <id>default-descriptor</id>
+            <!-- Make the plugin available to reactor modules during mvn compile. -->
+            <phase>compile</phase>
             <goals>
               <goal>descriptor</goal>
             </goals>
