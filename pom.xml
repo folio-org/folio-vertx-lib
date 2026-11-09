@@ -122,17 +122,6 @@
         <configuration>
           <release>21</release>
           <encoding>UTF-8</encoding>
-          <annotationProcessors>
-            <annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>
-          </annotationProcessors>
-          <annotationProcessorPaths>
-            <path>
-              <groupId>io.vertx</groupId>
-              <artifactId>vertx-codegen</artifactId>
-              <version>${vertx.version}</version>
-              <classifier>processor</classifier>
-            </path>
-          </annotationProcessorPaths>
         </configuration>
       </plugin>
       <plugin>
