@@ -24,7 +24,7 @@ public class PgCqlFieldUuid extends PgCqlFieldBase implements PgCqlFieldType {
       String op = handleUnorderedRelation(termNode);
       return column + op + pgTerm;
     } catch (IllegalArgumentException e) {
-      throw new PgCqlException("Invalid UUID", termNode);
+      throw new PgCqlException("Invalid UUID");
     }
   }
 }

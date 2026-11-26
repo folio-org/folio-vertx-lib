@@ -118,17 +118,17 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
             break;
           default:
             throw new PgCqlException("A masking backslash in a CQL string must be followed by"
-                + " *, ?, ^, \" or \\", termNode);
+                + " *, ?, ^, \" or \\");
         }
         backslash = false;
       } else {
         switch (c) {
           case '*':
-            throw new PgCqlException("Masking op * unsupported", termNode);
+            throw new PgCqlException("Masking op * unsupported");
           case '?':
-            throw new PgCqlException("Masking op ? unsupported", termNode);
+            throw new PgCqlException("Masking op ? unsupported");
           case '^':
-            throw new PgCqlException("Anchor op ^ unsupported", termNode);
+            throw new PgCqlException("Anchor op ^ unsupported");
           case '\\':
             break;
           case '\'':
@@ -141,7 +141,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
       }
     }
     if (backslash) {
-      throw new PgCqlException("A CQL string must not end with a masking backslash", termNode);
+      throw new PgCqlException("A CQL string must not end with a masking backslash");
     }
     return pgTerm.toString();
   }
@@ -174,7 +174,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
             break;
           default:
             throw new PgCqlException("A masking backslash in a CQL string must be followed by"
-                + " *, ?, ^, \" or \\", termNode);
+                + " *, ?, ^, \" or \\");
         }
         backslash = false;
       } else {
@@ -188,7 +188,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
             ops = true;
             break;
           case '^':
-            throw new PgCqlException("Anchor op ^ unsupported", termNode);
+            throw new PgCqlException("Anchor op ^ unsupported");
           case '\\':
             break;
           case '%', '_':
@@ -205,7 +205,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
       }
     }
     if (backslash) {
-      throw new PgCqlException("A CQL string must not end with a masking backslash", termNode);
+      throw new PgCqlException("A CQL string must not end with a masking backslash");
     }
     return ops;
   }
@@ -229,7 +229,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
     String s = handleEmptyTerm(termNode);
     if (s != null) {
       if (!enableExact) {
-        throw new PgCqlException("= \"\" (not null test) is not supported", termNode);
+        throw new PgCqlException("= \"\" (not null test) is not supported");
       }
       return s;
     }
@@ -249,7 +249,7 @@ public class PgCqlFieldText extends PgCqlFieldBase implements PgCqlFieldType {
           + language + "', '" + pgTerm + "')";
     }
     if (!enableExact) {
-      throw new PgCqlException("Unsupported operator", termNode);
+      throw new PgCqlException("Unsupported operator");
     }
     if (enableLike && ("=".equals(base) || "==".equals(base) || "<>".equals(base))) {
       StringBuilder cqlTerm = new StringBuilder();

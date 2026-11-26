@@ -21,7 +21,7 @@ public class PgCqlFieldBoolean extends PgCqlFieldBase implements PgCqlFieldType 
     } else if ("true".equalsIgnoreCase(cqlTerm)) {
       pgTerm = "TRUE";
     } else {
-      throw new PgCqlException("Bad boolean", termNode);
+      throw new PgCqlException("Bad boolean");
     }
     return column + handleUnorderedRelation(termNode) + pgTerm;
   }

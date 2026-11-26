@@ -28,7 +28,7 @@ public class PgCqlFieldNumber extends PgCqlFieldBase implements PgCqlFieldType {
     }
     String cqlTerm = termNode.getTerm();
     if (!POSTGRES_NUMBER_REGEXP.matcher(cqlTerm).matches()) {
-      throw new PgCqlException("Bad numeric", termNode);
+      throw new PgCqlException("Bad numeric");
     }
     return column + handleOrderedRelation(termNode) + cqlTerm;
   }

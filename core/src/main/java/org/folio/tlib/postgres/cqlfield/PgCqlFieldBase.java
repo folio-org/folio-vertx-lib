@@ -51,7 +51,7 @@ public abstract class PgCqlFieldBase implements PgCqlFieldType {
       case "=", "<>":
         return base;
       default:
-        throw new PgCqlException("Unsupported operator", termNode);
+        throw new PgCqlException("Unsupported operator");
     }
   }
 
@@ -70,7 +70,7 @@ public abstract class PgCqlFieldBase implements PgCqlFieldType {
       case "=", "<>", ">", "<", "<=", ">=":
         return base;
       default:
-        throw new PgCqlException("Unsupported operator", termNode);
+        throw new PgCqlException("Unsupported operator");
     }
   }
 }
